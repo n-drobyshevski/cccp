@@ -37,7 +37,7 @@ export function closePopovers(restore) {
 
 /**
  * Open `safe` (SafeHtml) under `anchor`. Returns {el, close, update(safe)}; update re-renders
- * in place and keeps focus and scroll. opts: label (aria-label), align ('start'|'end'), onClose.
+ * in place and keeps focus and scroll; setAnchor(el) re-points it after the trigger was re-rendered. opts: label (aria-label), align ('start'|'end'), onClose.
  */
 export function openPopover(anchor, safe, opts) {
   const o = opts || {};
@@ -54,9 +54,9 @@ export function openPopover(anchor, safe, opts) {
   anchor.setAttribute("aria-expanded", "true");
   const cur = {
     pop, anchor, onClose: o.onClose,
-    onDown: (ev) => { if (!pop.contains(ev.target) && !anchor.contains(ev.target)) closePopovers(false); },
+    onDown: (ev) => { if (!pop.contains(ev.target) && !cur.anchor.contains(ev.target)) closePopovers(false); },
     onKey: (ev) => { if (ev.key === "Escape") { ev.stopPropagation(); closePopovers(true); } },
-    onResize: () => place(pop, anchor, o.align),
+    onResize: () => place(pop, cur.anchor, o.align),
   };
   open = cur;
   document.addEventListener("pointerdown", cur.onDown, true);
@@ -67,7 +67,14 @@ export function openPopover(anchor, safe, opts) {
   return {
     el: pop,
     close: () => { if (open === cur) closePopovers(true); },
-    update: (next) => { renderRegion(pop, next); place(pop, anchor, o.align); },
+    update: (next) => { renderRegion(pop, next); place(pop, cur.anchor, o.align); },
+    // The trigger was re-rendered: point Escape, outside press and placement at the new node.
+    setAnchor: (el) => {
+      if (open !== cur || !el) return;
+      cur.anchor = el;
+      el.setAttribute("aria-expanded", "true");
+      place(pop, el, o.align);
+    },
   };
 }
 

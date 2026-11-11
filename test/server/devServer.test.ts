@@ -78,4 +78,20 @@ describe.skipIf(!hasChrome)("dev server on :8791", () => {
     expect(empty).toBeNull();
     await page.close();
   }, 60_000);
+  it("api_reloadData works for the owner and is forbidden for viewer@example.com", async () => {
+    const page = await browser.newPage();
+    await page.goto(BASE + "/");
+    const owner = await page.evaluate(() => window.api_reloadData({}));
+    expect(owner.ok).toBe(true);
+    expect(owner.data.tabs.map((t: { key: string }) => t.key)).toEqual(["apps", "ciat", "aud", "drp", "plat"]);
+    expect(owner.data.dataVersion).toBe(1);
+    await page.goto(BASE + "/?as=viewer@example.com");
+    const viewer = await page.evaluate(() => window.api_reloadData({}));
+    expect(viewer).toMatchObject({ ok: false, errorKind: "forbidden" });
+    const viaRun = await page.evaluate(
+      () => new Promise((resolve, reject) => window.google.script.run.withSuccessHandler(resolve).withFailureHandler(reject).api_reloadData({})),
+    );
+    expect(viaRun).toMatchObject({ ok: false, errorKind: "forbidden" });
+    await page.close();
+  }, 60_000);
 });

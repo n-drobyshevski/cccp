@@ -6,11 +6,17 @@
 // run(), logAccessChange, getAccess, saveAccess and saveAdmins; run() checks the role before
 // the body; the errorKinds busy and conflict are added; the URL endpoints are gone.
 
-import { BUILD_ID } from "../vendor/gas_shared/server/buildInfo";
+import type { BootstrapResponse, RegisterPayload, SaveSettingsResponse, SettingsResponse, SourceMeta } from "../domain/payload";
+import type { SavedView } from "../domain/types";
 import * as access from "./access";
+import { getBootstrap } from "./bootstrap";
+import { diagnosticsReport, type DiagnosticsReport } from "./diagnostics";
 import { ApiError, recordError, type ErrorKind } from "./errors";
 import { PROP_KEYS, setProp } from "./props";
+import { getRegisterPayload, reloadRegister } from "./registerStore";
 import { requireRole } from "./roles";
+import { getSettingsView, saveSettings as saveSettingsStore } from "./settingsStore";
+import { deleteSharedView as deleteSharedViewStore, saveSharedView as saveSharedViewStore } from "./sharedViews";
 
 export interface ApiResult<T = unknown> {
   ok: boolean;
@@ -36,9 +42,14 @@ function run<T>(name: string, fn: () => T): ApiResult<T> {
   }
 }
 
-/** Stub: the real bootstrap (cached core plus live fields) arrives with the data path. */
-export function bootstrap(_p?: unknown): ApiResult<{ stub: true; buildId: string }> {
-  return run("bootstrap", () => ({ stub: true as const, buildId: BUILD_ID }));
+/** The cached viewer-free core, the live per-viewer part and, when warm and small, the register. */
+export function bootstrap(_p?: unknown): ApiResult<BootstrapResponse> {
+  return run("bootstrap", () => getBootstrap());
+}
+
+/** The whole register, encoded. Any allowed caller. */
+export function getRegister(_p?: unknown): ApiResult<RegisterPayload> {
+  return run("getRegister", () => getRegisterPayload());
 }
 
 /**
@@ -114,4 +125,54 @@ export function saveAccessMode(p?: { mode?: unknown }): ApiResult<{ mode: access
     }));
     return { mode };
   });
+}
+
+/** Settings, with each configured tab's headers and an example value per header. Admin. */
+export function getSettings(_p?: unknown): ApiResult<SettingsResponse> {
+  return run("getSettings", () => {
+    if (!access.canEditSettings()) throw new Error("Only the owner or an admin can open the settings.");
+    return getSettingsView();
+  });
+}
+
+/**
+ * One save of a partial settings update, under the script lock, against the generation the
+ * caller opened (a stale one is a conflict). Changing source.sheetId is OWNER ONLY, re-checked
+ * in the store as well as here.
+ */
+export function saveSettings(p?: { patch?: unknown; baseGen?: unknown }): ApiResult<SaveSettingsResponse> {
+  return run("saveSettings", () => {
+    if (!access.canEditSettings()) throw new Error("Only the owner or an admin can change the settings.");
+    return saveSettingsStore(p?.patch, p?.baseGen, { actor: access.check().email, isOwner: access.canEditSource() });
+  });
+}
+
+/** Re-read the Sheet now: bumps the data version and primes the cache. Admin. */
+export function reloadData(_p?: unknown): ApiResult<SourceMeta> {
+  return run("reloadData", () => {
+    if (!access.canEditSettings()) throw new Error("Only the owner or an admin can reload the data.");
+    console.log(JSON.stringify({ reload: "data", actor: access.check().email }));
+    return reloadRegister();
+  });
+}
+
+/** Add or replace a shared view. Admin. */
+export function saveSharedView(p?: { view?: unknown }): ApiResult<{ views: SavedView[]; id: string }> {
+  return run("saveSharedView", () => {
+    if (!access.canEditSettings()) throw new Error("Only the owner or an admin can share a view.");
+    return saveSharedViewStore(p?.view, access.check().email);
+  });
+}
+
+/** Remove a shared view. Admin. */
+export function deleteSharedView(p?: { id?: unknown }): ApiResult<{ views: SavedView[] }> {
+  return run("deleteSharedView", () => {
+    if (!access.canEditSettings()) throw new Error("Only the owner or an admin can delete a shared view.");
+    return deleteSharedViewStore(p?.id, access.check().email);
+  });
+}
+
+/** The diagnostics report. Admin. Never throws. */
+export function getDiagnostics(_p?: unknown): ApiResult<DiagnosticsReport> {
+  return run("getDiagnostics", () => diagnosticsReport());
 }

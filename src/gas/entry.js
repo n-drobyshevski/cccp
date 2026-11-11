@@ -42,10 +42,17 @@ function timedApi_(name, params) {
 /* One per export in src/server/api.ts, in that file's order. */
 
 function api_bootstrap(p) { return timedApi_("bootstrap", p); }
+function api_getRegister(p) { return timedApi_("getRegister", p); }
 function api_getAccess(p) { return timedApi_("getAccess", p); }
 function api_saveAccess(p) { return timedApi_("saveAccess", p); }
 function api_saveAdmins(p) { return timedApi_("saveAdmins", p); }
 function api_saveAccessMode(p) { return timedApi_("saveAccessMode", p); }
+function api_getSettings(p) { return timedApi_("getSettings", p); }
+function api_saveSettings(p) { return timedApi_("saveSettings", p); }
+function api_reloadData(p) { return timedApi_("reloadData", p); }
+function api_saveSharedView(p) { return timedApi_("saveSharedView", p); }
+function api_deleteSharedView(p) { return timedApi_("deleteSharedView", p); }
+function api_getDiagnostics(p) { return timedApi_("getDiagnostics", p); }
 
 /* ------------------------------------------------------- editor-run, not RPC */
 /* Gated: these run as whoever opened the editor, which is not necessarily the owner. */
@@ -54,4 +61,12 @@ function api_saveAccessMode(p) { return timedApi_("saveAccessMode", p); }
 function setup(sheetUrl) {
   Server.access.assertOwner("setup");
   return Server.setup(sheetUrl);
+}
+
+/** Prints the diagnostics report (owner only). Run it from the editor after each deploy. */
+function deploymentDiagnostic() {
+  Server.access.assertOwner("deploymentDiagnostic");
+  var text = Server.diagnosticsText();
+  console.log(text);
+  return text;
 }

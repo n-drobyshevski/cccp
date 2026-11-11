@@ -2,5 +2,6 @@
 // (see build/esbuild.config.mjs and src/gas/entry.js).
 export { doGet, include } from "./main";
 export { setup } from "./setup";
+export { diagnosticsText } from "./diagnostics";
 export * as access from "./access";
 export * as api from "./api";

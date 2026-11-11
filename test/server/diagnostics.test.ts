@@ -3,6 +3,8 @@ import * as access from "../../src/server/access";
 import * as api from "../../src/server/api";
 import { diagnosticsReport, diagnosticsText } from "../../src/server/diagnostics";
 import { recordError } from "../../src/server/errors";
+import { REGISTER_WARN_ROWS } from "../../src/domain/payload";
+import { cacheGetJson, cacheKey, cachePutJson } from "../../src/server/serverCache";
 import { useGasEnv } from "../gasEnv";
 
 const fakes = useGasEnv({ workbook: true, seed: true });
@@ -79,9 +81,13 @@ describe("diagnostics report", () => {
   });
 
   it("warns when the register is over the limits", () => {
-    // Only the structure is checked: a huge register is not built here.
+    api.getRegister();
+    const key = cacheKey("register", undefined);
+    const entry = cacheGetJson(key) as { register: { codec: { rows: unknown[] } } };
+    entry.register.codec.rows = new Array(REGISTER_WARN_ROWS + 1).fill(null);
+    cachePutJson(key, entry, 600);
     const r = diagnosticsReport();
-    expect(Array.isArray(r.register.warnings)).toBe(true);
+    expect(r.register.warnings.join(" ")).toContain("rows: above " + REGISTER_WARN_ROWS);
   });
 });
 

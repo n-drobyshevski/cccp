@@ -2,12 +2,13 @@
 //
 // Owner-only and idempotent. It seeds ALLOWED_USERS with the owner, writes the default
 // settings sections that are not stored yet, and optionally binds the register Sheet. Existing
-// lists and sections are never overwritten, so running it twice changes nothing. It returns a
-// plain-text report.
+// lists and sections are never overwritten, so running it twice changes nothing. It returns its
+// seeding summary followed by the diagnostics text.
 
 import { cleanSettings, makeDefaultSettings, SECTION_KEYS, SECTION_PROPS, sheetIdFrom } from "../domain/settings";
 import type { Settings } from "../domain/types";
 import * as access from "./access";
+import { diagnosticsText } from "./diagnostics";
 import { getJsonProp, getProp, putJsonProp, setProp, PROP_KEYS } from "./props";
 
 export function setup(sheetUrl?: string): string {
@@ -51,5 +52,5 @@ export function setup(sheetUrl?: string): string {
   }
 
   lines.push("Owner: " + owner + ". Access mode: " + access.accessMode() + ".");
-  return lines.join("\n");
+  return lines.join("\n") + "\n\n" + diagnosticsText();
 }

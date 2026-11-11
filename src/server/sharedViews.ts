@@ -28,7 +28,8 @@ function newId(name: string, taken: Set<string>): string {
 
 /**
  * Add a view, or replace the one with the same id. The scope is forced to shared and the
- * author and date are stamped here, never taken from the caller.
+ * date is stamped here, never taken from the caller. The author is logged, not stored: the
+ * list is part of the cached core that every viewer receives.
  */
 export function saveSharedView(input: unknown, actor: string): { views: SavedView[]; id: string } {
   const raw = (input && typeof input === "object" && !Array.isArray(input) ? input : {}) as Record<string, unknown>;
@@ -40,7 +41,8 @@ export function saveSharedView(input: unknown, actor: string): { views: SavedVie
     const clean = cleanView(candidate);
     const at = list.findIndex((v) => v.id === clean.id && clean.id !== "");
     if (at < 0 && list.length >= MAX_VIEWS) throw new Error("At most " + MAX_VIEWS + " shared views can be kept. Delete one first.");
-    const view: SavedView = { ...clean, scope: "shared", id: at >= 0 ? clean.id : newId(clean.name, new Set(list.map((v) => v.id))), by: actor, at: new Date().toISOString().slice(0, 10) };
+    const { by: _by, ...rest } = clean;
+    const view: SavedView = { ...rest, scope: "shared", id: at >= 0 ? clean.id : newId(clean.name, new Set(list.map((v) => v.id))), at: new Date().toISOString().slice(0, 10) };
     const next = at >= 0 ? list.map((v, i) => (i === at ? view : v)) : list.concat(view);
     const problems = validateSharedViews(next);
     if (problems.length) throw new Error(problems.join(" "));

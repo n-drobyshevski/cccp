@@ -20,12 +20,14 @@ const view = (name: string, extra: Record<string, unknown> = {}) => ({
 });
 
 describe("saveSharedView", () => {
-  it("stores the view as shared with a 10-character id, the actor and the date, and bumps CFG_GEN", () => {
+  it("stores the view as shared with a 10-character id and the date, and no author, and bumps CFG_GEN", () => {
     as("admin@example.com");
     const res = api.saveSharedView({ view: view("Tier 1", { scope: "personal", by: "someone@else", id: "x" }) });
     expect(res.ok).toBe(true);
     const [v] = res.data!.views;
-    expect(v).toMatchObject({ name: "Tier 1", scope: "shared", route: "list", by: "admin@example.com" });
+    expect(v).toMatchObject({ name: "Tier 1", scope: "shared", route: "list" });
+    expect(JSON.stringify(res.data!.views)).not.toContain("@");
+    expect(v).not.toHaveProperty("by");
     expect(v!.id).toMatch(/^[0-9a-f]{10}$/);
     expect(v!.at).toMatch(/^\d{4}-\d{2}-\d{2}$/);
     expect(res.data!.id).toBe(v!.id);

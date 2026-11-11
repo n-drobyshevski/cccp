@@ -11,7 +11,7 @@
 // Not memoised across calls: in Apps Script every RPC is a fresh execution, and a module-level
 // memo would outlive a test.
 
-import { applyPatch, changedSections, cleanSettings, patchTouchesSheetId, SECTION_PROPS, validateSettings } from "../domain/settings";
+import { applyPatch, changedSections, cleanSettings, SECTION_PROPS, validateSettings } from "../domain/settings";
 import type { SaveSettingsResponse, SettingsResponse } from "../domain/payload";
 import type { SectionKey, Settings, SettingsPatch, TabKey } from "../domain/types";
 import { TAB_KEYS } from "../domain/types";
@@ -70,9 +70,6 @@ export function saveSettings(patch: unknown, baseGen: unknown, who: SaveContext)
     if (errors.length) throw new Error(errors.join(" "));
 
     if (after.source.sheetId !== before.source.sheetId && !who.isOwner) {
-      throw new Error("Only the owner can change the source Sheet.");
-    }
-    if (patchTouchesSheetId(patch) && after.source.sheetId !== before.source.sheetId && !who.isOwner) {
       throw new Error("Only the owner can change the source Sheet.");
     }
 

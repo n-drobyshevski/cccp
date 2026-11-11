@@ -60,7 +60,11 @@ describe("bootstrap", () => {
   });
 
   it("puts no email anywhere in the cache", () => {
+    as("admin@example.com");
+    expect(api.saveSharedView({ view: { name: "Tier 1", scope: "shared", route: "list", state: { q: "", f: { tier: ["1"] }, sort: "-t", cols: ["n", "d"], metric: "worst" } } }).ok).toBe(true);
     for (const who of EMAILS) { as(who); api.bootstrap(); api.getRegister(); }
+    as("viewer@example.com");
+    expect(api.bootstrap().data!.core.sharedViews).toHaveLength(1);
     const stored = [cacheGetJson(cacheKey("core", undefined, "cfg")), cacheGetJson(cacheKey("register", undefined))];
     expect(stored[0]).toBeDefined();
     expect(stored[1]).toBeDefined();
@@ -68,6 +72,20 @@ describe("bootstrap", () => {
     // And not in a key.
     const keys: string[] = [cacheKey("core", undefined, "cfg"), cacheKey("register", undefined)];
     for (const k of keys) for (const e of EMAILS) expect(k).not.toContain(e);
+  });
+
+  it("still answers when the configured Sheet cannot be opened", () => {
+    as("owner@example.com");
+    const cfg = JSON.parse(PropertiesService.getScriptProperties().getProperty("CFG_SOURCE")!);
+    PropertiesService.getScriptProperties().setProperty("CFG_SOURCE", JSON.stringify({ ...cfg, sheetId: "no-such-sheet-id" }));
+    vi.spyOn(console, "warn").mockImplementation(() => {});
+    vi.spyOn(SpreadsheetApp, "openById").mockImplementation(() => { throw new Error("gone"); });
+    const res = api.bootstrap();
+    expect(res.ok).toBe(true);
+    expect(res.data!.core.sourceMeta.tabs).toEqual([]);
+    expect(res.data!.core.sourceMeta.title).toBe("");
+    expect(res.data!.core.sourceMeta.issues.missingTabs.length).toBeGreaterThan(0);
+    expect(res.data!.live.viewer.canEditSource).toBe(true);
   });
 
   it("recomputes the live part on every call but not the core", () => {

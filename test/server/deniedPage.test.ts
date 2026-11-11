@@ -120,12 +120,15 @@ describe("entry.js guards", () => {
   it("setup() runs for the owner", () => {
     const ctx = loadEntry(fakeServer());
     as("owner@example.com");
-    expect(ctx.setup()).toContain("owner@example.com");
+    const out = ctx.setup();
+    expect(out).toContain("owner@example.com");
+    expect(out).toContain("CCCP diagnostics");
   });
 });
 
 describe("setup", () => {
-  const snap = () => JSON.stringify(PropertiesService.getScriptProperties().getProperties());
+  // The diagnostics in the report may log a source error; the error log is not seeded state.
+  const snap = () => { const { RECENT_ERRORS: _e, ...rest } = PropertiesService.getScriptProperties().getProperties(); return JSON.stringify(rest); };
   it("seeds the owner, the default sections and the Sheet, for the owner only", () => {
     fakes().reset();
     as("owner@example.com");

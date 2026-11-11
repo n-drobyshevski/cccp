@@ -15,8 +15,9 @@ import {
   buildPublicSettings, payloadBytes, REGISTER_INLINE_MAX_BYTES, SCHEMA_VERSION,
   type BootstrapCore, type BootstrapLive, type BootstrapResponse,
 } from "../domain/payload";
-import type { FieldKey } from "../domain/types";
+import { TAB_KEYS, type FieldKey, type Issues } from "../domain/types";
 import { FIELD_KEYS } from "../domain/fields";
+import type { SourceMeta } from "../domain/payload";
 import { BUILD_ID } from "../vendor/gas_shared/server/buildInfo";
 import * as access from "./access";
 import { peekRegisterEntry, registerEntry } from "./registerStore";
@@ -26,32 +27,51 @@ import { loadSettings } from "./settingsStore";
 
 const CORE = "core";
 
+const DEGRADED_TTL_SEC = 30;
+
+function unreachableMeta(): SourceMeta {
+  const issues: Issues = { missingHeaders: [], missingTabs: TAB_KEYS.slice(), unmatched: [], duplicateIds: [], unparseable: [], unmapped: [] };
+  return { title: "", url: "", tz: "Etc/GMT", loadedAt: "", dataVersion: 0, tabs: [], issues };
+}
+
 function buildCore(): { core: BootstrapCore; ttlSec: number } {
   const settings = loadSettings();
-  const entry = registerEntry();
-  const unmapped = new Set<string>(entry.meta.issues.unmapped.map((u) => u.field));
   const noSource = settings.source.sheetId === "";
+  let meta: SourceMeta;
+  let degraded = false;
+  try {
+    meta = registerEntry().meta;
+  } catch (e) {
+    // An unopenable source must not lock the owner out of Settings: serve an empty core.
+    console.warn("Bootstrap core without the source: " + e);
+    meta = unreachableMeta();
+    degraded = true;
+  }
+  const unmapped = new Set<string>(meta.issues.unmapped.map((u) => u.field));
   const mapped = {} as Record<FieldKey, boolean>;
-  for (const k of FIELD_KEYS) mapped[k] = !noSource && !unmapped.has(k);
+  for (const k of FIELD_KEYS) mapped[k] = !noSource && !degraded && !unmapped.has(k);
   return {
     core: {
       schemaVersion: SCHEMA_VERSION,
-      sourceMeta: entry.meta,
+      sourceMeta: meta,
       publicSettings: buildPublicSettings(settings, mapped),
       sharedViews: listSharedViews(),
     },
-    ttlSec: settings.source.cacheMinutes * 60,
+    ttlSec: degraded ? DEGRADED_TTL_SEC : settings.source.cacheMinutes * 60,
   };
 }
 
 /** The viewer-free core, from the cache when warm. */
 export function getCore(): BootstrapCore {
   let ttl = 600;
-  return cached<BootstrapCore>(CORE, undefined, () => {
+  const core = cached<BootstrapCore>(CORE, undefined, () => {
     const b = buildCore();
     ttl = b.ttlSec;
     return b.core;
   }, () => ttl, "cfg");
+  // The two entries expire on their own; the freshest source facts win.
+  const warm = peekRegisterEntry();
+  return warm && core.sourceMeta.title !== "" ? { ...core, sourceMeta: warm.meta } : core;
 }
 
 function todayIn(tz: string): string {

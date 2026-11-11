@@ -124,7 +124,7 @@
       history: {
         push: function (state, params, hash) { setUrl("pushState", state, params, hash); },
         replace: function (state, params, hash) { setUrl("replaceState", state, params, hash); },
-        setChangeListener: function (fn) { listener = fn; },
+        setChangeHandler: function (fn) { listener = fn; },
       },
     },
   };

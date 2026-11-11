@@ -115,8 +115,8 @@ export function init(opts) {
     try { store.set(patch); } finally { applying = false; }
     lastQuery = queryFor(store.get());
     const b = bridge();
-    if (b && b.history && typeof b.history.setChangeListener === "function") {
-      b.history.setChangeListener((ev) => {
+    if (b && b.history && typeof b.history.setChangeHandler === "function") {
+      b.history.setChangeHandler((ev) => {
         const next = patchFromParams(ev && ev.location ? ev.location.parameter : {});
         applying = true;
         try { store.set(next); } finally { applying = false; }

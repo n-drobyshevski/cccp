@@ -17,7 +17,7 @@ beforeEach(() => {
       history: {
         push: (...a) => calls.push(["push", ...a]),
         replace: (...a) => calls.push(["replace", ...a]),
-        setChangeListener: (fn) => { listener = fn; },
+        setChangeHandler: (fn) => { listener = fn; },
       },
       url: { getLocation: (cb) => cb(location) },
     },

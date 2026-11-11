@@ -3,15 +3,18 @@
 import { delegate, renderRegion } from "./dom.js";
 import { html } from "./html.js";
 
+let seq = 0;
+
 export function confirmDialog(opts) {
   const o = opts || {};
   return new Promise((resolve) => {
+    const tid = "dlg-t-" + (++seq);
     const before = document.activeElement;
     const wrap = document.createElement("div");
     wrap.className = "scrim";
     document.body.appendChild(wrap);
-    renderRegion(wrap, html`<div class="dlg" role="alertdialog" aria-modal="true" aria-labelledby="dlg-t">
-      <h2 id="dlg-t">${o.title || "Are you sure?"}</h2>
+    renderRegion(wrap, html`<div class="dlg" role="alertdialog" aria-modal="true" aria-labelledby="${tid}">
+      <h2 id="${tid}">${o.title || "Are you sure?"}</h2>
       ${o.body ? html`<p>${o.body}</p>` : ""}
       <div class="dlg-act">
         <button type="button" class="btn" data-act="no" data-k="no">${o.cancelLabel || "Cancel"}</button>

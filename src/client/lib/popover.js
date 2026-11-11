@@ -1,5 +1,6 @@
 // A small anchored panel: checklist popovers, menus, the column chooser. One is open at a
-// time. Escape and a press outside close it; Escape returns focus to the trigger.
+// time. Positioning uses the local place() below rather than the vendored tipPlacement: it
+// aligns to either edge of the anchor and flips above when there is no room below. Escape and a press outside close it; Escape returns focus to the trigger.
 import { renderRegion } from "./dom.js";
 import { closeTips } from "./tip.js";
 

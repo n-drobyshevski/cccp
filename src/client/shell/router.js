@@ -10,6 +10,7 @@ import { closeTips } from "../lib/tip.js";
 import * as register from "../state/register.js";
 import { store } from "../state/store.js";
 import { navigate } from "../state/url.js";
+import { homeRoute } from "./appbar.js";
 import { accessCard, errorState, noSource, notFound, onlyAdmins, skeleton } from "./states.js";
 
 const pages = new Map();
@@ -105,7 +106,7 @@ export function startRouter(el, h) {
     const act = b.getAttribute("data-act");
     if (act === "retry" && hooks.retry) hooks.retry();
     else if (act === "connect") navigate({ route: "settings", app: null, tab: "source", view: null }, "push");
-    else if (act === "home") navigate({ route: "list", app: null, tab: null, view: null }, "push");
+    else if (act === "home") navigate({ route: homeRoute(store.get()), app: null, tab: null, view: null }, "push");
     else if (act === "back") navigate({ route: "list", app: null, tab: null, view: null }, "push");
   });
   return () => { off(); offClick(); runTeardown(); };

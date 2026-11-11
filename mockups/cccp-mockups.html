@@ -1,0 +1,344 @@
+<meta name="claude:viewport-fit-sides" content="cover">
+<title>CCCP Mockups</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
+<style>
+/* Layout: a chooser strip on top, then one framed app window that re-renders per direction. */
+:root{
+  --ah:265;
+  --bg:#eef1f5; --surface:#ffffff; --surface2:#f5f7fa; --line:#dde2ea;
+  --fg:#151a23; --muted:#5a6474;
+  --accent:oklch(0.48 calc(0.17*var(--ac)) var(--ah)); --on-accent:#ffffff;
+  --ok:#1b8556; --warn:#b06f00; --bad:#c9303e; --none:#98a1b0;
+  --sans:"IBM Plex Sans",system-ui,-apple-system,"Segoe UI",sans-serif;
+  --mono:"IBM Plex Mono",ui-monospace,Menlo,Consolas,monospace;
+  --r:6px; --rc:10px; --rs:8px; --ac:1;
+}
+@media (prefers-color-scheme: dark){ :root:not([data-theme="light"]){
+  --bg:#0e1117; --surface:#161a22; --surface2:#1c212b; --line:#2a313e;
+  --fg:#e7eaf0; --muted:#97a1b2;
+  --accent:oklch(0.76 calc(0.12*var(--ac)) var(--ah)); --on-accent:#0e1117;
+  --ok:#4bc088; --warn:#e2a03a; --bad:#ee6370; --none:#5a6373; color-scheme:dark } }
+:root[data-theme="dark"]{
+  --bg:#0e1117; --surface:#161a22; --surface2:#1c212b; --line:#2a313e;
+  --fg:#e7eaf0; --muted:#97a1b2;
+  --accent:oklch(0.76 calc(0.12*var(--ac)) var(--ah)); --on-accent:#0e1117;
+  --ok:#4bc088; --warn:#e2a03a; --bad:#ee6370; --none:#5a6373; color-scheme:dark }
+
+:root[data-style="soft"]{--r:10px;--rc:18px;--rs:14px;--pad:10px;--sans:"Inter",system-ui,-apple-system,"Segoe UI",sans-serif}
+:root[data-style="soft"] .s,:root[data-style="soft"] .mark b{border-radius:50%}
+:root[data-style="soft"] .tier{border-radius:10px;padding:1px 7px}
+:root[data-style="mono"]{--r:0px;--rc:0px;--rs:0px;--pad:5px;--sans:var(--mono)}
+:root[data-style="mono"] .s,:root[data-style="mono"] .mark b,:root[data-style="mono"] .tier{border-radius:0}
+:root[data-style="mono"] body{font-size:13px}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--fg);font:14px/1.45 var(--sans)}
+.page{max-width:1180px;margin:0 auto;padding-block:20px 40px;
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));
+  display:flex;flex-direction:column;gap:14px}
+button,input,select{font:inherit;color:inherit}
+button{cursor:pointer}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+
+/* chooser */
+.pick{display:flex;flex-wrap:wrap;gap:10px 18px;align-items:center}
+.pick h1{font-size:15px;font-weight:600;margin:0 auto 0 0}
+.seg{display:flex;flex-wrap:wrap;border:1px solid var(--line);border-radius:var(--r);overflow:hidden;background:var(--surface)}
+.seg button{border:0;background:none;padding:6px 12px;border-right:1px solid var(--line)}
+.seg button:last-child{border-right:0}
+.seg button[aria-pressed="true"]{background:var(--accent);color:var(--on-accent)}
+.sw{display:flex;gap:6px;align-items:center}
+.sw button{width:22px;height:22px;border-radius:50%;border:2px solid var(--surface);box-shadow:0 0 0 1px var(--line);padding:0}
+.sw button[aria-pressed="true"]{box-shadow:0 0 0 2px var(--fg)}
+.lbl{font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
+.ghost{border:1px solid var(--line);background:var(--surface);border-radius:var(--r);padding:6px 10px}
+.note{margin:0;color:var(--muted);max-width:75ch}
+.note b{color:var(--fg);font-weight:600}
+
+/* app window */
+.app{background:var(--surface);border:1px solid var(--line);border-radius:var(--rc);overflow:hidden;min-width:0;position:relative}
+.bar{display:flex;flex-wrap:wrap;gap:8px;align-items:center;padding:10px 14px;border-bottom:1px solid var(--line)}
+.mark{display:flex;gap:2px;margin-right:6px}
+.mark b{width:20px;height:20px;display:grid;place-items:center;background:var(--accent);color:var(--on-accent);
+  font:600 12px var(--mono);border-radius:3px}
+.bar input,.bar select{border:1px solid var(--line);background:var(--surface2);border-radius:var(--r);padding:5px 8px;min-width:0}
+.bar input{flex:1 1 180px}
+.bar select{flex:0 1 150px}
+.legend{display:flex;flex-wrap:wrap;gap:6px 16px;padding:8px 14px;border-top:1px solid var(--line);color:var(--muted);font-size:12px}
+.legend span{display:inline-flex;gap:6px;align-items:center}
+.count{color:var(--muted);font-size:12px;padding:8px 14px 0}
+
+/* shared atoms */
+.strip{display:inline-flex;gap:2px;vertical-align:middle}
+.s{width:18px;height:18px;display:inline-grid;place-items:center;font:600 10px var(--mono);font-style:normal;border-radius:3px;
+  border:1px solid transparent}
+.s.ok{background:var(--ok);color:var(--surface)}
+.s.warn{background:color-mix(in srgb,var(--warn) 22%,var(--surface));color:var(--warn);border-color:var(--warn)}
+.s.bad{background:var(--bad);color:var(--surface)}
+.s.none{color:var(--none);border:1px dashed var(--none)}
+.tier{font:500 11px var(--mono);padding:1px 5px;border:1px solid var(--line);border-radius:3px;color:var(--muted);white-space:nowrap}
+.tier.t1{background:var(--fg);color:var(--surface);border-color:var(--fg)}
+.lc{display:inline-flex;align-items:center;gap:6px;white-space:nowrap}
+.lc::before{content:"";width:7px;height:7px;border-radius:50%;background:var(--none)}
+.lc.ga::before{background:var(--ok)} .lc.beta::before{background:var(--accent)} .lc.eol::before{background:var(--bad)} .lc.dec::before{background:var(--warn)}
+.mut{color:var(--muted)}
+.link{border:0;background:none;padding:0;color:var(--fg);font-weight:500;text-align:left}
+.link:hover{color:var(--accent)}
+
+/* A: dense table */
+.tw{overflow-x:auto}
+table{border-collapse:collapse;width:100%;font-size:13px}
+th{font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);font-weight:500;text-align:left;
+  padding:8px 14px;border-bottom:1px solid var(--line);white-space:nowrap;background:var(--surface2)}
+td{padding:var(--pad,6px) 14px;border-bottom:1px solid var(--line);white-space:nowrap}
+tbody tr:hover{background:var(--surface2)}
+tbody tr:last-child td{border-bottom:0}
+
+/* B: split */
+.split{display:grid;grid-template-columns:minmax(230px,300px) minmax(0,1fr)}
+.split .list{border-right:1px solid var(--line);max-height:620px;overflow:auto}
+.li{display:flex;justify-content:space-between;align-items:center;gap:10px;width:100%;border:0;border-bottom:1px solid var(--line);
+  background:none;padding:8px 14px;text-align:left}
+.li div{min-width:0}
+.li strong{display:block;font-weight:500;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.li small{color:var(--muted);font-size:12px}
+.li:hover{background:var(--surface2)}
+.li[aria-current="true"]{background:color-mix(in srgb,var(--accent) 10%,var(--surface));box-shadow:inset 3px 0 0 var(--accent)}
+@media (max-width:720px){ .split{grid-template-columns:1fr} .split .list{border-right:0;border-bottom:1px solid var(--line);max-height:220px} }
+
+/* C: cards */
+.cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:10px;padding:14px}
+.card{display:flex;flex-direction:column;gap:10px;text-align:left;border:1px solid var(--line);background:var(--surface);
+  border-radius:var(--rs);padding:12px}
+.card:hover{border-color:var(--accent)}
+.card .top{display:flex;justify-content:space-between;gap:8px;align-items:flex-start}
+.card strong{font-weight:600}
+.card .bot{display:flex;justify-content:space-between;align-items:center;gap:8px}
+
+/* fact sheet */
+.fs{padding:16px 18px 20px;display:flex;flex-direction:column;gap:16px;min-width:0}
+.back{align-self:flex-start;border:0;background:none;padding:0;color:var(--muted)}
+.back:hover{color:var(--accent)}
+.fh{display:flex;flex-wrap:wrap;gap:8px 14px;align-items:center}
+.fh h2{margin:0;font-size:20px;font-weight:600;letter-spacing:-.01em}
+.meta{display:flex;flex-wrap:wrap;gap:6px 22px;color:var(--muted);font-size:13px}
+.meta b{color:var(--fg);font-weight:500}
+.secs{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:12px}
+.sec{border:1px solid var(--line);border-radius:var(--rs);min-width:0}
+.sec header{display:flex;align-items:center;gap:8px;padding:9px 12px;border-bottom:1px solid var(--line);background:var(--surface2);border-radius:var(--rs) var(--rs) 0 0}
+.sec header h3{margin:0;font-size:13px;font-weight:600}
+.sec header span:last-child{margin-left:auto;color:var(--muted);font-size:12px;text-align:right}
+.kv{display:grid;grid-template-columns:minmax(110px,40%) 1fr;gap:6px 12px;padding:12px;margin:0;font-size:13px}
+.kv dt{color:var(--muted)} .kv dd{margin:0;font-variant-numeric:tabular-nums}
+.ciat{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;padding:12px 12px 0}
+.ciat div{display:flex;flex-direction:column;gap:5px;font-size:12px;color:var(--muted)}
+.ciat b{font:600 16px var(--mono);color:var(--fg)}
+.pips{display:flex;gap:2px}
+.pips i{flex:1;height:4px;border-radius:2px;background:var(--line)}
+.pips i.on{background:var(--accent)}
+.tabs{display:flex;gap:2px;border-bottom:1px solid var(--line);overflow-x:auto}
+.tabs button{display:flex;gap:7px;align-items:center;border:0;background:none;padding:8px 12px;border-bottom:2px solid transparent;color:var(--muted);white-space:nowrap}
+.tabs button[aria-selected="true"]{color:var(--fg);border-bottom-color:var(--accent);font-weight:500}
+.tabpane .sec{border:0} .tabpane .sec header{display:none} .tabpane .kv,.tabpane .ciat{padding-left:0;padding-right:0;max-width:560px}
+.why{color:var(--muted);font-size:13px;margin:0}
+ /* D: heatmap */
+.heat td.hc{white-space:normal;min-width:150px;font-size:12px;padding:3px 4px;border-bottom:0}
+.heat td.hc span{display:block;padding:5px 8px;border-radius:var(--r);border-left:3px solid var(--c);background:color-mix(in srgb,var(--c) 14%,var(--surface))}
+.hc.ok{--c:var(--ok)} .hc.warn{--c:var(--warn)} .hc.bad{--c:var(--bad)} .hc.none{--c:var(--none);color:var(--muted)}
+.grp td{background:var(--surface2);font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);padding:6px 14px}
+/* drawer (D, F) */
+.app:has(.drawer){min-height:600px}
+.scrim{position:absolute;inset:0;background:color-mix(in srgb,var(--fg) 30%,transparent)}
+.drawer{position:absolute;top:0;right:0;bottom:0;width:min(500px,100%);background:var(--surface);border-left:1px solid var(--line);overflow:auto;
+  box-shadow:-12px 0 32px color-mix(in srgb,var(--fg) 14%,transparent)}
+.drawer .secs{grid-template-columns:1fr}
+/* E: pillar tables */
+.ptabs{padding:0 8px}
+.cnt{font:500 11px var(--mono);padding:0 5px;border-radius:8px;background:color-mix(in srgb,var(--bad) 16%,var(--surface));color:var(--bad)}
+.stt{display:inline-flex;gap:7px;align-items:center}
+.num{font-family:var(--mono)}
+/* F: worklist */
+.board{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:12px;padding:14px;align-items:start}
+.col{display:flex;flex-direction:column;gap:6px;min-width:0}
+.col h3{margin:0 0 2px;font-size:13px;font-weight:600;display:flex;gap:8px;align-items:center}
+.col h3 span{color:var(--muted);font-weight:400}
+.wi{display:flex;gap:8px;align-items:flex-start;text-align:left;border:1px solid var(--line);background:var(--surface);border-radius:var(--rs);padding:8px 10px}
+.wi:hover{border-color:var(--accent)}
+.wi div{min-width:0} .wi strong{display:block;font-weight:500} .wi small{color:var(--muted);font-size:12px}
+.clear{color:var(--muted);font-size:13px;border:1px dashed var(--line);border-radius:var(--rs);padding:10px}
+.empty{padding:40px 14px;text-align:center;color:var(--muted)}
+</style>
+
+<div class="page">
+  <div class="pick">
+    <h1>CCCP mockups</h1>
+    <span class="lbl">Layout</span>
+    <div class="seg" id="dirs">
+      <button data-dir="A" aria-pressed="true">A · Dense table</button>
+      <button data-dir="B" aria-pressed="false">B · Split view</button>
+      <button data-dir="C" aria-pressed="false">C · Cards + tabs</button>
+      <button data-dir="D" aria-pressed="false">D · Heatmap</button>
+      <button data-dir="E" aria-pressed="false">E · By pillar</button>
+      <button data-dir="F" aria-pressed="false">F · Worklist</button>
+    </div>
+    <span class="lbl">Style</span>
+    <div class="seg" id="styles">
+      <button data-style="" aria-pressed="true">Crisp</button>
+      <button data-style="soft" aria-pressed="false">Soft</button>
+      <button data-style="mono" aria-pressed="false">Mono</button>
+    </div>
+    <span class="lbl">Accent</span>
+    <div class="sw" id="accents">
+      <button data-h="265" aria-pressed="true" aria-label="Cobalt" title="Cobalt" style="background:oklch(0.55 0.17 265)"></button>
+      <button data-h="195" aria-pressed="false" aria-label="Teal" title="Teal" style="background:oklch(0.6 0.11 195)"></button>
+      <button data-h="300" aria-pressed="false" aria-label="Violet" title="Violet" style="background:oklch(0.55 0.17 300)"></button>
+      <button data-h="25" aria-pressed="false" aria-label="Red" title="Red" style="background:oklch(0.56 0.19 25)"></button>
+      <button data-h="265" data-c="0.08" aria-pressed="false" aria-label="Graphite" title="Graphite" style="background:oklch(0.45 0.015 265)"></button>
+    </div>
+    <button class="ghost" id="theme">Light / dark</button>
+  </div>
+  <p class="note" id="note"></p>
+
+  <div class="app">
+    <div class="bar">
+      <div class="mark" aria-label="CCCP"><b>C</b><b>C</b><b>C</b><b>P</b></div>
+      <input id="q" type="search" placeholder="Search applications" aria-label="Search applications">
+      <select id="f-dom" aria-label="Domain"></select>
+      <select id="f-tier" aria-label="Tiering"></select>
+      <select id="f-lc" aria-label="Lifecycle"></select>
+    </div>
+    <div id="view"></div>
+    <div class="legend">
+      <span><i class="s ok">C</i>Cyber</span><span><i class="s ok">C</i>Compliance</span><span><i class="s ok">C</i>Continuity</span><span><i class="s ok">P</i>Platform</span>
+      <span><i class="s ok">&nbsp;</i>OK</span><span><i class="s warn">&nbsp;</i>Needs attention</span><span><i class="s bad">&nbsp;</i>Gap</span><span><i class="s none">&nbsp;</i>No data</span>
+    </div>
+  </div>
+  <p class="note">Sample data is invented. Names, people and values are placeholders.</p>
+</div>
+
+<script>
+const P = ['Cyber','Compliance','Continuity','Platform'], L = ['C','C','C','P'];
+const LC = {ga:'General availability',beta:'Beta',eol:'End of life',dec:'Decommissioning'};
+// n name, d domain, g support group, lc lifecycle, ty typology, t tier, o owner, so security officer,
+// ciat [C,I,A,T], pd personal data, val classification validated, au [audit date,result], pt [pentest date, open findings],
+// ex internet exposed, rto/rpo/mtd hours, dt [DRP test date,result], h hosting, sso, iu/eu users, st status x4, why reason x4
+const D = [
+ {n:'Freightline',d:'Logistics',g:'CE-TRANSPORT',lc:'ga',ty:'Make',t:1,o:'Person 0418',so:'Person 0009',ciat:[3,3,4,2],pd:'No',val:'2026-03-14',au:['2025-11-02','Passed'],pt:['2026-05-20','2 high'],ex:'Yes',rto:4,rpo:1,mtd:8,dt:['2026-02-11','Passed'],h:'Cloud',sso:'Yes',iu:'100–500',eu:'0',st:['warn','ok','ok','ok'],why:['2 high findings open','Classification validated','DRP tested 9 months ago','Complete']},
+ {n:'Dockyard',d:'Logistics',g:'CS-WAREHOUSE',lc:'ga',ty:'Make',t:2,o:'Person 0423',so:'Person 0009',ciat:[2,3,3,2],pd:'No',val:'2025-09-30',au:['2025-06-18','Passed'],pt:['2025-01-09','None'],ex:'No',rto:24,rpo:4,mtd:48,dt:['2024-03-02','Passed'],h:'On-premise',sso:'Yes',iu:'500+',eu:'0',st:['warn','ok','warn','ok'],why:['Pentest older than 18 months','Classification validated','DRP test older than 2 years','Complete']},
+ {n:'Returns Lookup',d:'Logistics',g:'CE-RETURNS',lc:'ga',ty:'Make',t:1,o:'Person 0428',so:'Person 0009',ciat:[3,2,3,3],pd:'Yes',val:'',au:['',''],pt:['2026-08-04','None'],ex:'Yes',rto:8,rpo:0,mtd:24,dt:['',''],h:'Cloud',sso:'Yes',iu:'20–100',eu:'500+',st:['ok','bad','bad','ok'],why:['Pentest clean','Classification not validated, no audit','No DRP test on record','Complete']},
+ {n:'Ledger Hub',d:'Finance',g:'CE-ACCOUNT-REF',lc:'ga',ty:'Buy',t:1,o:'Person 0112',so:'Person 0031',ciat:[4,4,3,4],pd:'Yes',val:'2026-06-01',au:['2026-04-22','1 minor finding'],pt:['2026-07-15','None'],ex:'No',rto:4,rpo:0,mtd:12,dt:['2026-05-09','Passed'],h:'SaaS',sso:'Yes',iu:'100–500',eu:'0',st:['ok','ok','ok','ok'],why:['Pentest clean','Audited this year','DRP tested this year','Complete']},
+ {n:'Invoice Match',d:'Finance',g:'CE-PAYABLES',lc:'beta',ty:'Make',t:3,o:'Person 0140',so:'Person 0031',ciat:[3,3,2,2],pd:'No',val:'',au:['',''],pt:['',''],ex:'No',rto:48,rpo:24,mtd:72,dt:['',''],h:'Cloud',sso:'No',iu:'20–100',eu:'0',st:['none','warn','none','warn'],why:['No pentest on record','Classification awaiting validation','No DRP data','No single sign-on']},
+ {n:'Storefront Web',d:'E-commerce',g:'CE-WEB-CORE',lc:'ga',ty:'Make',t:1,o:'Person 0207',so:'Person 0044',ciat:[3,3,4,3],pd:'Yes',val:'2026-01-19',au:['2025-12-03','Passed'],pt:['2026-09-12','1 critical'],ex:'Yes',rto:1,rpo:0,mtd:4,dt:['2026-06-27','Passed'],h:'Cloud',sso:'Yes',iu:'100–500',eu:'500+',st:['bad','ok','ok','ok'],why:['1 critical finding open','Classification validated','DRP tested this year','Complete']},
+ {n:'Basket API',d:'E-commerce',g:'CE-CHECKOUT',lc:'ga',ty:'Make',t:1,o:'Person 0211',so:'Person 0044',ciat:[3,4,4,3],pd:'Yes',val:'2026-02-02',au:['2025-12-03','Passed'],pt:['2026-09-12','None'],ex:'Yes',rto:1,rpo:0,mtd:4,dt:['2026-06-27','Failed'],h:'Cloud',sso:'Yes',iu:'20–100',eu:'500+',st:['ok','ok','bad','ok'],why:['Pentest clean','Classification validated','Last DRP test failed','Complete']},
+ {n:'Promo Engine',d:'E-commerce',g:'CE-PRICING',lc:'ga',ty:'Hybrid',t:2,o:'Person 0215',so:'Person 0044',ciat:[2,3,3,2],pd:'No',val:'2025-10-10',au:['2025-03-14','Passed'],pt:['2025-11-21','1 medium'],ex:'No',rto:8,rpo:4,mtd:24,dt:['2025-10-05','Passed'],h:'Cloud',sso:'Yes',iu:'20–100',eu:'0',st:['ok','ok','ok','ok'],why:['1 medium finding, planned','Classification validated','DRP tested 13 months ago','Complete']},
+ {n:'Till Sync',d:'In-store',g:'CS-CHECKOUT',lc:'ga',ty:'Make',t:2,o:'Person 0301',so:'Person 0052',ciat:[2,3,4,2],pd:'No',val:'2025-05-06',au:['2024-09-12','Passed'],pt:['2025-08-30','None'],ex:'No',rto:2,rpo:0,mtd:8,dt:['2025-12-14','Passed'],h:'Hybrid',sso:'Yes',iu:'500+',eu:'0',st:['ok','warn','ok','ok'],why:['Pentest clean','Last audit older than 2 years','DRP tested 11 months ago','Complete']},
+ {n:'Shelf Labels',d:'In-store',g:'CS-STORE-OPS',lc:'eol',ty:'Buy',t:4,o:'Person 0309',so:'Person 0052',ciat:[1,2,2,1],pd:'No',val:'2023-11-20',au:['',''],pt:['',''],ex:'No',rto:72,rpo:24,mtd:120,dt:['',''],h:'On-premise',sso:'No',iu:'100–500',eu:'0',st:['none','warn','none','bad'],why:['No pentest on record','Classification older than 2 years','No DRP data','End of life, no single sign-on']},
+ {n:'Staff Portal',d:'Workspace',g:'CE-IDENTITY',lc:'ga',ty:'Buy',t:1,o:'Person 0502',so:'Person 0066',ciat:[4,3,4,4],pd:'Yes',val:'2026-07-08',au:['2026-03-30','Passed'],pt:['2026-10-02','None'],ex:'Yes',rto:1,rpo:0,mtd:2,dt:['2026-08-19','Passed'],h:'SaaS',sso:'Yes',iu:'500+',eu:'20–100',st:['ok','ok','ok','ok'],why:['Pentest clean','Audited this year','DRP tested this year','Complete']},
+ {n:'Route Planner',d:'Logistics',g:'CE-TRANSPORT',lc:'dec',ty:'Buy',t:3,o:'Person 0422',so:'Person 0009',ciat:[2,2,2,2],pd:'No',val:'2024-02-15',au:['2023-10-01','Passed'],pt:['',''],ex:'Yes',rto:48,rpo:24,mtd:72,dt:['',''],h:'SaaS',sso:'No',iu:'<20',eu:'0',st:['bad','warn','none','warn'],why:['Internet exposed, never tested','Audit older than 3 years','No DRP data','Being decommissioned']}
+];
+const NOTES = {
+ A:'<b>A · Dense table.</b> Closest to LeanIX. One line per application, every column visible, the four status squares at the end. Opening an application replaces the table with a full-page fact sheet.',
+ B:'<b>B · Split view.</b> The list stays on the left and the fact sheet opens on the right, so you can move through applications without going back and forth.',
+ C:'<b>C · Cards + tabs.</b> Applications as cards. The fact sheet shows one pillar at a time behind four tabs, which keeps each screen short.',
+ D:'<b>D · Heatmap.</b> Applications grouped by domain, one coloured cell per pillar with the reason written in it. You see where the gaps are without opening anything. The fact sheet slides in from the right.',
+ E:'<b>E · By pillar.</b> Pick a pillar and the table shows that pillar\'s own columns (RTO and RPO for Continuity, CIAT levels for Compliance), worst status first. The number on each tab counts applications with a gap.',
+ F:'<b>F · Worklist.</b> One column per pillar listing only the applications that need action, gaps first. Applications with nothing to fix do not appear. The fact sheet slides in from the right.'
+};
+const RANK = {bad:0,warn:1,none:2,ok:3};
+const COLS = [
+ [['Internet exposed',a=>a.ex],['Last pentest',a=>a.pt[0]],['Open findings',a=>a.pt[1]]],
+ [['C · I · A · T',a=>`<span class="num">${a.ciat.join(' · ')}</span>`],['Personal data',a=>a.pd],['Validated',a=>a.val],['Last audit',a=>a.au[0]]],
+ [['RTO',a=>hrs(a.rto)],['RPO',a=>hrs(a.rpo)],['MTD',a=>hrs(a.mtd)],['Last DRP test',a=>a.dt[0]],['Result',a=>a.dt[1]]],
+ [['Hosting',a=>a.h],['Typology',a=>a.ty],['Single sign-on',a=>a.sso],['Lifecycle',a=>lc(a)]]
+];
+const drawer = a => `<div class="scrim" data-back></div><aside class="drawer">${sheet(a,'drawer')}</aside>`;
+const S = {dir:'A', sel:null, tab:0, pill:0, q:'', dom:'', tier:'', lc:''};
+const $ = id => document.getElementById(id), v = x => x || '<span class="mut">—</span>';
+const esc = s => String(s).replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+
+const strip = a => '<span class="strip">' + a.st.map((s,i)=>`<i class="s ${s}" title="${P[i]}: ${esc(a.why[i])}">${L[i]}</i>`).join('') + '</span>';
+const tier = a => `<span class="tier t${a.t}">T${a.t}</span>`;
+const lc = a => `<span class="lc ${a.lc}">${LC[a.lc]}</span>`;
+const kv = rows => '<dl class="kv">' + rows.map(r=>`<dt>${r[0]}</dt><dd>${v(r[1])}</dd>`).join('') + '</dl>';
+const hrs = n => n + ' h';
+
+function body(a,i){
+  if(i===0) return kv([['Internet exposed',a.ex],['Last pentest',a.pt[0]],['Open findings',a.pt[1]],['Security officer',a.so]]);
+  if(i===1) return '<div class="ciat">' + ['Confidentiality','Integrity','Availability','Traceability'].map((n,k)=>
+      `<div><span>${n}</span><b>${a.ciat[k]}</b><span class="pips">${[1,2,3,4].map(x=>`<i class="${x<=a.ciat[k]?'on':''}"></i>`).join('')}</span></div>`).join('') + '</div>' +
+      kv([['Personal data',a.pd],['Classification validated',a.val],['Last audit',a.au[0]],['Audit result',a.au[1]]]);
+  if(i===2) return kv([['Recovery time (RTO)',hrs(a.rto)],['Recovery point (RPO)',hrs(a.rpo)],['Max tolerable downtime',hrs(a.mtd)],['Last DRP test',a.dt[0]],['Test result',a.dt[1]]]);
+  return kv([['Hosting',a.h],['Typology',a.ty],['Single sign-on',a.sso],['Internal users',a.iu],['External users',a.eu]]);
+}
+const sec = (a,i) => `<section class="sec"><header><i class="s ${a.st[i]}">${L[i]}</i><h3>${P[i]}</h3><span>${esc(a.why[i])}</span></header>${body(a,i)}</section>`;
+function sheet(a, mode){
+  const head = `<div class="fh"><h2>${esc(a.n)}</h2>${tier(a)}${lc(a)}</div>
+   <div class="meta"><span>Domain <b>${a.d}</b></span><span>Support group <b>${a.g}</b></span><span>Owner <b>${a.o}</b></span><span>Security officer <b>${a.so}</b></span></div>`;
+  const back = mode==='split' ? '' : mode==='drawer' ? '<button class="back" data-back>Close ✕</button>' : '<button class="back" data-back>← All applications</button>';
+  if(mode==='tabs') return `<div class="fs">${back}${head}
+     <div class="tabs" role="tablist">${P.map((p,i)=>`<button role="tab" data-tab="${i}" aria-selected="${i===S.tab}"><i class="s ${a.st[i]}">${L[i]}</i>${p}</button>`).join('')}</div>
+     <div class="tabpane"><p class="why">${esc(a.why[S.tab])}</p>${sec(a,S.tab)}</div></div>`;
+  return `<div class="fs">${back}${head}<div class="secs">${[0,1,2,3].map(i=>sec(a,i)).join('')}</div></div>`;
+}
+function rows(){
+  const q = S.q.toLowerCase();
+  return D.map((a,i)=>[a,i]).filter(([a])=> (!q || (a.n+a.d+a.g+a.o+a.so).toLowerCase().includes(q)) && (!S.dom||a.d===S.dom) && (!S.tier||a.t==S.tier) && (!S.lc||a.lc===S.lc));
+}
+function render(){
+  const R = rows(), n = `<div class="count">${R.length} of ${D.length} applications</div>`;
+  const none = '<div class="empty">No application matches these filters.</div>';
+  let h;
+  if(S.dir==='A'){
+    h = S.sel!==null ? sheet(D[S.sel],'page') : !R.length ? none : n + `<div class="tw"><table><thead><tr><th>Application</th><th>Domain</th><th>Support group</th><th>Tier</th><th>Lifecycle</th><th>Owner</th><th>Security officer</th><th>Status</th></tr></thead><tbody>` +
+      R.map(([a,i])=>`<tr><td><button class="link" data-i="${i}">${esc(a.n)}</button></td><td>${a.d}</td><td class="mut">${a.g}</td><td>${tier(a)}</td><td>${lc(a)}</td><td>${a.o}</td><td>${a.so}</td><td>${strip(a)}</td></tr>`).join('') + '</tbody></table></div>';
+  } else if(S.dir==='B'){
+    const cur = R.some(([,i])=>i===S.sel) ? S.sel : (R[0]?R[0][1]:null);
+    h = !R.length ? none : `<div class="split"><div class="list">` +
+      R.map(([a,i])=>`<button class="li" data-i="${i}" aria-current="${i===cur}"><div><strong>${esc(a.n)}</strong><small>${a.d} · T${a.t}</small></div>${strip(a)}</button>`).join('') +
+      `</div>${sheet(D[cur],'split')}</div>`;
+  } else if(S.dir==='C'){
+    h = S.sel!==null ? sheet(D[S.sel],'tabs') : !R.length ? none : n + '<div class="cards">' +
+      R.map(([a,i])=>`<button class="card" data-i="${i}"><span class="top"><span><strong>${esc(a.n)}</strong><br><span class="mut">${a.d} · ${a.g}</span></span>${tier(a)}</span><span class="bot">${lc(a)}${strip(a)}</span></button>`).join('') + '</div>';
+  } else if(S.dir==='D'){
+    const doms = [...new Set(R.map(([a])=>a.d))];
+    h = !R.length ? none : n + '<div class="tw"><table class="heat"><thead><tr><th>Application</th><th>Tier</th>' + P.map(p=>`<th>${p}</th>`).join('') + '</tr></thead><tbody>' +
+      doms.map(d=>`<tr class="grp"><td colspan="6">${d}</td></tr>` + R.filter(([a])=>a.d===d).map(([a,i])=>
+        `<tr><td><button class="link" data-i="${i}">${esc(a.n)}</button></td><td>${tier(a)}</td>${a.st.map((s,k)=>`<td class="hc ${s}"><span>${esc(a.why[k])}</span></td>`).join('')}</tr>`).join('')).join('') +
+      '</tbody></table></div>' + (S.sel!==null ? drawer(D[S.sel]) : '');
+  } else if(S.dir==='E'){
+    const k = S.pill, C = COLS[k], Rs = [...R].sort((x,y)=>RANK[x[0].st[k]]-RANK[y[0].st[k]]);
+    const tabs = '<div class="tabs ptabs" role="tablist">' + P.map((p,i)=>{const c=R.filter(([a])=>a.st[i]==='bad').length;
+      return `<button role="tab" data-pill="${i}" aria-selected="${i===k}">${p}${c?`<span class="cnt">${c}</span>`:''}</button>`}).join('') + '</div>';
+    h = S.sel!==null ? sheet(D[S.sel],'page') : tabs + (!R.length ? none : '<div class="tw"><table><thead><tr><th>Application</th><th>Tier</th>' + C.map(c=>`<th>${c[0]}</th>`).join('') + '<th>Status</th></tr></thead><tbody>' +
+      Rs.map(([a,i])=>`<tr><td><button class="link" data-i="${i}">${esc(a.n)}</button></td><td>${tier(a)}</td>${C.map(c=>`<td>${v(c[1](a))}</td>`).join('')}<td><span class="stt"><i class="s ${a.st[k]}">${L[k]}</i>${esc(a.why[k])}</span></td></tr>`).join('') + '</tbody></table></div>');
+  } else {
+    h = '<div class="board">' + P.map((p,k)=>{
+      const it = R.filter(([a])=>a.st[k]==='bad'||a.st[k]==='warn').sort((x,y)=>RANK[x[0].st[k]]-RANK[y[0].st[k]]);
+      return `<div class="col"><h3>${p}<span>${it.length}</span></h3>` + (it.length ? it.map(([a,i])=>
+        `<button class="wi" data-i="${i}"><i class="s ${a.st[k]}">${L[k]}</i><div><strong>${esc(a.n)}</strong><small>${esc(a.why[k])}</small></div></button>`).join('') : '<div class="clear">Nothing to fix</div>') + '</div>'}).join('') +
+      '</div>' + (S.sel!==null ? drawer(D[S.sel]) : '');
+  }
+  $('view').innerHTML = h;
+  $('note').innerHTML = NOTES[S.dir];
+}
+function opts(id, label, pairs){ $(id).innerHTML = `<option value="">${label}</option>` + pairs.map(p=>`<option value="${p[0]}">${p[1]}</option>`).join(''); }
+opts('f-dom','All domains',[...new Set(D.map(a=>a.d))].sort().map(x=>[x,x]));
+opts('f-tier','All tiers',[1,2,3,4].map(x=>[x,'Tier '+x]));
+opts('f-lc','Any lifecycle',Object.entries(LC));
+$('q').addEventListener('input',e=>{S.q=e.target.value; if(S.dir!=='B')S.sel=null; render();});
+[['f-dom','dom'],['f-tier','tier'],['f-lc','lc']].forEach(([id,k])=>$(id).addEventListener('change',e=>{S[k]=e.target.value; if(S.dir!=='B')S.sel=null; render();}));
+$('view').addEventListener('click',e=>{
+  const t = e.target.closest('[data-i],[data-back],[data-tab],[data-pill]'); if(!t) return;
+  if(t.dataset.pill!==undefined){S.pill=+t.dataset.pill; render(); return;}
+  if(t.dataset.i!==undefined){S.sel=+t.dataset.i; S.tab=0;} else if(t.dataset.tab!==undefined) S.tab=+t.dataset.tab; else S.sel=null;
+  render();
+});
+function press(box, btn){ box.querySelectorAll('button').forEach(b=>b.setAttribute('aria-pressed', b===btn)); }
+$('dirs').addEventListener('click',e=>{const b=e.target.closest('button'); if(!b)return; press($('dirs'),b); S.dir=b.dataset.dir; S.sel=null; S.tab=0; render();});
+$('accents').addEventListener('click',e=>{const b=e.target.closest('button'); if(!b)return; press($('accents'),b); document.documentElement.style.setProperty('--ah',b.dataset.h); document.documentElement.style.setProperty('--ac',b.dataset.c||1);});
+$('styles').addEventListener('click',e=>{const b=e.target.closest('button'); if(!b)return; press($('styles'),b); document.documentElement.dataset.style=b.dataset.style;});
+$('theme').addEventListener('click',()=>{
+  const r=document.documentElement, dark = r.dataset.theme ? r.dataset.theme==='dark' : matchMedia('(prefers-color-scheme: dark)').matches;
+  r.dataset.theme = dark ? 'light' : 'dark';
+});
+render();
+</script>

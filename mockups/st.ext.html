@@ -1,0 +1,326 @@
+<!--CSS-->
+/* ---------- minimal view switcher (light bar) ---------- */
+:root[data-shell="light"] .navb{padding:0;background:none;border:0;gap:2px}
+:root[data-shell="light"] .navb button{gap:6px;padding:6px 11px;border-radius:8px;color:var(--muted);font-weight:500}
+:root[data-shell="light"] .navb button svg{width:15px;height:15px}
+:root[data-shell="light"] .navb button:hover{color:var(--fg)}
+:root[data-shell="light"] .navb button[aria-pressed="true"]{background:var(--surface);color:var(--fg);box-shadow:0 0 0 1px var(--line)}
+:root[data-shell="light"] .appbar .icon-btn{border-color:transparent;background:none;width:32px;height:32px}
+:root[data-shell="light"] .appbar .icon-btn:hover{background:var(--surface);border-color:var(--line)}
+:root[data-shell="light"] .appbar .gear[aria-pressed="true"]{background:var(--surface);color:var(--fg);border-color:var(--line)}
+/* ---------- filter panel on the right ---------- */
+.body.side-on{grid-template-columns:minmax(0,1fr) 260px}
+.body.side-on .side{order:2;position:static;max-height:none;overflow:visible}
+@media (max-width:820px){ .body.side-on{grid-template-columns:minmax(0,1fr)} .body.side-on .side{order:-1} }
+.plist{padding-right:6px;scrollbar-gutter:stable}
+/* ---------- scroll bars ---------- */
+*{scrollbar-width:thin;scrollbar-color:var(--line2) transparent}
+*:hover{scrollbar-color:var(--none) transparent}
+::-webkit-scrollbar{width:10px;height:10px}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:var(--line2);border-radius:10px;border:3px solid transparent;background-clip:padding-box}
+::-webkit-scrollbar-thumb:hover{background:var(--none);background-clip:padding-box}
+::-webkit-scrollbar-corner{background:transparent}
+::-webkit-scrollbar-button{display:none;width:0;height:0}
+/* ---------- settings ---------- */
+.gear svg{width:17px;height:17px}
+.gear[aria-pressed="true"]{color:var(--fg);border-color:var(--line2)}
+.stw{display:flex;flex-direction:column;gap:14px;min-width:0}
+.sth{display:flex;flex-direction:column;gap:6px}
+.sth h1{margin:0;font-size:24px;font-weight:600;letter-spacing:-.015em}
+.sth p{margin:0;color:var(--muted)}
+.st-a{display:grid;grid-template-columns:230px minmax(0,1fr);gap:14px;align-items:start}
+.snavl{padding:8px;display:flex;flex-direction:column;gap:2px;position:sticky;top:12px}
+.snavl button{display:flex;flex-direction:column;gap:1px;border:0;background:none;text-align:left;padding:9px 12px;border-radius:var(--r)}
+.snavl button b{font-weight:500}
+.snavl button small{color:var(--muted);font-size:12px}
+.snavl button:hover{background:var(--surface2)}
+.snavl button[aria-current="true"]{background:var(--accent-soft)}
+.snavl button[aria-current="true"] b{color:var(--accent);font-weight:600}
+.snavl .warnmark{display:inline-block;width:7px;height:7px;border-radius:50%;background:var(--warn);margin-left:6px;vertical-align:middle}
+@media (max-width:820px){ .st-a{grid-template-columns:minmax(0,1fr)} .snavl{position:static;flex-direction:row;overflow-x:auto} .snavl small{display:none} .snavl button{white-space:nowrap} }
+.anch{display:flex;flex-wrap:wrap;gap:6px;position:sticky;top:0;z-index:4;padding:10px 0;background:var(--bg)}
+.stabs{display:flex;gap:2px;border-bottom:1px solid var(--line);overflow-x:auto}
+.stabs button{display:inline-flex;align-items:center;gap:6px;border:0;background:none;padding:10px 14px;border-bottom:2px solid transparent;color:var(--muted);font-weight:500;white-space:nowrap}
+.stabs button[aria-selected="true"]{color:var(--fg);border-bottom-color:var(--accent)}
+.stabs .warnmark{display:inline-block;width:7px;height:7px;border-radius:50%;background:var(--warn)}
+.sts{padding:18px 20px;display:flex;flex-direction:column;gap:16px;scroll-margin-top:60px}
+.sts > header h2{margin:0;font-size:17px;font-weight:600}
+.sts > header p{margin:4px 0 0;color:var(--muted);max-width:70ch}
+.sgrp{display:flex;flex-direction:column;gap:2px}
+.sgrp > h3{margin:6px 0 4px;font-size:12px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);font-weight:500;display:flex;gap:8px;align-items:center}
+.sf{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.1fr);gap:8px 20px;align-items:center;padding:12px 0;border-top:1px solid var(--line)}
+.sgrp > h3 + .sf{border-top:0}
+.sfl{display:flex;flex-direction:column;gap:2px;min-width:0}
+.sfl label,.sfl b{font-weight:500}
+.sfl small{color:var(--muted);font-size:12px}
+.sfc{display:flex;flex-wrap:wrap;gap:8px;align-items:center;min-width:0}
+@media (max-width:640px){ .sf{grid-template-columns:minmax(0,1fr)} }
+.inp,.sel{border:1px solid var(--line);background:var(--surface);border-radius:8px;padding:6px 9px;min-width:0;font:inherit;color:inherit}
+.inp:focus,.sel:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 3px color-mix(in srgb,var(--accent) 18%,transparent)}
+.inp.wide{flex:1 1 260px}
+.sel.unmapped{border-color:var(--warn);color:var(--warn)}
+.numu{display:inline-flex;align-items:center;border:1px solid var(--line);border-radius:8px;overflow:hidden;background:var(--surface)}
+.numu:focus-within{border-color:var(--accent)}
+.numu input{width:58px;border:0;background:none;padding:6px 8px;font:inherit;color:inherit;text-align:right;outline:none}
+.numu span{padding:6px 9px;background:var(--surface2);color:var(--muted);font-size:12px;border-left:1px solid var(--line)}
+.sw{position:relative;display:inline-flex;width:36px;height:20px;flex:none;cursor:pointer}
+.sw input{position:absolute;opacity:0;inset:0;margin:0;cursor:pointer}
+.sw span{position:absolute;inset:0;border-radius:10px;background:var(--line2);transition:background .15s}
+.sw span::after{content:"";position:absolute;top:2px;left:2px;width:16px;height:16px;border-radius:50%;background:var(--surface);box-shadow:0 1px 2px rgba(0,0,0,.25);transition:transform .15s}
+.sw input:checked + span{background:var(--accent)}
+.sw input:checked + span::after{transform:translateX(16px)}
+.sw input:focus-visible + span{outline:2px solid var(--accent);outline-offset:2px}
+@media (prefers-reduced-motion:reduce){ .sw span,.sw span::after{transition:none} }
+.aff{font:500 12px var(--mono);color:var(--muted);white-space:nowrap}
+.aff b{color:var(--fg)}
+.rule{display:grid;grid-template-columns:auto minmax(0,1fr) auto auto;gap:10px 14px;align-items:center;padding:11px 0;border-top:1px solid var(--line)}
+.sgrp > h3 + .rule{border-top:0}
+.rule .txt{display:flex;flex-wrap:wrap;gap:6px;align-items:center;min-width:0}
+.rule.off .txt,.rule.off .aff{opacity:.45}
+.res-lbl{font-size:12px;color:var(--muted);white-space:nowrap}
+@media (max-width:640px){ .rule{grid-template-columns:auto minmax(0,1fr) auto} .rule .aff{grid-column:2} }
+.conn{display:flex;flex-wrap:wrap;gap:12px 18px;align-items:center;border:1px solid var(--line);border-radius:var(--rs);padding:14px 16px;background:var(--surface2)}
+.conn > div{flex:1 1 260px;min-width:0;display:flex;flex-direction:column;gap:2px}
+.conn b{display:flex;gap:8px;align-items:center;font-weight:600}
+.conn small{color:var(--muted)}
+.btn.pri{background:var(--accent);color:var(--on-accent);border-color:var(--accent)}
+.btn.pri:hover{color:var(--on-accent);filter:brightness(1.08)}
+.btn[disabled]{opacity:.6;cursor:default}
+.spin{display:inline-block;width:12px;height:12px;border:2px solid currentColor;border-right-color:transparent;border-radius:50%;animation:sp .7s linear infinite;vertical-align:-1px;margin-right:6px}
+@keyframes sp{to{transform:rotate(360deg)}}
+@media (prefers-reduced-motion:reduce){ .spin{animation:none} }
+.mt{overflow-x:auto}
+.mt table td{cursor:default}
+.mt tbody tr:hover td{background:none}
+.mt td{padding:8px 12px} .mt th{padding:8px 12px}
+.mt .ex{color:var(--muted);max-width:200px;overflow:hidden;text-overflow:ellipsis}
+.pgrp td{background:var(--surface2);font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);font-weight:500}
+.rcards{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:10px;width:100%}
+.rcard{display:flex;gap:10px;align-items:flex-start;border:1px solid var(--line);border-radius:var(--r);padding:12px;cursor:pointer;background:var(--surface)}
+.rcard:has(input:checked){border-color:var(--accent);background:var(--accent-soft)}
+.rcard input{accent-color:var(--accent);margin:3px 0 0}
+.rcard span{display:flex;flex-direction:column;gap:2px}
+.rcard small{color:var(--muted);font-size:12px}
+.pchips{display:flex;flex-wrap:wrap;gap:6px;width:100%}
+.pchip{display:inline-flex;align-items:center;gap:7px;border:1px solid var(--line);border-radius:16px;padding:3px 4px 3px 4px;background:var(--surface)}
+.pchip .av{width:22px;height:22px}
+.pchip button{border:0;background:none;color:var(--muted);padding:0 6px;font-size:15px;line-height:1}
+.pchip button:hover{color:var(--bad)}
+.addp{display:flex;gap:6px;width:100%}
+.segs{display:inline-flex;border:1px solid var(--line);border-radius:8px;overflow:hidden}
+.segs button{border:0;background:var(--surface);padding:6px 12px;border-right:1px solid var(--line)}
+.segs button:last-child{border-right:0}
+.segs button[aria-pressed="true"]{background:var(--accent);color:var(--on-accent)}
+.tchips{display:inline-flex;gap:4px}
+.tchips button{border:1px solid var(--line);background:var(--surface);border-radius:12px;padding:2px 9px;font:500 12px var(--mono);color:var(--muted)}
+.tchips button[aria-pressed="true"]{background:var(--accent);border-color:var(--accent);color:var(--on-accent)}
+.savebar{position:sticky;bottom:calc(12px + env(safe-area-inset-bottom,0px));z-index:10;display:flex;flex-wrap:wrap;gap:10px;align-items:center;justify-content:space-between;
+  background:var(--fg);color:var(--surface);border-radius:var(--rs);padding:10px 12px 10px 16px;box-shadow:var(--shadow)}
+.savebar span{font-weight:500}
+.savebar div{display:flex;gap:8px}
+.savebar .btn{background:transparent;color:var(--surface);border-color:color-mix(in srgb,var(--surface) 35%,transparent)}
+.savebar .btn.pri{background:var(--surface);color:var(--fg);border-color:var(--surface)}
+.toast{position:fixed;left:50%;bottom:calc(20px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);z-index:50;background:var(--fg);color:var(--surface);padding:9px 16px;border-radius:var(--r);box-shadow:var(--shadow);font-weight:500;display:flex;gap:8px;align-items:center}
+.toast svg{width:16px;height:16px;color:var(--ok)}
+.callout{display:flex;gap:10px;align-items:flex-start;border-radius:var(--r);padding:10px 12px;background:color-mix(in srgb,var(--warn) 10%,var(--surface));border:1px solid color-mix(in srgb,var(--warn) 35%,var(--line));font-size:13px}
+.callout .dot{margin-top:4px}
+<!--OPTS-->
+<div class="opts">
+  <h1>CCCP · settings page options</h1>
+  <div class="opt"><span class="lbl">Settings layout</span><div class="seg" data-o="set"><button data-v="side">A · Side nav</button><button data-v="page">B · One page</button><button data-v="tabs">C · Tabs</button></div></div>
+  <p class="onote" id="onote"></p>
+</div>
+<!--JS-->
+<script>
+/* ---------- applied choices: light bar, sections, data quality on, no quick views ---------- */
+O.shell = 'light'; O.page = 'sections'; O.dq = 'on'; O.set = 'tabs';
+const baseToolbar = toolbar;
+toolbar = () => baseToolbar().replace(/<div class="row views">[\s\S]*?<\/div>/, '');
+const SNOTE = {
+ side:'<b>A · Side nav.</b> A menu of five settings areas on the left; one area shown at a time. Easiest to scan and grows well if settings are added later.',
+ page:'<b>B · One page.</b> All five areas stacked on one page with jump links on top. Good when there are few settings and admins want to review everything at once.',
+ tabs:'<b>C · Tabs.</b> The same five areas as tabs across the top, matching the tab style used elsewhere.'
+};
+applyOpts = function(){ document.documentElement.dataset.shell = O.shell;
+  document.querySelectorAll('.opts .seg').forEach(g=>g.querySelectorAll('button').forEach(b=>b.setAttribute('aria-pressed', O[g.dataset.o]===b.dataset.v)));
+  $('onote').innerHTML = SNOTE[O.set] + ' Applied from your picks: light bar, Sections page, data quality on, quick views removed. Settings opens from the gear in the app bar; changes here are not saved anywhere.'; };
+
+/* gear button */
+const GEAR = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg>';
+$('theme').insertAdjacentHTML('beforebegin', `<button id="gear" class="icon-btn gear tip-below" aria-label="Settings" data-tip="Settings" style="order:4">${GEAR}</button>`);
+
+/* ---------- settings state ---------- */
+const MO = d => (TODAY - new Date(d)) / 2629800000;
+const COLS = ['Name','Domain','Subdomain','Support Group','Owner Name','Backup Owner Name','Security Officer Name','Lifecycle','Typology','Tiering',
+  'Application Front Is Exposed on Internet','Confidentiality level','Integrity Level','Availability Level','Traceability Level','Personal Data','Personal Sensitive Data','Company Sensitive Data',
+  'Date of Security Check','Classification reviewed and validated by SO','Maximum Tolerable Downtime','Recovery Time Objectives','Recovery Point Objectives','Hosting Type','Single Sign-On - Availability',
+  'How many internal users','How many external users'];
+const MAP = [
+ ['Identity',[['Name','Name','n'],['Domain','Domain','d'],['Subdomain','Subdomain','sd'],['Support group','Support Group','g'],['Owner','Owner Name','o'],['Backup owner','Backup Owner Name','bo'],['Lifecycle','Lifecycle','lc'],['Tier','Tiering','t']]],
+ ['Cyber',[['Front exposed on internet','Application Front Is Exposed on Internet','ex'],['Last pentest','','pt0'],['Open findings','','pt1'],['Security officer','Security Officer Name','so']]],
+ ['Compliance',[['Confidentiality','Confidentiality level',null],['Integrity','Integrity Level',null],['Availability','',null],['Traceability','Traceability Level',null],['Personal data','Personal Data','pd'],['Date of security check','Date of Security Check','val'],['Last audit','','au0']]],
+ ['Continuity',[['Max tolerable downtime','Maximum Tolerable Downtime','mtd'],['Recovery time objective','Recovery Time Objectives','rto'],['Recovery point objective','Recovery Point Objectives','rpo'],['Last DRP test','','dt0'],['DRP test result','','dt1']]],
+ ['Platform',[['Hosting type','Hosting Type','h'],['Typology','Typology','ty'],['Single sign-on','Single Sign-On - Availability','sso'],['Internal users','How many internal users','iu']]]];
+const exVal = k => { if(!k) return '3'; const g = a => k==='pt0'?a.pt[0]:k==='pt1'?a.pt[1]:k==='au0'?a.au[0]:k==='dt0'?a.dt[0]:k==='dt1'?a.dt[1]:a[k];
+  const a = D.find(x=>{ const v = g(x); return v!=null && v!==''; }); return a ? String(k==='lc'?lcl(a.lc):g(a)) : ''; };
+const ST0 = {
+ src:{url:'https://docs.google.com/spreadsheets/d/1qX…/edit', cache:10, tabs:{apps:'Apps',ciat:'CIAT',aud:'Audits',drp:'DRP',plat:'Platform'}},
+ map:Object.fromEntries(MAP.flatMap(g=>g[1].map(f=>[f[0],f[1]]))),
+ rules:{exposed:true, pentest:18, critical:true, noso:true, review:12, major:true, drpTiers:['T1','T2'], drpAge:24, drpFail:true, eol:true, nosso:true},
+ access:{who:'org', groups:'', admins:['Person 0009','Person 0086']},
+ disp:{view:'list', theme:'system', hidePrefix:'TO DELETE', hideEol:false}
+};
+let SAVED = JSON.parse(JSON.stringify(ST0)), ST = JSON.parse(JSON.stringify(ST0));
+S.settings = false; S.stsec = 'source'; S.loading = false; S.loaded = '11 Nov 2026, 09:42';
+const dirty = () => JSON.stringify(ST) !== JSON.stringify(SAVED);
+const unmapped = () => Object.values(ST.map).filter(v=>!v).length;
+const SECS = [['source','Data source','Sheet and tabs CCCP reads'],['fields','Field mapping','Which column feeds which field'],['rules','Status rules','When a dot turns amber or red'],['access','Access','Who can open CCCP and edit settings'],['display','Display','Defaults and hidden applications']];
+
+/* counts that react to the rules */
+const CNT = {
+ exposed:()=>D.filter(a=>a.ex==='Yes'&&!a.pt[0]).length,
+ pentest:()=>D.filter(a=>a.pt[0]&&MO(a.pt[0])>ST.rules.pentest).length,
+ critical:()=>D.filter(a=>/critical/.test(a.pt[1])).length,
+ noso:()=>D.filter(a=>!a.so).length,
+ review:()=>D.filter(a=>!a.val||MO(a.val)>ST.rules.review).length,
+ major:()=>D.filter(a=>/major/.test(a.au[1])).length,
+ drpTiers:()=>D.filter(a=>a.t&&ST.rules.drpTiers.includes('T'+a.t)&&!a.dt[0]).length,
+ drpAge:()=>D.filter(a=>a.dt[0]&&MO(a.dt[0])>ST.rules.drpAge).length,
+ drpFail:()=>D.filter(a=>a.dt[1]==='Failed').length,
+ eol:()=>D.filter(a=>['END_OF_LIFE','END_OF_SUPPORT'].includes(a.lc)).length,
+ nosso:()=>D.filter(a=>a.sso==='No').length,
+ hidePrefix:()=>{ const p = ST.disp.hidePrefix.trim().toLowerCase(); return p ? D.filter(a=>a.n.toLowerCase().startsWith(p)).length : 0; },
+ hideEol:()=>D.filter(a=>['END_OF_LIFE','END_OF_SUPPORT'].includes(a.lc)).length
+};
+const aff = k => `<span class="aff" data-cnt="${k}"><b>${num(CNT[k]())}</b> apps</span>`;
+
+/* controls */
+const sf = (label, help, ctrl) => `<div class="sf"><div class="sfl"><b>${label}</b>${help?`<small>${help}</small>`:''}</div><div class="sfc">${ctrl}</div></div>`;
+const sw = (path, on, lbl) => `<label class="sw"><input type="checkbox" data-st="${path}" ${on?'checked':''} aria-label="${esc(lbl)}"><span></span></label>`;
+const numu = (path, v, unit, lbl) => `<span class="numu"><input type="number" min="1" max="120" data-st="${path}" value="${v}" aria-label="${esc(lbl)}"><span>${unit}</span></span>`;
+const segs = (path, v, opts) => `<span class="segs" role="group">${opts.map(([k,l])=>`<button data-seg="${path}" data-v="${k}" aria-pressed="${v===k}">${l}</button>`).join('')}</span>`;
+
+function secSource(){
+  const n = {apps:D.length, ciat:D.filter(a=>a.ciat).length, aud:D.filter(a=>a.au[0]||a.pt[0]).length, drp:D.filter(a=>a.rto!=null).length, plat:D.length};
+  const tabs = [['apps','Applications'],['ciat','CIAT classification'],['aud','Audits & pentests'],['drp','Disaster recovery'],['plat','Platform']];
+  const opts = v => ['Apps','CIAT','Audits','DRP','Platform','Archive'].map(t=>`<option ${t===v?'selected':''}>${t}</option>`).join('');
+  const miss = k => k==='aud' ? 'Last audit, Last pentest, Open findings not mapped' : k==='drp' ? 'Last DRP test, Test result not mapped' : '';
+  return `<div class="conn"><div><b>${dot(unmapped()?'warn':'ok')}Connected to “CCCP security data”</b><small>Last loaded ${S.loaded} · ${num(D.length)} applications</small></div>
+      <button class="btn" data-reload ${S.loading?'disabled':''}>${S.loading?'<span class="spin" aria-hidden="true"></span>Loading…':'Reload data'}</button></div>
+    <div class="sgrp">${sf('Google Sheet','The spreadsheet CCCP reads. The app reads it with the deployer’s access, so viewers don’t need access to the sheet.', `<input class="inp wide" data-st="src.url" value="${esc(ST.src.url)}" aria-label="Google Sheet link">`)}
+    ${sf('Keep data in memory for','After this, the next visitor reloads from the sheet.', numu('src.cache', ST.src.cache, 'minutes','Cache minutes'))}</div>
+    <div class="sgrp"><h3>Sheet tabs</h3><div class="mt"><table><thead><tr><th>Data</th><th>Tab</th><th>Rows</th><th>Status</th></tr></thead><tbody>
+    ${tabs.map(([k,l])=>`<tr><td>${l}</td><td><select class="sel" data-st="src.tabs.${k}" aria-label="${l} tab">${opts(ST.src.tabs[k])}</select></td><td class="num">${num(n[k])}</td><td>${miss(k)?`<span class="res warn" title="${miss(k)}">Columns missing</span>`:'<span class="res ok">OK</span>'}</td></tr>`).join('')}
+    </tbody></table></div></div>`;
+}
+function secFields(){
+  const u = unmapped();
+  return `${u?`<div class="callout">${dot('warn')}<span><b>${u} fields are not mapped.</b> They show as empty on every application and count as missing in completeness. Pick the column that holds them, or leave them unmapped until the data exists.</span></div>`:''}
+  <div class="mt"><table><thead><tr><th>CCCP field</th><th>Sheet column</th><th>Example value</th></tr></thead><tbody>` +
+  MAP.map(([g,fs])=>`<tr class="pgrp"><td colspan="3">${g}</td></tr>` + fs.map(([f,,k])=>{ const v = ST.map[f];
+    return `<tr><td>${f}</td><td><select class="sel ${v?'':'unmapped'}" data-st="map.${f}" aria-label="Column for ${f}"><option value="" ${v?'':'selected'}>Not mapped</option>${COLS.map(c=>`<option ${c===v?'selected':''}>${c}</option>`).join('')}</select></td><td class="ex">${v?esc(exVal(k)):'<span class="mut">—</span>'}</td></tr>`; }).join('')).join('') + '</tbody></table></div>';
+}
+function rule(k, st, txt, onPath){ const on = onPath ? ST.rules[k] : true;
+  return `<div class="rule ${on?'':'off'}">${dot(st)}<span class="txt">${txt}</span>${aff(k)}${onPath?sw('rules.'+k, on, 'Rule on'):'<span></span>'}</div>`; }
+function secRules(){
+  const r = ST.rules, tiers = `<span class="tchips">${['T1','T2','T3','T4'].map(t=>`<button data-tier="${t}" aria-pressed="${r.drpTiers.includes(t)}">${t}</button>`).join('')}</span>`;
+  return `<div class="sgrp"><h3>${dot('bad')}Cyber</h3>
+     ${rule('exposed','bad','Exposed on the internet and never pentested',1)}
+     ${rule('pentest','warn',`Last pentest older than ${numu('rules.pentest', r.pentest,'months','Pentest age')}`)}
+     ${rule('critical','bad','A critical finding is open',1)}
+     ${rule('noso','bad','No security officer assigned',1)}</div>
+   <div class="sgrp"><h3>${dot('bad')}Compliance</h3>
+     ${rule('review','warn',`Classification missing or last checked more than ${numu('rules.review', r.review,'months','Review interval')} ago <small class="mut">· also shows “Review needed”</small>`)}
+     ${rule('major','bad','A major audit finding is open',1)}</div>
+   <div class="sgrp"><h3>${dot('bad')}Continuity</h3>
+     ${rule('drpTiers','bad',`No DRP test on record for ${tiers}`)}
+     ${rule('drpAge','warn',`Last DRP test older than ${numu('rules.drpAge', r.drpAge,'months','DRP test age')}`)}
+     ${rule('drpFail','bad','Last DRP test failed',1)}</div>
+   <div class="sgrp"><h3>${dot('bad')}Platform</h3>
+     ${rule('eol','bad','Still running past end of life or end of support',1)}
+     ${rule('nosso','warn','No single sign-on',1)}</div>
+   <p class="mut" style="margin:0;font-size:13px">${dot('bad')} Gap &nbsp; ${dot('warn')} Needs attention. The worst rule that matches sets the dot. Counts use the current data.</p>`;
+}
+function secAccess(){
+  const a = ST.access;
+  return `<div class="sgrp">${sf('Who can open CCCP','Everyone opens it read only.', `<div class="rcards">
+      <label class="rcard"><input type="radio" name="who" data-st="access.who" value="org" ${a.who==='org'?'checked':''}><span><b>Everyone in your organization</b><small>Anyone signed in with a company account</small></span></label>
+      <label class="rcard"><input type="radio" name="who" data-st="access.who" value="groups" ${a.who==='groups'?'checked':''}><span><b>Only these Google groups</b><small>For example security-team@ and it-leads@</small></span></label></div>
+      ${a.who==='groups'?`<input class="inp wide" data-st="access.groups" placeholder="group addresses, separated by commas" value="${esc(a.groups)}" aria-label="Google groups">`:''}`)}
+    ${sf('Admins','Admins see this Settings page. Everyone else only sees applications.', `<div class="pchips">${a.admins.map(p=>`<span class="pchip"><span class="av">${esc(initials(p))}</span>${esc(p)}<button data-rmadmin="${esc(p)}" aria-label="Remove ${esc(p)}">×</button></span>`).join('')}</div>
+      <div class="addp"><input class="inp wide" id="newadmin" placeholder="Name or email" aria-label="Add an admin"><button class="btn" data-addadmin>Add</button></div>`)}</div>`;
+}
+function secDisplay(){
+  const d = ST.disp;
+  return `<div class="sgrp">${sf('Opens on','The view people see when they open CCCP.', segs('disp.view', d.view, [['list','List'],['heat','Heatmap']]))}
+    ${sf('Theme','People can still switch with the sun icon.', segs('disp.theme', d.theme, [['system','System'],['light','Light'],['dark','Dark']]))}</div>
+    <div class="sgrp"><h3>Hidden applications</h3>
+    ${sf('Hide names starting with','Leftover or test entries. Leave empty to show everything.', `<input class="inp" data-st="disp.hidePrefix" value="${esc(d.hidePrefix)}" aria-label="Hide names starting with">${aff('hidePrefix')}`)}
+    ${sf('Hide applications at end of life','End of life and end of support.', `${sw('disp.hideEol', d.hideEol, 'Hide end of life')}${aff('hideEol')}`)}</div>`;
+}
+const SEC_FN = {source:secSource, fields:secFields, rules:secRules, access:secAccess, display:secDisplay};
+const secBlock = k => { const s = SECS.find(x=>x[0]===k); return `<section class="panel sts" id="st-${k}"><header><h2>${s[1]}</h2><p>${s[2]}.</p></header>${SEC_FN[k]()}</section>`; };
+const mark = k => k==='fields' && unmapped() ? '<span class="warnmark" title="Fields not mapped"></span>' : '';
+function settingsPage(){
+  const head = `<div class="top"><button class="backbtn" data-stback aria-label="Back to applications">${ICO.back}Back</button></div>
+    <div class="sth"><h1>Settings</h1><p>Changes apply to everyone who opens CCCP after you save.</p></div>`;
+  let body;
+  if(O.set==='side') body = `<div class="st-a"><nav class="panel snavl" aria-label="Settings sections">${SECS.map(([k,l,h])=>`<button data-stsec="${k}" aria-current="${S.stsec===k}"><b>${l}${mark(k)}</b><small>${h}</small></button>`).join('')}</nav>${secBlock(S.stsec)}</div>`;
+  else if(O.set==='tabs') body = `<div class="panel"><div class="stabs" role="tablist">${SECS.map(([k,l])=>`<button role="tab" data-stsec="${k}" aria-selected="${S.stsec===k}">${l}${mark(k)}</button>`).join('')}</div>${secBlock(S.stsec).replace('class="panel sts"','class="sts"')}</div>`;
+  else body = `<nav class="anch" aria-label="Jump to">${SECS.map(([k,l])=>`<button class="pill" data-stjump="${k}"><span>${l}</span>${mark(k)}</button>`).join('')}</nav>${SECS.map(([k])=>secBlock(k)).join('')}`;
+  return `<div class="stw">${head}${body}<div id="savebar">${savebar()}</div></div>`;
+}
+const savebar = () => dirty() ? `<div class="savebar" role="status"><span>You have unsaved changes</span><div><button class="btn" data-discard>Discard</button><button class="btn pri" data-save>Save changes</button></div></div>` : '';
+function toast(msg){ const t = document.createElement('div'); t.className = 'toast'; t.setAttribute('role','status');
+  t.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="m5 12.5 4.5 4.5L19 7.5"/></svg>' + msg;
+  document.body.appendChild(t); setTimeout(()=>t.remove(), 2400); }
+
+/* render + routing */
+const lxRender = render;
+render = function(focus){
+  $('gear').setAttribute('aria-pressed', !!S.settings);
+  if(!S.settings){ lxRender(focus); return; }
+  $('nav').querySelectorAll('button').forEach(b=>b.setAttribute('aria-pressed','false'));
+  $('root').innerHTML = settingsPage();
+  const f = focus && document.querySelector(focus); if(f) f.focus();
+};
+function openSettings(push){ S.settings = true; S.app = null; S.pop = null; if(push){ S.pushed = true; try { history.pushState(null,'','#settings'); } catch(e){} } render(); scrollTo(0,0); }
+const stRoute = () => { if(location.hash==='#settings') openSettings(false); else if(S.settings){ S.settings = false; render(); } };
+addEventListener('popstate', stRoute);
+$('gear').addEventListener('click', ()=> S.settings ? null : openSettings(true));
+document.querySelector('.appbar').addEventListener('click', e=>{ if(e.target.closest('[data-go]')) S.settings = false; }, true);
+$('gq').addEventListener('keydown', e=>{ if(e.key==='Enter') S.settings = false; }, true);
+$('gres').addEventListener('click', ()=>{ S.settings = false; }, true);
+
+/* settings events */
+function setPath(p, val){ const ks = p.split('.'); let o = ST; ks.slice(0,-1).forEach(k=>o=o[k]); o[ks[ks.length-1]] = val; }
+function refreshLive(){ document.querySelectorAll('[data-cnt]').forEach(el=>el.innerHTML = `<b>${num(CNT[el.dataset.cnt]())}</b> apps`); $('savebar').innerHTML = savebar(); }
+root.addEventListener('input', e=>{ if(!S.settings) return; const t = e.target, p = t.dataset.st; if(!p || t.type==='checkbox' || t.type==='radio' || t.tagName==='SELECT') return;
+  setPath(p, t.type==='number' ? Math.max(1, +t.value || 1) : t.value); refreshLive(); });
+root.addEventListener('change', e=>{ if(!S.settings) return; const t = e.target, p = t.dataset.st; if(!p) return;
+  if(t.type==='checkbox') setPath(p, t.checked); else if(t.type==='radio') setPath(p, t.value); else if(t.tagName==='SELECT') setPath(p, t.value); else return;
+  render(t.id ? '#'+t.id : `[data-st="${CSS.escape(p)}"]${t.type==='radio'?`[value="${t.value}"]`:''}`); });
+root.addEventListener('click', e=>{ if(!S.settings) return;
+  const t = e.target.closest('[data-stsec],[data-stjump],[data-stback],[data-seg],[data-tier],[data-rmadmin],[data-addadmin],[data-save],[data-discard],[data-reload]'); if(!t) return; const d = t.dataset;
+  if(d.stsec){ S.stsec = d.stsec; render(); return; }
+  if(d.stjump){ $('st-'+d.stjump).scrollIntoView({behavior:matchMedia('(prefers-reduced-motion:reduce)').matches?'auto':'smooth', block:'start'}); return; }
+  if(d.stback!==undefined){ S.settings = false; if(S.pushed){ S.pushed = false; history.back(); return; } go(S.view==='heat'?'#heatmap':'#list'); render(); return; }
+  if(d.seg){ setPath(d.seg, d.v); }
+  else if(d.tier){ const a = ST.rules.drpTiers; a.includes(d.tier) ? a.splice(a.indexOf(d.tier),1) : a.push(d.tier); a.sort(); }
+  else if(d.rmadmin){ ST.access.admins = ST.access.admins.filter(x=>x!==d.rmadmin); }
+  else if(d.addadmin!==undefined){ const v = $('newadmin').value.trim(); if(!v) { $('newadmin').focus(); return; } if(!ST.access.admins.includes(v)) ST.access.admins.push(v); }
+  else if(d.save!==undefined){ SAVED = JSON.parse(JSON.stringify(ST)); toast('Settings saved'); }
+  else if(d.discard!==undefined){ ST = JSON.parse(JSON.stringify(SAVED)); }
+  else if(d.reload!==undefined){ S.loading = true; render(); setTimeout(()=>{ S.loading = false; S.loaded = 'just now'; if(S.settings) render(); toast('Data reloaded · '+num(D.length)+' applications'); }, 1100); return; }
+  render(d.addadmin!==undefined ? '#newadmin' : null);
+});
+root.addEventListener('keydown', e=>{ if(S.settings && e.target.id==='newadmin' && e.key==='Enter'){ e.preventDefault(); root.querySelector('[data-addadmin]').click(); } });
+
+/* option strip */
+document.querySelector('.opts').addEventListener('click', e=>{ const b = e.target.closest('.seg button'); if(!b || b.parentElement.dataset.o!=='set') return;
+  O.set = b.dataset.v; applyOpts(); if(!S.settings) openSettings(true); else render(); }, true);
+applyOpts();
+try { history.replaceState(null,'','#settings'); } catch(e){}
+S.app = null; openSettings(false);
+</script>

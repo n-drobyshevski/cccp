@@ -1,0 +1,8 @@
+node_modules/
+dist/
+.clasp.json
+test-results/
+playwright-report/
+dev/server.dev.js
+*.tsbuildinfo
+.DS_Store

@@ -1,0 +1,240 @@
+<meta name="claude:viewport-fit-sides" content="cover">
+<title>CCCP Filter Options</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=IBM+Plex+Mono:wght@500;600&display=swap">
+<style>
+/* Layout: option switches on top, then one app window: filter area (changes per option) above a short result table. */
+:root{
+  --bg:#eef1f5; --surface:#ffffff; --surface2:#f5f7fa; --line:#dde2ea;
+  --fg:#151a23; --muted:#5a6474;
+  --accent:oklch(0.48 0.17 265); --on-accent:#ffffff;
+  --ok:#1b8556; --warn:#b06f00; --bad:#c9303e; --none:#98a1b0;
+  --sans:"Inter",system-ui,-apple-system,"Segoe UI",sans-serif;
+  --mono:"IBM Plex Mono",ui-monospace,Menlo,Consolas,monospace;
+  --r:10px; --rc:18px;
+}
+@media (prefers-color-scheme: dark){ :root:not([data-theme="light"]){
+  --bg:#0e1117; --surface:#161a22; --surface2:#1c212b; --line:#2a313e;
+  --fg:#e7eaf0; --muted:#97a1b2;
+  --accent:oklch(0.76 0.12 265); --on-accent:#0e1117;
+  --ok:#4bc088; --warn:#e2a03a; --bad:#ee6370; --none:#5a6373; color-scheme:dark } }
+:root[data-theme="dark"]{
+  --bg:#0e1117; --surface:#161a22; --surface2:#1c212b; --line:#2a313e;
+  --fg:#e7eaf0; --muted:#97a1b2;
+  --accent:oklch(0.76 0.12 265); --on-accent:#0e1117;
+  --ok:#4bc088; --warn:#e2a03a; --bad:#ee6370; --none:#5a6373; color-scheme:dark }
+
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--fg);font:14px/1.45 var(--sans)}
+.page{max-width:1180px;margin:0 auto;padding-block:20px 40px;
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));
+  display:flex;flex-direction:column;gap:14px}
+button,input{font:inherit;color:inherit}
+button{cursor:pointer}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.pick{display:flex;flex-wrap:wrap;gap:10px 22px;align-items:flex-end}
+.pick h1{font-size:15px;font-weight:600;margin:0;flex:1 1 100%}
+.opt{display:flex;flex-direction:column;gap:4px}
+.lbl{font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
+.seg{display:flex;flex-wrap:wrap;border:1px solid var(--line);border-radius:var(--r);overflow:hidden;background:var(--surface)}
+.seg button{border:0;background:none;padding:6px 11px;border-right:1px solid var(--line)}
+.seg button:last-child{border-right:0}
+.seg button[aria-pressed="true"]{background:var(--accent);color:var(--on-accent)}
+.ghost{border:1px solid var(--line);background:var(--surface);border-radius:var(--r);padding:6px 10px}
+.note{margin:0;color:var(--muted);max-width:78ch}
+.note b{color:var(--fg);font-weight:600}
+
+.app{background:var(--surface);border:1px solid var(--line);border-radius:var(--rc);min-width:0}
+.top{display:flex;flex-direction:column;gap:10px;padding:12px 14px;border-bottom:1px solid var(--line)}
+.row{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.mark{display:flex;gap:2px;margin-right:4px}
+.mark b{width:20px;height:20px;display:grid;place-items:center;background:var(--accent);color:var(--on-accent);font:600 12px var(--mono);border-radius:50%}
+.q{flex:1 1 200px;border:1px solid var(--line);background:var(--surface2);border-radius:var(--r);padding:6px 10px;min-width:0}
+
+/* pills, chips, toggles */
+.pw{position:relative;display:inline-flex}
+.pill{border:1px solid var(--line);background:var(--surface);border-radius:16px;padding:5px 12px;white-space:nowrap;max-width:260px;overflow:hidden;text-overflow:ellipsis}
+.pill:hover{border-color:var(--accent)}
+.pill.on{background:color-mix(in srgb,var(--accent) 11%,var(--surface));border-color:var(--accent);color:var(--accent);font-weight:500}
+.pill.add{border-style:dashed;color:var(--muted)}
+.pill small{color:var(--muted);font:500 11px var(--mono);margin-left:4px}
+.chip{display:inline-flex;align-items:center;border:1px solid var(--accent);background:color-mix(in srgb,var(--accent) 11%,var(--surface));border-radius:16px;color:var(--accent);font-weight:500;max-width:100%}
+.chip button{border:0;background:none;color:inherit;padding:5px 4px 5px 12px;font-weight:inherit;white-space:nowrap;max-width:240px;overflow:hidden;text-overflow:ellipsis}
+.chip button:last-child{padding:5px 10px 5px 4px;font-size:15px;line-height:1}
+.tg{display:inline-flex;border:1px solid var(--line);border-radius:16px;overflow:hidden}
+.tg button{border:0;background:var(--surface);padding:5px 10px;font:500 12px var(--mono);border-right:1px solid var(--line);color:var(--muted)}
+.tg button:last-child{border-right:0}
+.tg button[aria-pressed="true"]{background:var(--accent);color:var(--on-accent)}
+.clr{border:0;background:none;color:var(--muted);padding:4px 2px;text-decoration:underline}
+.clr:hover{color:var(--accent)}
+
+/* popover */
+.pop{position:absolute;top:calc(100% + 6px);left:0;z-index:5;width:270px;max-width:calc(100vw - 48px);background:var(--surface);border:1px solid var(--line);
+  border-radius:var(--r);box-shadow:0 10px 30px color-mix(in srgb,var(--fg) 18%,transparent);padding:8px;display:flex;flex-direction:column;gap:6px}
+.pop.right{left:auto;right:0}
+.pop input[type=search],.side input[type=search]{border:1px solid var(--line);background:var(--surface2);border-radius:8px;padding:5px 8px;width:100%}
+.plist{max-height:240px;overflow:auto;display:flex;flex-direction:column}
+.ck{display:flex;align-items:center;gap:8px;padding:4px 6px;border-radius:6px;cursor:pointer}
+.ck:hover{background:var(--surface2)}
+.ck span{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.ck small{color:var(--muted);font:500 11px var(--mono)}
+.ck.zero{color:var(--muted)}
+.ck input{accent-color:var(--accent);margin:0}
+.menu button{border:0;background:none;text-align:left;padding:6px 8px;border-radius:6px}
+.menu button:hover{background:var(--surface2)}
+.pfoot{display:flex;justify-content:flex-end;border-top:1px solid var(--line);padding-top:4px}
+
+/* C: side panel */
+.cwrap{display:grid;grid-template-columns:250px minmax(0,1fr)}
+#res{min-width:0}
+.side{border-right:1px solid var(--line);padding:12px 14px;min-width:0}
+.side .fac+.fac{margin-top:16px}
+.side summary{font-weight:600;cursor:pointer;display:none}
+.fac{border:0;padding:0;margin:0;display:flex;flex-direction:column;gap:4px;min-width:0}
+.fac legend{font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);padding:0;margin-bottom:4px}
+.fac .plist{max-height:168px}
+@media (max-width:760px){ .cwrap{grid-template-columns:minmax(0,1fr)} .side[open] summary{margin-bottom:10px} .side{border-right:0;border-bottom:1px solid var(--line)} .side summary{display:block} }
+
+/* D: token search */
+.tok{display:flex;flex-wrap:wrap;gap:6px;align-items:center;flex:1 1 260px;border:1px solid var(--line);background:var(--surface2);border-radius:var(--r);padding:4px 6px;min-width:0;position:relative}
+.tok:focus-within{border-color:var(--accent)}
+.tok input{flex:1 1 140px;border:0;background:none;padding:3px 4px;min-width:0;outline:none}
+.sugg{position:absolute;top:calc(100% + 6px);left:0;z-index:5;width:min(420px,100%);background:var(--surface);border:1px solid var(--line);border-radius:var(--r);
+  box-shadow:0 10px 30px color-mix(in srgb,var(--fg) 18%,transparent);padding:6px;display:flex;flex-direction:column}
+.sugg button{display:flex;gap:10px;align-items:baseline;border:0;background:none;text-align:left;padding:6px 8px;border-radius:6px}
+.sugg button:hover{background:var(--surface2)}
+.sugg i{font-style:normal;color:var(--muted);font-size:12px;flex:0 0 110px}
+.sugg span{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.sugg small{color:var(--muted);font:500 11px var(--mono)}
+.hint{color:var(--muted);font-size:12px}
+
+/* results */
+.count{display:flex;gap:12px;align-items:center;color:var(--muted);font-size:12px;padding:8px 14px 4px}
+.tw{overflow-x:auto;border-radius:0 0 var(--rc) var(--rc)}
+table{border-collapse:collapse;width:100%;font-size:13px}
+th{font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);font-weight:500;text-align:left;padding:8px 14px;border-bottom:1px solid var(--line);white-space:nowrap}
+td{padding:8px 14px;border-bottom:1px solid var(--line);white-space:nowrap}
+tbody tr:last-child td{border-bottom:0}
+.nm{display:block;max-width:280px;overflow:hidden;text-overflow:ellipsis;font-weight:500}
+.mut{color:var(--muted)}
+.strip{display:inline-flex;gap:3px}
+.s{width:18px;height:18px;display:inline-grid;place-items:center;font:600 10px var(--mono);font-style:normal;border-radius:9px;border:1px solid transparent}
+.s.ok{background:var(--ok);color:var(--surface)}
+.s.warn{background:color-mix(in srgb,var(--warn) 22%,var(--surface));color:var(--warn);border-color:var(--warn)}
+.s.bad{background:var(--bad);color:var(--surface)}
+.s.none{color:var(--none);border:1px dashed var(--none)}
+.tier{font:500 11px var(--mono);padding:1px 7px;border:1px solid var(--line);border-radius:10px;color:var(--muted)}
+.tier.t1{background:var(--fg);color:var(--surface);border-color:var(--fg)} .tier.t0{border-style:dashed}
+.empty{padding:36px 14px;text-align:center;color:var(--muted)}
+</style>
+
+<div class="page">
+  <div class="pick">
+    <h1>CCCP · filter options</h1>
+    <div class="opt"><span class="lbl">Filter style</span><div class="seg" data-k="opt"><button data-v="A">A · Pills</button><button data-v="B">B · Add filter</button><button data-v="C">C · Side panel</button><button data-v="D">D · One search box</button></div></div>
+    <div class="opt"><span class="lbl">Quick views</span><div class="seg" data-k="quick"><button data-v="on">On</button><button data-v="off">Off</button></div></div>
+    <button class="ghost" id="theme">Light / dark</button>
+  </div>
+  <p class="note" id="note"></p>
+  <div class="app" id="app"></div>
+  <p class="note">Filters run on your anonymized inventory. Pillar statuses are generated placeholders. The table shows the first 12 matches.</p>
+</div>
+
+<script>
+const P = ['Cyber','Compliance','Continuity','Platform'], L = ['C','C','C','P'];
+const lcl = k => k.charAt(0) + k.slice(1).toLowerCase().replace(/_/g,' ');
+const D = /*DATA*/;
+const F = [
+ {k:'dom', l:'Domain', big:1, g:a=>[a.d]},
+ {k:'tier', l:'Tier', g:a=>[a.t?'T'+a.t:'No tier'], order:['T1','T2','T3','T4','No tier']},
+ {k:'lc', l:'Lifecycle', g:a=>[lcl(a.lc)]},
+ {k:'so', l:'Security officer', big:1, g:a=>[a.so||'None assigned']},
+ {k:'gap', l:'Gap in', g:a=>P.filter((p,i)=>a.st[i]==='bad'), order:P}
+];
+const FK = Object.fromEntries(F.map(f=>[f.k,f]));
+D.forEach(a=>{ a.f = {}; F.forEach(f=>a.f[f.k]=f.g(a)); a.txt = [a.n,a.d,a.sd,a.g,a.o,a.so].join(' ').toLowerCase(); });
+const VALS = {}; F.forEach(f=>{ const s = [...new Set(D.flatMap(a=>a.f[f.k]))];
+  VALS[f.k] = f.order ? f.order.filter(v=>s.includes(v)) : s.sort((x,y)=>(x==='None assigned')-(y==='None assigned')||x.localeCompare(y)); });
+const PRESETS = [['All',{}],['Tier 1',{tier:['T1']}],['Has a gap',{gap:P}],['No security officer',{so:['None assigned']}],['No tier',{tier:['No tier']}],['End of life',{lc:['End of life','End of support']}]];
+const NOTES = {
+ A:'<b>A · Pills.</b> Tier is a row of toggles because it has only five values. The other filters are pills that open a checklist with counts; Domain and Security officer get a find box. You can tick several values. Adds a filter the current design lacks: gap by pillar.',
+ B:'<b>B · Add filter.</b> The bar starts empty. "+ Filter" lists what you can filter on; each active filter becomes a chip you can reopen or remove. Cleanest when most people use no filter or one.',
+ C:'<b>C · Side panel.</b> Every filter is always visible with its counts, as in the LeanIX inventory. Takes a column of width; on a phone it folds into a "Filters" section.',
+ D:'<b>D · One search box.</b> Type anything: it suggests matching domains, tiers, officers, lifecycles and pillars, and picking one turns it into a tag. Anything else searches names. Fastest for people who know what they want; less discoverable.'
+};
+const S = {opt:'A', quick:'on', q:'', sel:Object.fromEntries(F.map(f=>[f.k,new Set()])), pop:null, pq:'', sq:{dom:'',so:''}, side:null};
+const $ = id => document.getElementById(id), num = x => x.toLocaleString('en');
+const esc = s => String(s).replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const any = () => F.some(f=>S.sel[f.k].size) || S.q;
+const match = (a,skip) => (!S.q || a.txt.includes(S.q.toLowerCase())) && F.every(f=> f.k===skip || !S.sel[f.k].size || a.f[f.k].some(v=>S.sel[f.k].has(v)));
+const rows = skip => D.filter(a=>match(a,skip));
+function counts(k){ const m = new Map(); rows(k).forEach(a=>a.f[k].forEach(v=>m.set(v,(m.get(v)||0)+1))); return m; }
+function values(k, find){ const c = counts(k), f = (find||'').toLowerCase();
+  const list = VALS[k].filter(v=>!f || v.toLowerCase().includes(f));
+  return list.length ? list.map(v=>`<label class="ck ${c.get(v)?'':'zero'}"><input type="checkbox" data-f="${k}" value="${esc(v)}" ${S.sel[k].has(v)?'checked':''}><span title="${esc(v)}">${esc(v)}</span><small>${c.get(v)||0}</small></label>`).join('') : '<span class="hint" style="padding:6px">No match</span>'; }
+const pop = k => `<div class="pop" data-pop>${FK[k].big?`<input type="search" class="pqi" data-pk="${k}" placeholder="Find ${FK[k].l.toLowerCase()}" value="${esc(S.pq)}" aria-label="Find ${FK[k].l}">`:''}<div class="plist" data-list="${k}">${values(k,S.pq)}</div><div class="pfoot"><button class="clr" data-clear="${k}">Clear</button></div></div>`;
+const label = k => { const s = [...S.sel[k]]; return !s.length ? FK[k].l : `${FK[k].l}: ${esc(s[0])}${s.length>1?` +${s.length-1}`:''}`; };
+const search = ph => `<input class="q" id="q" type="search" placeholder="${ph}" value="${esc(S.q)}" aria-label="Search applications">`;
+const mark = '<div class="mark" aria-label="CCCP"><b>C</b><b>C</b><b>C</b><b>P</b></div>';
+const clear = () => any() ? '<button class="clr" data-clear="*">Clear all</button>' : '';
+function quick(){ if(S.quick!=='on') return '';
+  const cur = JSON.stringify(F.map(f=>[...S.sel[f.k]].sort()));
+  return '<div class="row">' + PRESETS.map(([n,p],i)=>{ const on = cur===JSON.stringify(F.map(f=>[...(p[f.k]||[])].sort())) && !S.q;
+    const c = D.filter(a=>F.every(f=>!p[f.k]||a.f[f.k].some(v=>p[f.k].includes(v)))).length;
+    return `<button class="pill ${on?'on':''}" data-preset="${i}">${n}<small>${num(c)}</small></button>`; }).join('') + '</div>'; }
+function filters(){
+  const o = S.opt;
+  if(o==='A') return `<div class="top">${quick()}<div class="row">${mark}${search('Search applications')}</div><div class="row">
+    <div class="tg" role="group" aria-label="Tier">${VALS.tier.map(v=>`<button data-tv="${v}" aria-pressed="${S.sel.tier.has(v)}">${v==='No tier'?'–':v}</button>`).join('')}</div>
+    ${['dom','lc','so','gap'].map(k=>`<span class="pw"><button class="pill ${S.sel[k].size?'on':''}" data-open="${k}" aria-expanded="${S.pop===k}">${label(k)} ▾</button>${S.pop===k?pop(k):''}</span>`).join('')}${clear()}</div></div>`;
+  if(o==='B') return `<div class="top">${quick()}<div class="row">${mark}${search('Search applications')}</div><div class="row">
+    ${F.filter(f=>S.sel[f.k].size).map(f=>`<span class="pw"><span class="chip"><button data-open="${f.k}">${label(f.k)}</button><button data-clear="${f.k}" aria-label="Remove ${f.l} filter">×</button></span>${S.pop===f.k?pop(f.k):''}</span>`).join('')}
+    <span class="pw"><button class="pill add" data-open="+" aria-expanded="${S.pop==='+'}">+ Filter</button>${S.pop==='+'?`<div class="pop menu" data-pop>${F.map(f=>`<button data-open="${f.k}">${f.l}</button>`).join('')}</div>`:(S.pop&&!S.sel[S.pop].size?pop(S.pop):'')}</span>${clear()}</div></div>`;
+  if(o==='D'){ const toks = F.flatMap(f=>[...S.sel[f.k]].map(v=>`<span class="chip"><button data-rm="${f.k}|${esc(v)}" tabindex="-1">${f.l}: ${esc(v)}</button><button data-rm="${f.k}|${esc(v)}" aria-label="Remove">×</button></span>`)).join('');
+    return `<div class="top">${quick()}<div class="row">${mark}<div class="tok">${toks}<input id="q" type="search" placeholder="Search, or type a domain, tier, officer…" value="${esc(S.q)}" aria-label="Search and filter"><div id="sugg"></div></div>${clear()}</div><span class="hint">Try "fin", "tier 1", "end of", "cyber" or a person.</span></div>`; }
+  return `<div class="top">${quick()}<div class="row">${mark}${search('Search applications')}${clear()}</div></div>`;
+}
+function side(){ if(S.side===null) S.side = matchMedia('(min-width:761px)').matches;
+  const n = F.filter(f=>S.sel[f.k].size).length;
+  return `<details class="side" ${S.side?'open':''}><summary>Filters${n?` (${n})`:''}</summary>` + F.map(f=>`<fieldset class="fac"><legend>${f.l}</legend>${f.big?`<input type="search" data-sq="${f.k}" placeholder="Find" value="${esc(S.sq[f.k])}" aria-label="Find ${f.l}">`:''}<div class="plist" data-list="${f.k}">${values(f.k,S.sq[f.k])}</div></fieldset>`).join('') + '</details>'; }
+function sugg(){ const el = $('sugg'); if(!el) return; const q = S.q.trim().toLowerCase(); if(!q){ el.innerHTML=''; return; }
+  const out = []; F.forEach(f=>{ const c = counts(f.k); VALS[f.k].forEach(v=>{ if(!S.sel[f.k].has(v) && (v.toLowerCase().includes(q) || (f.k==='tier' && ('tier '+v.slice(1)).includes(q)))) out.push([f,v,c.get(v)||0]); }); });
+  el.innerHTML = out.length ? '<div class="sugg">' + out.slice(0,8).map(([f,v,c])=>`<button data-add="${f.k}|${esc(v)}"><i>${f.l}</i><span>${esc(v)}</span><small>${c}</small></button>`).join('') + '</div>' : ''; }
+const tier = a => a.t ? `<span class="tier t${a.t}">T${a.t}</span>` : '<span class="tier t0">–</span>';
+function results(){ const R = rows();
+  return `<div class="count"><span>${num(R.length)} of ${num(D.length)} applications</span></div>` + (!R.length ? '<div class="empty">No application matches these filters.</div>' :
+   '<div class="tw"><table><thead><tr><th>Application</th><th>Domain</th><th>Tier</th><th>Lifecycle</th><th>Security officer</th><th>Status</th></tr></thead><tbody>' +
+   R.slice(0,12).map(a=>`<tr><td><span class="nm" title="${esc(a.n)}">${esc(a.n)}</span></td><td>${esc(a.d)}</td><td>${tier(a)}</td><td>${lcl(a.lc)}</td><td>${a.so?esc(a.so):'<span class="mut">—</span>'}</td><td><span class="strip">${a.st.map((s,i)=>`<i class="s ${s}" title="${P[i]}: ${esc(a.why[i])}">${L[i]}</i>`).join('')}</span></td></tr>`).join('') + '</tbody></table></div>'); }
+function render(focus){
+  const sc = {}; document.querySelectorAll('[data-list]').forEach(e=>sc[e.dataset.list]=e.scrollTop);
+  $('app').innerHTML = S.opt==='C' ? filters() + `<div class="cwrap">${side()}<div id="res">${results()}</div></div>` : filters() + `<div id="res">${results()}</div>`;
+  document.querySelectorAll('[data-list]').forEach(e=>{ if(sc[e.dataset.list]) e.scrollTop = sc[e.dataset.list]; });
+  const p = document.querySelector('.pop'); if(p && p.getBoundingClientRect().right > innerWidth - 8) p.classList.add('right');
+  $('note').innerHTML = NOTES[S.opt];
+  document.querySelectorAll('.pick .seg').forEach(g=>g.querySelectorAll('button').forEach(b=>b.setAttribute('aria-pressed', S[g.dataset.k]===b.dataset.v)));
+  sugg();
+  const f = focus && document.querySelector(focus); if(f) f.focus();
+}
+const tog = (k,v) => S.sel[k].has(v) ? S.sel[k].delete(v) : S.sel[k].add(v);
+const app = $('app');
+app.addEventListener('click',e=>{
+  const t = e.target.closest('[data-open],[data-clear],[data-tv],[data-rm],[data-add],[data-preset]'); if(!t) return; const d = t.dataset;
+  if(d.open!==undefined){ S.pop = S.pop===d.open ? null : d.open; S.pq=''; render(S.pop && FK[S.pop] && FK[S.pop].big ? '.pqi' : null); return; }
+  if(d.clear!==undefined){ if(d.clear==='*'){ F.forEach(f=>S.sel[f.k].clear()); S.q=''; } else S.sel[d.clear].clear(); S.pop=null; }
+  else if(d.tv!==undefined) tog('tier',d.tv);
+  else if(d.preset!==undefined){ const p = PRESETS[+d.preset][1]; F.forEach(f=>S.sel[f.k]=new Set(p[f.k]||[])); S.q=''; S.pop=null; }
+  else { const [k,...r] = (d.rm||d.add).split('|'), v = r.join('|'); d.add!==undefined ? (S.sel[k].add(v), S.q='') : S.sel[k].delete(v); render('#q'); return; }
+  render();
+});
+app.addEventListener('change',e=>{ const t = e.target; if(!t.matches('input[data-f]')) return; tog(t.dataset.f,t.value);
+  render(`input[data-f="${t.dataset.f}"][value="${CSS.escape(t.value)}"]`); });
+app.addEventListener('input',e=>{ const t = e.target;
+  if(t.id==='q'){ S.q = t.value; $('res').innerHTML = results(); sugg(); }
+  else if(t.matches('.pqi')){ S.pq = t.value; t.parentElement.querySelector('.plist').innerHTML = values(t.dataset.pk,S.pq); }
+  else if(t.dataset.sq){ S.sq[t.dataset.sq] = t.value; t.parentElement.querySelector('.plist').innerHTML = values(t.dataset.sq,t.value); } });
+app.addEventListener('toggle',e=>{ if(e.target.matches('.side')) S.side = e.target.open; },true);
+document.addEventListener('click',e=>{ if(S.pop && !e.target.closest('.pw')){ S.pop=null; render(); } });
+document.addEventListener('keydown',e=>{ if(e.key==='Escape' && S.pop){ S.pop=null; render(); } });
+document.querySelector('.pick').addEventListener('click',e=>{ const b = e.target.closest('.seg button'); if(!b) return; S[b.parentElement.dataset.k] = b.dataset.v; S.pop=null; render(); });
+$('theme').addEventListener('click',()=>{ const r=document.documentElement, dark = r.dataset.theme ? r.dataset.theme==='dark' : matchMedia('(prefers-color-scheme: dark)').matches; r.dataset.theme = dark ? 'light' : 'dark'; });
+render();
+</script>

@@ -1,0 +1,102 @@
+{
+  "commit": "77bcf22",
+  "fullCommit": "77bcf22bbdab4bd0217512de15ece9a6414b4aca",
+  "files": [
+    {
+      "from": "gas_shared/ui/settingsForm.js",
+      "to": "src/vendor/gas_shared/ui/settingsForm.js",
+      "sha256": "4e8b69c41b399c352479db2800d080934942fd076e573edb14e4166dbb40ae70",
+      "mode": "100644"
+    },
+    {
+      "from": "gas_shared/ui/tableModel.js",
+      "to": "src/vendor/gas_shared/ui/tableModel.js",
+      "sha256": "9759f06f393e7639d1eb85d6f85283a885cbeeb1a1974365a541f1e59e95cb22",
+      "mode": "100644"
+    },
+    {
+      "from": "gas_shared/ui/timing.js",
+      "to": "src/vendor/gas_shared/ui/timing.js",
+      "sha256": "4be1b6b67b039d7fbdd2db23462bee76c01cca7929e8150e4ca1425ee67d8af9",
+      "mode": "100644"
+    },
+    {
+      "from": "gas_shared/ui/tipPlace.js",
+      "to": "src/vendor/gas_shared/ui/tipPlace.js",
+      "sha256": "72bc6bb4128b42bad469fac0959fcba4513afdcfdd9d2978661b6010d3605ef0",
+      "mode": "100644"
+    },
+    {
+      "from": "gas_shared/ui/accessSave.js",
+      "to": "src/vendor/gas_shared/ui/accessSave.js",
+      "sha256": "c973298fff7cc4f5f11953900e05f021e4d196d616b066bc45d620da24aa01d5",
+      "mode": "100644"
+    },
+    {
+      "from": "gas_hub/src/client/js/pages/accessModel.js",
+      "to": "src/vendor/gas_hub/src/client/js/pages/accessModel.js",
+      "sha256": "96f2dc103d39c3f8735efbc83bb3e171e82e58343ade66a12e95cd97260a91b5",
+      "mode": "100644"
+    },
+    {
+      "from": "gas_shared/domain/csv.ts",
+      "to": "src/vendor/gas_shared/domain/csv.ts",
+      "sha256": "2f51035eb99dc61e1cd4c5e6b0f1d18bd198def535daf6d784d26265f9dc9913",
+      "mode": "100644"
+    },
+    {
+      "from": "gas_shared/domain/sha1.ts",
+      "to": "src/vendor/gas_shared/domain/sha1.ts",
+      "sha256": "3d64bdda03440d90c0007a843151c191b8d6a04b2d76a298a5261e1f606dfb3a",
+      "mode": "100644"
+    },
+    {
+      "from": "gas_shared/domain/snapshotCodec.ts",
+      "to": "src/vendor/gas_shared/domain/snapshotCodec.ts",
+      "sha256": "075485b13e1902d04a64c602a2dfa0cbe5746217d058f516b65d4587a1283986",
+      "mode": "100644"
+    },
+    {
+      "from": "gas_shared/server/inlineBoot.ts",
+      "to": "src/vendor/gas_shared/server/inlineBoot.ts",
+      "sha256": "648fce4470ea50d80ce4deca0c2c07496e200f92d49d488d84500cdd7b0478ee",
+      "mode": "100644"
+    },
+    {
+      "from": "gas_shared/server/errorLog.ts",
+      "to": "src/vendor/gas_shared/server/errorLog.ts",
+      "sha256": "65bed575880da89c123027674ae30f209dc5b076c7addf795bade13261aa2bb8",
+      "mode": "100644"
+    },
+    {
+      "from": "gas_shared/server/buildInfo.ts",
+      "to": "src/vendor/gas_shared/server/buildInfo.ts",
+      "sha256": "56bb6d76a141210e70f7b16a748fea07e908c6f7d65ce2d91d2de9e7bfa89315",
+      "mode": "100644"
+    },
+    {
+      "from": "gas_shared/build/buildStamp.mjs",
+      "to": "src/vendor/gas_shared/build/buildStamp.mjs",
+      "sha256": "b363e85f5c14a8f5ff1d2091ad69ccf11a129c764f41b2eeb5f7f72a36407615",
+      "mode": "100644"
+    },
+    {
+      "from": "gas_shared/build/deploy.mjs",
+      "to": "src/vendor/gas_shared/build/deploy.mjs",
+      "sha256": "337ffb8edcba47e28a663b9d3967131d2238c4e4e2de66b1af4b8900289cbe3d",
+      "mode": "100644"
+    },
+    {
+      "from": "gas_shared/test/contracts/settingsForm.js",
+      "to": "src/vendor/gas_shared/test/contracts/settingsForm.js",
+      "sha256": "9b2c95a410f82e37cf52e431fae0b17ae93c896d44ae74ab118990c491a99af9",
+      "mode": "100644"
+    },
+    {
+      "from": "gas_shared/test/contracts/accessSave.js",
+      "to": "src/vendor/gas_shared/test/contracts/accessSave.js",
+      "sha256": "d3cd7e48d8cf7b022b80a719fd39a54ae99d18745f3aed265c21161ce8f86b97",
+      "mode": "100644"
+    }
+  ]
+}

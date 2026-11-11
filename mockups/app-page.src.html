@@ -1,0 +1,297 @@
+<meta name="claude:viewport-fit-sides" content="cover">
+<title>CCCP Application Page</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=IBM+Plex+Mono:wght@500;600&display=swap">
+<style>
+/* Layout: option switches on top, then one framed app window (list, heatmap or application page). Soft style, cobalt accent. */
+:root{
+  --bg:#eef1f5; --surface:#ffffff; --surface2:#f5f7fa; --line:#dde2ea;
+  --fg:#151a23; --muted:#5a6474;
+  --accent:oklch(0.48 0.17 265); --on-accent:#ffffff;
+  --ok:#1b8556; --warn:#b06f00; --bad:#c9303e; --none:#98a1b0;
+  --sans:"Inter",system-ui,-apple-system,"Segoe UI",sans-serif;
+  --mono:"IBM Plex Mono",ui-monospace,Menlo,Consolas,monospace;
+  --r:10px; --rc:18px; --rs:14px; --pad:10px; --g:14px;
+}
+@media (prefers-color-scheme: dark){ :root:not([data-theme="light"]){
+  --bg:#0e1117; --surface:#161a22; --surface2:#1c212b; --line:#2a313e;
+  --fg:#e7eaf0; --muted:#97a1b2;
+  --accent:oklch(0.76 0.12 265); --on-accent:#0e1117;
+  --ok:#4bc088; --warn:#e2a03a; --bad:#ee6370; --none:#5a6373; color-scheme:dark } }
+:root[data-theme="dark"]{
+  --bg:#0e1117; --surface:#161a22; --surface2:#1c212b; --line:#2a313e;
+  --fg:#e7eaf0; --muted:#97a1b2;
+  --accent:oklch(0.76 0.12 265); --on-accent:#0e1117;
+  --ok:#4bc088; --warn:#e2a03a; --bad:#ee6370; --none:#5a6373; color-scheme:dark }
+:root[data-dens="compact"]{--pad:6px;--g:9px}
+
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--fg);font:14px/1.45 var(--sans)}
+.page{max-width:1180px;margin:0 auto;padding-block:20px 40px;
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));
+  display:flex;flex-direction:column;gap:14px}
+button,input,select{font:inherit;color:inherit}
+button{cursor:pointer}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+
+.pick{display:flex;flex-wrap:wrap;gap:10px 22px;align-items:center}
+.pick h1{font-size:15px;font-weight:600;margin:0;flex:1 1 100%}
+.opt{display:flex;flex-direction:column;gap:4px}
+.lbl{font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
+.seg{display:flex;flex-wrap:wrap;border:1px solid var(--line);border-radius:var(--r);overflow:hidden;background:var(--surface)}
+.seg button{border:0;background:none;padding:6px 11px;border-right:1px solid var(--line)}
+.seg button:last-child{border-right:0}
+.seg button[aria-pressed="true"]{background:var(--accent);color:var(--on-accent)}
+.ghost{border:1px solid var(--line);background:var(--surface);border-radius:var(--r);padding:6px 10px;align-self:flex-end}
+.note{margin:0;color:var(--muted);max-width:78ch}
+.note b{color:var(--fg);font-weight:600}
+
+.app{background:var(--surface);border:1px solid var(--line);border-radius:var(--rc);overflow:hidden;min-width:0}
+.bar{display:flex;flex-wrap:wrap;gap:8px;align-items:center;padding:10px 14px;border-bottom:1px solid var(--line)}
+.mark{display:flex;gap:2px}
+.mark b{width:20px;height:20px;display:grid;place-items:center;background:var(--accent);color:var(--on-accent);font:600 12px var(--mono);border-radius:50%}
+.nav{display:flex;gap:2px;margin:0 6px;padding:2px;background:var(--surface2);border-radius:var(--r)}
+.nav button{border:0;background:none;padding:4px 12px;border-radius:8px;color:var(--muted)}
+.nav button[aria-pressed="true"]{background:var(--surface);color:var(--fg);font-weight:500;box-shadow:0 1px 2px color-mix(in srgb,var(--fg) 14%,transparent)}
+.bar input,.bar select{border:1px solid var(--line);background:var(--surface2);border-radius:var(--r);padding:5px 9px;min-width:0}
+.bar input{flex:1 1 170px} .bar select{flex:0 1 150px;max-width:190px}
+.count{color:var(--muted);font-size:12px;padding:8px 14px 0}
+.empty{padding:40px 14px;text-align:center;color:var(--muted)}
+
+/* status markers */
+.strip{display:inline-flex;gap:3px;vertical-align:middle}
+.s{min-width:18px;height:18px;display:inline-grid;place-items:center;font:600 10px var(--mono);font-style:normal;border-radius:9px;border:1px solid transparent;flex:none}
+.s.w{padding:0 5px}
+.s.d{min-width:11px;width:11px;height:11px}
+.s.ok{background:var(--ok);color:var(--surface)}
+.s.warn{background:color-mix(in srgb,var(--warn) 22%,var(--surface));color:var(--warn);border-color:var(--warn)}
+.s.bad{background:var(--bad);color:var(--surface)}
+.s.none{color:var(--none);border:1px dashed var(--none)}
+.tier{font:500 11px var(--mono);padding:1px 7px;border:1px solid var(--line);border-radius:10px;color:var(--muted);white-space:nowrap}
+.tier.t0{border-style:dashed}
+.tier.t1{background:var(--fg);color:var(--surface);border-color:var(--fg)}
+.lc{display:inline-flex;align-items:center;gap:6px;white-space:nowrap}
+.lc::before{content:"";width:7px;height:7px;border-radius:50%;background:var(--none)}
+.lc.ga::before{background:var(--ok)} .lc.beta::before{background:var(--accent)} .lc.eol::before{background:var(--bad)} .lc.dec::before{background:var(--warn)}
+.mut{color:var(--muted)}
+.link{border:0;background:none;padding:0;color:var(--fg);font-weight:500;text-align:left}
+.link:hover{color:var(--accent)}
+.nm{display:block;max-width:300px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.more{display:block;margin:12px auto 14px;border:1px solid var(--line);background:var(--surface);border-radius:var(--r);padding:6px 16px}
+.more:hover{border-color:var(--accent)}
+.gb{border:0;background:none;padding:0;font:inherit;letter-spacing:inherit;text-transform:inherit;color:var(--fg);font-weight:600;display:inline-flex;gap:8px;align-items:center}
+.gb span{color:var(--muted);font-weight:400}
+.grp td.sbc{padding:6px 4px;white-space:nowrap}
+.sb{display:inline-flex;width:calc(100% - 26px);min-width:90px;height:8px;border-radius:4px;overflow:hidden;gap:1px;vertical-align:middle}
+.sb i{background:var(--c)} .sb .ok{--c:var(--ok)} .sb .warn{--c:var(--warn)} .sb .bad{--c:var(--bad)} .sb .none{--c:var(--none)}
+.sbc small{display:inline-block;width:22px;text-align:right;color:var(--bad);font:600 11px var(--mono);letter-spacing:0}
+
+/* tables */
+.tw{overflow-x:auto}
+table{border-collapse:collapse;width:100%;font-size:13px}
+th{font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);font-weight:500;text-align:left;padding:8px 14px;border-bottom:1px solid var(--line);white-space:nowrap;background:var(--surface2)}
+td{padding:var(--pad) 14px;border-bottom:1px solid var(--line);white-space:nowrap}
+tbody tr:hover{background:var(--surface2)}
+tbody tr:last-child td{border-bottom:0}
+.heat td.hc{white-space:normal;min-width:150px;font-size:12px;padding:3px 4px;border-bottom:0}
+.heat td.hc span{display:block;padding:calc(var(--pad) - 3px) 9px;border-radius:var(--r);border-left:3px solid var(--c);background:color-mix(in srgb,var(--c) 14%,var(--surface))}
+.hc.ok{--c:var(--ok)} .hc.warn{--c:var(--warn)} .hc.bad{--c:var(--bad)} .hc.none{--c:var(--none);color:var(--muted)}
+.grp td{border-top:1px solid var(--line);background:var(--surface2);font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);padding:6px 14px}
+
+/* application page */
+.fs{padding:16px 18px 22px;display:flex;flex-direction:column;gap:var(--g);min-width:0}
+.back{align-self:flex-start;border:0;background:none;padding:0;color:var(--muted)}
+.back:hover{color:var(--accent)}
+.head{display:flex;flex-direction:column;gap:8px}
+.head.band{background:color-mix(in srgb,var(--accent) 9%,var(--surface));border-radius:var(--rs);padding:16px 18px}
+.fh{display:flex;flex-wrap:wrap;gap:8px 12px;align-items:center}
+.fh h2{margin:0;font-size:22px;font-weight:600;letter-spacing:-.015em}
+.head.band h2{font-size:26px}
+.fh .strip{margin-left:auto}
+.desc{margin:0;color:var(--muted);max-width:70ch}
+.meta{display:flex;flex-wrap:wrap;gap:6px 22px;color:var(--muted);font-size:13px}
+.meta b{color:var(--fg);font-weight:500}
+.secs{display:grid;grid-template-columns:repeat(auto-fit,minmax(320px,1fr));gap:var(--g)}
+.secs.one{grid-template-columns:1fr}
+.sec{border:1px solid var(--line);border-radius:var(--rs);min-width:0;scroll-margin-top:12px}
+.sec header{display:flex;align-items:center;gap:8px;padding:var(--pad) 14px;border-bottom:1px solid var(--line);background:var(--surface2);border-radius:var(--rs) var(--rs) 0 0}
+.sec h3{margin:0;font-size:13px;font-weight:600}
+.sec header span:last-child{margin-left:auto;color:var(--muted);font-size:12px;text-align:right}
+.kv{display:grid;grid-template-columns:minmax(120px,38%) 1fr;gap:calc(var(--pad) - 2px) 12px;padding:14px;margin:0;font-size:13px}
+.kv dt{color:var(--muted)} .kv dd{margin:0;font-variant-numeric:tabular-nums}
+/* layout 2: side nav */
+.l2{display:grid;grid-template-columns:190px minmax(0,1fr);gap:var(--g);align-items:start}
+.snav{display:flex;flex-direction:column;gap:2px;position:sticky;top:12px}
+.snav button{display:flex;gap:8px;align-items:center;border:0;background:none;padding:7px 10px;border-radius:var(--r);text-align:left;color:var(--muted)}
+.snav button:hover{background:var(--surface2);color:var(--fg)}
+/* layout 3: summary tiles */
+.tiles{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:var(--g)}
+.tile{display:flex;flex-direction:column;gap:6px;text-align:left;border:1px solid var(--line);background:var(--surface);border-radius:var(--rs);padding:12px 14px}
+.tile span:first-child{display:flex;gap:8px;align-items:center;font-weight:600}
+.tile small{color:var(--muted);font-size:12px}
+.tile[aria-selected="true"]{border-color:var(--accent);box-shadow:0 0 0 1px var(--accent)}
+.tile.bad{background:color-mix(in srgb,var(--bad) 7%,var(--surface))}
+.tile.warn{background:color-mix(in srgb,var(--warn) 7%,var(--surface))}
+.detail .sec header{display:none} .detail .kv,.detail .ciatw{max-width:620px}
+/* layout 4: identity rail */
+.l4{display:grid;grid-template-columns:270px minmax(0,1fr);gap:var(--g);align-items:start}
+.rail{border:1px solid var(--line);border-radius:var(--rs);background:var(--surface2)}
+.rail .kv{grid-template-columns:1fr;gap:2px}
+.rail dd{margin-bottom:8px!important;font-weight:500}
+@media (max-width:760px){ .l2,.l4{grid-template-columns:1fr} .snav{flex-direction:row;flex-wrap:wrap;position:static} }
+/* CIAT variants */
+.ciatw{padding:14px 14px 0}
+.bars{display:grid;grid-template-columns:repeat(auto-fit,minmax(104px,1fr));gap:10px}
+.bars div{display:flex;flex-direction:column;gap:5px;font-size:12px;color:var(--muted);min-width:0}
+.bars span:first-child{overflow:hidden;text-overflow:ellipsis}
+.bars b{font:600 16px var(--mono);color:var(--fg)}
+.pips{display:flex;gap:2px}
+.pips i{flex:1;height:4px;border-radius:2px;background:var(--line)}
+.pips i.on{background:var(--accent)}
+.ctiles{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
+.ctiles div{border-radius:var(--r);padding:10px 8px;text-align:center;font-size:11px;color:var(--fg);background:color-mix(in srgb,var(--accent) calc(var(--l)*9%),var(--surface));min-width:0}
+.ctiles b{display:block;font:600 22px var(--mono)}
+.ctiles span{display:block;overflow:hidden;text-overflow:ellipsis}
+.radar{display:flex;flex-wrap:wrap;gap:14px 24px;align-items:center}
+.radar svg{width:132px;height:136px;flex:none}
+.radar .ring{fill:none;stroke:var(--line)}
+.radar .shape{fill:color-mix(in srgb,var(--accent) 28%,transparent);stroke:var(--accent);stroke-width:1.5}
+.radar text{fill:var(--muted);font:600 10px var(--mono);text-anchor:middle}
+.radar ul{list-style:none;margin:0;padding:0;display:grid;grid-template-columns:auto auto;gap:4px 14px;font-size:13px}
+.radar li{display:contents} .radar li span{color:var(--muted)} .radar li b{font-family:var(--mono)}
+</style>
+
+<div class="page">
+  <div class="pick">
+    <h1>CCCP · application page options</h1>
+    <div class="opt"><span class="lbl">Screen</span><div class="seg" data-k="screen"><button data-v="app">Application</button><button data-v="list">List</button><button data-v="heat">Heatmap</button></div></div>
+    <div class="opt"><span class="lbl">Page layout</span><div class="seg" data-k="lay"><button data-v="1">1 · Grid</button><button data-v="2">2 · Side nav</button><button data-v="3">3 · Summary tiles</button><button data-v="4">4 · Identity rail</button></div></div>
+    <div class="opt"><span class="lbl">Header</span><div class="seg" data-k="head"><button data-v="plain">Plain</button><button data-v="band">Band</button></div></div>
+    <div class="opt"><span class="lbl">Status markers</span><div class="seg" data-k="mk"><button data-v="cccp">C C C P</button><button data-v="codes">CY CO CT PL</button><button data-v="dots">Dots</button></div></div>
+    <div class="opt"><span class="lbl">CIAT display</span><div class="seg" data-k="ciat"><button data-v="bars">Bars</button><button data-v="tiles">Tiles</button><button data-v="radar">Radar</button></div></div>
+    <div class="opt"><span class="lbl">Density</span><div class="seg" data-k="dens"><button data-v="comfy">Comfortable</button><button data-v="compact">Compact</button></div></div>
+    <button class="ghost" id="theme">Light / dark</button>
+  </div>
+  <p class="note" id="note"></p>
+  <div class="app">
+    <div class="bar">
+      <div class="mark" aria-label="CCCP"><b>C</b><b>C</b><b>C</b><b>P</b></div>
+      <div class="nav" id="nav"><button data-v="list">List</button><button data-v="heat">Heatmap</button></div>
+      <input id="q" type="search" placeholder="Search applications" aria-label="Search applications">
+      <select id="f-dom" aria-label="Domain"></select>
+      <select id="f-tier" aria-label="Tiering"></select>
+      <select id="f-lc" aria-label="Lifecycle"></select>
+      <select id="f-so" aria-label="Security officer"></select>
+    </div>
+    <div id="view"></div>
+  </div>
+  <p class="note">Application names, domains, owners, lifecycle and tiering come from your anonymized inventory. The values inside the four pillars are generated placeholders until I see the real columns.</p>
+</div>
+
+<script>
+const P = ['Cyber','Compliance','Continuity','Platform'], L = ['C','C','C','P'], CODE = ['CY','CO','CT','PL'];
+const LCC = {GENERAL_AVAILABILITY:'ga',PRODUCTION:'ga',ALPHA:'beta',BETA:'beta',EARLY_ACCESS:'beta',END_OF_LIFE:'eol',END_OF_SUPPORT:'eol',END_OF_GROWTH:'dec',DECOMMISSIONING:'dec'};
+const lcl = k => k.charAt(0) + k.slice(1).toLowerCase().replace(/_/g,' ');
+const D = /*DATA*/;
+const NOTES = {
+ 1:'<b>1 · Grid.</b> The four pillars as equal cards, two per row. Everything is visible at once on a wide screen.',
+ 2:'<b>2 · Side nav.</b> Pillars stacked full width, with a jump menu on the left that also shows each pillar\'s status. Closest to a LeanIX fact sheet; best if sections grow long.',
+ 3:'<b>3 · Summary tiles.</b> Four tiles give the verdict for each pillar. Select one to see its detail below. Shortest page.',
+ 4:'<b>4 · Identity rail.</b> Who and what the application is stays in a column on the left; the pillars fill the rest.',
+ list:'<b>List.</b> Your full inventory. It loads 50 rows at a time, long names are shortened, applications without tiering get a dashed empty tag, and there is a security officer filter.',
+ heat:'<b>Heatmap.</b> With this many applications the heatmap starts at domain level: one bar per pillar shows the share of gaps, and the red number counts them. Open a domain to see its applications.'
+};
+const S = {screen:'app', sel:Math.max(0,D.findIndex(a=>a.t===1&&a.st[0]==='bad'&&a.ciat&&a.st[2]==='ok')), tab:0, lay:'1', head:'plain', mk:'cccp', ciat:'bars', dens:'comfy', q:'', dom:'', tier:'', lc:'', so:'', lim:50, open:null};
+const $ = id => document.getElementById(id), v = x => x || '<span class="mut">—</span>';
+const esc = s => String(s).replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const m = (a,i) => { const t = `title="${P[i]}: ${esc(a.why[i])}"`;
+  return S.mk==='codes' ? `<i class="s w ${a.st[i]}" ${t}>${CODE[i]}</i>` : S.mk==='dots' ? `<i class="s d ${a.st[i]}" ${t}></i>` : `<i class="s ${a.st[i]}" ${t}>${L[i]}</i>`; };
+const strip = a => '<span class="strip">' + [0,1,2,3].map(i=>m(a,i)).join('') + '</span>';
+const tier = a => a.t ? `<span class="tier t${a.t}">T${a.t}</span>` : '<span class="tier t0" title="No tiering set">–</span>';
+const lc = a => `<span class="lc ${LCC[a.lc]||''}">${lcl(a.lc)}</span>`;
+const nm = (a,i) => `<button class="link nm" data-i="${i}" title="${esc(a.n)}">${esc(a.n)}</button>`;
+const kv = rows => '<dl class="kv">' + rows.map(r=>`<dt>${r[0]}</dt><dd>${v(r[1])}</dd>`).join('') + '</dl>';
+const hrs = n => n==null ? '' : n + ' h';
+const CN = ['Confidentiality','Integrity','Availability','Traceability'];
+function ciat(a){
+  const c = a.ciat;
+  if(!c) return '<span class="mut">Not classified yet</span>';
+  if(S.ciat==='tiles') return '<div class="ctiles">' + CN.map((n,k)=>`<div style="--l:${c[k]}"><b>${c[k]}</b><span>${n}</span></div>`).join('') + '</div>';
+  if(S.ciat==='radar'){ const r = c.map(x=>x*11), ring = k => `<polygon class="ring" points="60,${62-k*11} ${60+k*11},62 60,${62+k*11} ${60-k*11},62"/>`;
+    return `<div class="radar"><svg viewBox="0 0 120 124" role="img" aria-label="CIAT levels ${c.join(', ')}">${[1,2,3,4].map(ring).join('')}
+      <polygon class="shape" points="60,${62-r[0]} ${60+r[1]},62 60,${62+r[2]} ${60-r[3]},62"/>
+      <text x="60" y="12">C</text><text x="113" y="65">I</text><text x="60" y="120">A</text><text x="7" y="65">T</text></svg>
+      <ul>${CN.map((n,k)=>`<li><span>${n}</span><b>${c[k]} / 4</b></li>`).join('')}</ul></div>`; }
+  return '<div class="bars">' + CN.map((n,k)=>`<div><span>${n}</span><b>${c[k]}</b><span class="pips">${[1,2,3,4].map(x=>`<i class="${x<=c[k]?'on':''}"></i>`).join('')}</span></div>`).join('') + '</div>';
+}
+function body(a,i){
+  if(i===0) return kv([['Front exposed on internet',a.ex],['Last pentest',a.pt[0]],['Open findings',a.pt[1]],['Security officer',esc(a.so)]]);
+  if(i===1) return `<div class="ciatw">${ciat(a)}</div>` + kv([['Personal data',a.pd],['Personal sensitive data',a.psd],['Company sensitive data',a.csd],['Date of security check',a.val],['Validated by security officer',a.ciat?(a.val?'Reviewed and validated':'Not validated'):''],['Last audit',a.au[0]],['Audit result',a.au[1]]]);
+  if(i===2) return kv([['Max tolerable downtime',hrs(a.mtd)],['Recovery time objective',hrs(a.rto)],['Recovery point objective',hrs(a.rpo)],['Last DRP test',a.dt[0]],['Test result',a.dt[1]]]);
+  return kv([['Hosting type',a.h],['Typology',a.ty],['Lifecycle',lc(a)],['Single sign-on',a.sso],['Internal users',a.iu],['External users',a.eu]]);
+}
+const sec = (a,i) => `<section class="sec" id="sec-${i}"><header>${m(a,i)}<h3>${P[i]}</h3><span>${esc(a.why[i])}</span></header>${body(a,i)}</section>`;
+function page(a){
+  const lay = S.lay, f = (l,x) => `<span>${l} <b>${v(esc(x))}</b></span>`;
+  const meta = `<div class="meta">${f('Domain',a.d)}${f('Subdomain',a.sd)}${f('Support group',a.g)}${f('Owner',a.o)}${f('Backup owner',a.bo)}${f('Security officer',a.so)}</div>`;
+  const head = `<div class="head ${S.head}"><div class="fh"><h2>${esc(a.n)}</h2>${tier(a)}${lc(a)}${lay==='3'?'':strip(a)}</div>${lay==='4'?'':meta}</div>`;
+  const all = one => `<div class="secs ${one?'one':''}">${[0,1,2,3].map(i=>sec(a,i)).join('')}</div>`;
+  let main;
+  if(lay==='2') main = `<div class="l2"><nav class="snav">${P.map((p,i)=>`<button data-jump="${i}">${m(a,i)}${p}</button>`).join('')}</nav>${all(true)}</div>`;
+  else if(lay==='3') main = `<div class="tiles" role="tablist">${P.map((p,i)=>`<button class="tile ${a.st[i]}" role="tab" data-tab="${i}" aria-selected="${i===S.tab}"><span>${m(a,i)}${p}</span><small>${esc(a.why[i])}</small></button>`).join('')}</div><div class="detail">${sec(a,S.tab)}</div>`;
+  else if(lay==='4') main = `<div class="l4"><aside class="rail">${kv([['Domain',esc(a.d)],['Subdomain',esc(a.sd)],['Support group',esc(a.g)],['Owner',esc(a.o)],['Backup owner',esc(a.bo)],['Security officer',esc(a.so)]])}</aside>${all(false)}</div>`;
+  else main = all(false);
+  return `<div class="fs"><button class="back" data-back>← All applications</button>${head}${main}</div>`;
+}
+function rows(){ const q = S.q.toLowerCase();
+  return D.map((a,i)=>[a,i]).filter(([a])=> (!q || [a.n,a.d,a.sd,a.g,a.o,a.bo,a.so].join(' ').toLowerCase().includes(q)) && (!S.dom||a.d===S.dom) &&
+    (!S.tier||(S.tier==='0'?!a.t:a.t==S.tier)) && (!S.lc||a.lc===S.lc) && (!S.so||(S.so==='-'?!a.so:a.so===S.so))); }
+let last = 'list';
+function render(){
+  const R = rows(), num = x => x.toLocaleString('en'), n = `<div class="count">${num(R.length)} of ${num(D.length)} applications</div>`, none = '<div class="empty">No application matches these filters.</div>';
+  let h;
+  if(S.screen==='app') h = page(D[S.sel]);
+  else if(!R.length) h = none;
+  else if(S.screen==='list') h = n + '<div class="tw"><table><thead><tr><th>Application</th><th>Domain</th><th>Tier</th><th>Lifecycle</th><th>Owner</th><th>Security officer</th><th>Status</th></tr></thead><tbody>' +
+      R.slice(0,S.lim).map(([a,i])=>`<tr><td>${nm(a,i)}</td><td>${esc(a.d)}</td><td>${tier(a)}</td><td>${lc(a)}</td><td>${v(esc(a.o))}</td><td>${v(esc(a.so))}</td><td>${strip(a)}</td></tr>`).join('') + '</tbody></table></div>' +
+      (R.length>S.lim ? `<button class="more" data-more>Show 50 more (${num(R.length-S.lim)} left)</button>` : '');
+  else { const by = new Map(); R.forEach(x=>{ if(!by.has(x[0].d)) by.set(x[0].d,[]); by.get(x[0].d).push(x); });
+    const doms = [...by.entries()].sort((x,y)=>y[1].length-x[1].length), all = by.size===1 || (!!S.q && R.length<=80);
+    if(S.open===null) S.open = new Set([doms[0][0]]);
+    const bar = (g,k) => { const c = {bad:0,warn:0,none:0,ok:0}; g.forEach(([a])=>c[a.st[k]]++);
+      return `<td class="sbc"><span class="sb" title="${c.bad} gaps, ${c.warn} need attention, ${c.none} no data, ${c.ok} OK">${['bad','warn','none','ok'].map(s=>c[s]?`<i class="${s}" style="flex:${c[s]}"></i>`:'').join('')}</span><small>${c.bad||''}</small></td>`; };
+    const row = ([a,i]) => `<tr><td>${nm(a,i)}</td><td>${tier(a)}</td>${a.st.map((s,k)=>`<td class="hc ${s}"><span>${esc(a.why[k])}</span></td>`).join('')}</tr>`;
+    h = n + '<div class="tw"><table class="heat"><thead><tr><th>Application</th><th>Tier</th>' + P.map(p=>`<th>${p}</th>`).join('') + '</tr></thead><tbody>' +
+      doms.map(([d,g])=>{ const o = all || S.open.has(d);
+        return `<tr class="grp"><td colspan="2"><button class="gb" data-grp="${esc(d)}" aria-expanded="${o}">${o?'▾':'▸'} ${esc(d)} <span>${g.length}</span></button></td>${[0,1,2,3].map(k=>bar(g,k)).join('')}</tr>` + (o ? g.map(row).join('') : ''); }).join('') + '</tbody></table></div>'; }
+  if(S.screen!=='app') last = S.screen;
+  $('view').innerHTML = h;
+  $('note').innerHTML = NOTES[S.screen==='app' ? S.lay : S.screen];
+  document.documentElement.dataset.dens = S.dens;
+  document.querySelectorAll('.seg').forEach(g=>g.querySelectorAll('button').forEach(b=>b.setAttribute('aria-pressed', String(S[g.dataset.k])===b.dataset.v)));
+  $('nav').querySelectorAll('button').forEach(b=>b.setAttribute('aria-pressed', (S.screen==='app'?last:S.screen)===b.dataset.v));
+}
+function opts(id, label, pairs){ $(id).innerHTML = `<option value="">${label}</option>` + pairs.map(p=>`<option value="${esc(p[0])}">${esc(p[1])}</option>`).join(''); }
+const uniq = k => [...new Set(D.map(a=>a[k]).filter(Boolean))].sort();
+opts('f-dom','All domains',uniq('d').map(x=>[x,x]));
+opts('f-tier','All tiers',[[1,'Tier 1'],[2,'Tier 2'],[3,'Tier 3'],[4,'Tier 4'],[0,'No tier']]);
+opts('f-lc','Any lifecycle',uniq('lc').map(x=>[x,lcl(x)]));
+opts('f-so','Any security officer',uniq('so').map(x=>[x,x]).concat([['-','None assigned']]));
+const toList = () => { if(S.screen==='app') S.screen = last; S.lim = 50; };
+$('q').addEventListener('input',e=>{S.q=e.target.value; toList(); render();});
+[['f-dom','dom'],['f-tier','tier'],['f-lc','lc'],['f-so','so']].forEach(([id,k])=>$(id).addEventListener('change',e=>{S[k]=e.target.value; toList(); render();}));
+$('view').addEventListener('click',e=>{
+  const t = e.target.closest('[data-i],[data-back],[data-tab],[data-jump],[data-more],[data-grp]'); if(!t) return;
+  if(t.dataset.jump!==undefined){ $('sec-'+t.dataset.jump).scrollIntoView({behavior:'smooth',block:'start'}); return; }
+  if(t.dataset.more!==undefined) S.lim += 50;
+  else if(t.dataset.grp!==undefined){ const d = t.dataset.grp; S.open.has(d) ? S.open.delete(d) : S.open.add(d); }
+  else if(t.dataset.i!==undefined){S.sel=+t.dataset.i; S.tab=0; S.screen='app';} else if(t.dataset.tab!==undefined) S.tab=+t.dataset.tab; else S.screen=last;
+  render();
+});
+document.querySelector('.pick').addEventListener('click',e=>{
+  const b = e.target.closest('.seg button'); if(!b) return; const k = b.parentElement.dataset.k;
+  S[k] = b.dataset.v; if(['lay','head','ciat'].includes(k)) S.screen='app'; render();
+});
+$('nav').addEventListener('click',e=>{const b=e.target.closest('button'); if(!b)return; S.screen=b.dataset.v; render();});
+$('theme').addEventListener('click',()=>{ const r=document.documentElement, dark = r.dataset.theme ? r.dataset.theme==='dark' : matchMedia('(prefers-color-scheme: dark)').matches; r.dataset.theme = dark ? 'light' : 'dark'; });
+render();
+</script>

@@ -1,0 +1,207 @@
+<!--CSS-->
+/* ---------- closer-to-LeanIX round 2 ---------- */
+:root{ --violet:oklch(0.5 0.17 300); --teal:oklch(0.5 0.1 190); --title:oklch(0.38 0.08 265); }
+@media (prefers-color-scheme: dark){ :root:not([data-theme="light"]){ --violet:oklch(0.8 0.11 300); --teal:oklch(0.8 0.09 190); --title:oklch(0.85 0.05 265); } }
+:root[data-theme="dark"]{ --violet:oklch(0.8 0.11 300); --teal:oklch(0.8 0.09 190); --title:oklch(0.85 0.05 265); }
+.opts .presets{display:flex;gap:6px;align-self:flex-end}
+
+/* header */
+.hx{display:flex;flex-direction:column;gap:10px}
+.hx .r1{display:flex;flex-wrap:wrap;gap:10px 14px;align-items:center}
+.hx h1{margin:0;font-size:28px;font-weight:600;letter-spacing:-.02em;overflow-wrap:anywhere}
+.hx .big{font:600 22px var(--sans);color:var(--muted)}
+.hx .big.lo{color:var(--bad)} .hx .big.mid{color:var(--warn)}
+.hx .acts{margin-left:auto;display:flex;gap:6px;align-items:center}
+.seal{display:inline-flex;align-items:center;gap:6px;border-radius:8px;padding:5px 12px;font-size:13px;font-weight:600}
+.seal svg{width:14px;height:14px}
+.seal.need{background:var(--warn);color:var(--surface)}
+.seal.done{background:color-mix(in srgb,var(--ok) 14%,var(--surface));color:var(--ok)}
+.tbadge{display:inline-flex;border-radius:6px;overflow:hidden;font-size:12px;font-weight:600;line-height:1.6}
+.tbadge b{background:var(--accent);color:var(--on-accent);padding:1px 7px;font-family:var(--mono)}
+.tbadge span{background:var(--accent-soft);color:var(--accent);padding:1px 10px}
+.lcline{display:inline-flex;align-items:center;gap:7px;color:var(--muted)}
+.lcline b{color:var(--fg);font-weight:500}
+.lcline svg{width:16px;height:16px;color:var(--surface);background:var(--muted);border-radius:50%;padding:2px}
+.hx .r3{display:flex;flex-wrap:wrap;gap:6px 18px;align-items:center;justify-content:space-between}
+.hx .desc{margin:0;color:var(--muted)}
+.pstat{display:flex;flex-wrap:wrap;gap:6px}
+.hx .icon-btn{width:34px;height:34px}
+.hx .icon-btn svg{width:16px;height:16px}
+
+/* colored tags */
+.tags.lxc .tag{border:0;font-weight:600}
+.tags.lxc .t-ty{background:color-mix(in srgb,var(--violet) 16%,var(--surface));color:var(--violet)}
+.tags.lxc .t-h{background:color-mix(in srgb,var(--teal) 16%,var(--surface));color:var(--teal)}
+.tags.lxc .t-ex{background:var(--bad);color:var(--surface)}
+.tags.lxc .t-pd{background:var(--warn);color:var(--surface)}
+.tags.lxc .t-sso{background:color-mix(in srgb,var(--warn) 18%,var(--surface));color:var(--warn)}
+.tags.lxc .t-dom{background:color-mix(in srgb,var(--accent) 14%,var(--surface));color:var(--accent)}
+
+/* page tabs */
+.ftabs{display:flex;gap:4px;border-bottom:1px solid var(--line);margin-top:2px;overflow-x:auto}
+.ftabs button{display:inline-flex;gap:7px;align-items:center;border:0;background:none;padding:9px 12px;border-bottom:2px solid transparent;font-weight:600;color:var(--muted);white-space:nowrap}
+.ftabs button[aria-selected="true"]{color:var(--accent);border-bottom-color:var(--accent)}
+.ftabs small{font:600 11px var(--mono);background:var(--surface2);color:var(--muted);border-radius:8px;padding:0 6px}
+
+/* LeanIX-style sections */
+.lxs .fsx{border-bottom:0;margin-top:4px}
+.lxs .fsx summary{padding:16px 0 10px;border-bottom:1px solid var(--line2)}
+.lxs .fsx summary > svg{color:var(--accent);width:14px;height:14px}
+.lxs .fsx h2{font-size:18px;color:var(--title)}
+.lxs .fsx .pct{font:500 13px var(--sans)}
+.lxs .fsx .inner{padding:4px 0 14px 12px;max-width:780px}
+.subsec{padding:10px 0 4px;border-bottom:1px solid var(--line)}
+.subsec:last-child{border-bottom:0}
+.subsec h4{margin:4px 0 6px;font-size:14px;font-weight:600}
+.subsec .kv{padding:2px 0 6px}
+.subsec .ciatw,.subsec .rto{padding:2px 0 8px}
+
+/* people as subscriptions */
+.subs{display:flex;flex-direction:column}
+.subs .hd{display:flex;justify-content:space-between;align-items:center;padding:4px 0 10px;color:var(--muted)}
+.subs .r{display:grid;grid-template-columns:minmax(0,1.3fr) auto minmax(0,.8fr) minmax(0,1.4fr);gap:10px 16px;align-items:center;padding:12px 0;border-top:1px solid var(--line)}
+.subs .r b{font-weight:600}
+.subs .r .mut{font-size:12px}
+@media (max-width:700px){ .subs .r{grid-template-columns:minmax(0,1fr) auto} .subs .r > :nth-child(4){grid-column:1/-1} }
+.btn.sm{padding:3px 10px;font-size:12px;display:inline-flex;gap:6px;align-items:center}
+.btn.sm svg{width:13px;height:13px}
+
+/* collapsible sidebar */
+.lxwrap.sbc{grid-template-columns:minmax(0,1fr) 44px}
+.dq .dqh{display:flex;justify-content:space-between;align-items:center}
+.dq .dqh h3{margin:0}
+.colb{border:0;background:none;color:var(--accent);padding:2px 4px;border-radius:6px;font-weight:600;font-size:15px;line-height:1}
+.colb:hover{background:var(--surface2)}
+.dqmini{padding:10px 6px;display:flex;flex-direction:column;align-items:center;gap:12px;position:sticky;top:12px}
+.dqmini .ring{width:30px;height:30px}
+.dqmini .ring b{width:22px;height:22px;font-size:0}
+.lxsb .qi{font-size:13px}
+.lxsb .qg > b{color:var(--muted);font-size:12px;letter-spacing:.06em;text-transform:uppercase;font-weight:500}
+@media (max-width:1000px){ .lxwrap.sbc{grid-template-columns:minmax(0,1fr)} }
+<!--OPTS-->
+<div class="opts">
+  <h1>CCCP · closer to LeanIX, round 2</h1>
+  <div class="opt"><span class="lbl">Header</span><div class="seg" data-o="hd"><button data-v="cur">Current</button><button data-v="lx">LeanIX-like</button></div></div>
+  <div class="opt"><span class="lbl">Tags</span><div class="seg" data-o="tg"><button data-v="cur">Neutral</button><button data-v="lx">Coloured</button></div></div>
+  <div class="opt"><span class="lbl">Page tabs</span><div class="seg" data-o="tb"><button data-v="cur">Off</button><button data-v="lx">Fact sheet · People</button></div></div>
+  <div class="opt"><span class="lbl">Sections</span><div class="seg" data-o="sx"><button data-v="cur">Current</button><button data-v="lx">Titled + subsections</button></div></div>
+  <div class="opt"><span class="lbl">Sidebar</span><div class="seg" data-o="sb"><button data-v="cur">Current</button><button data-v="lx">Collapsible checklist</button></div></div>
+  <div class="presets"><button class="ghost" data-preset="lx">All LeanIX-like</button><button class="ghost" data-preset="cur">All current</button></div>
+  <p class="onote" id="onote"></p>
+</div>
+<!--JS-->
+<script>
+/* settings layout is decided: C (tabs) */
+O.set = 'tabs';
+Object.assign(O, {hd:'lx', tg:'lx', tb:'lx', sx:'lx', sb:'lx'});
+S.ftab = 'fact'; S.sbc = false;
+const LXN = {
+ hd:['Current header.','<b>Header:</b> an “A · Application” type badge, a large completeness %, a solid review seal, a “Lifecycle:” line and actions to copy the link or open the row in the Sheet.'],
+ tg:['Neutral tags.','<b>Tags:</b> each tag group has its own colour; risk tags (internet exposed, personal data) are solid.'],
+ tb:['No page tabs.','<b>Page tabs:</b> “Fact sheet” and “People”, with people shown as a roles list.'],
+ sx:['Current sections.','<b>Sections:</b> larger section titles over a rule, and each pillar split into named subsections (Exposure, Testing, Classification…).'],
+ sb:['Current sidebar.','<b>Sidebar:</b> a “Mandatory fields” checklist that collapses to a thin strip with »/«.']
+};
+applyOpts = function(){ document.documentElement.dataset.shell = O.shell;
+  document.querySelectorAll('.opts .seg').forEach(g=>g.querySelectorAll('button').forEach(b=>b.setAttribute('aria-pressed', O[g.dataset.o]===b.dataset.v)));
+  $('onote').innerHTML = Object.keys(LXN).map(k=>LXN[k][O[k]==='lx'?1:0]).join(' ') + ' Settings use layout C.'; };
+
+const ILINK = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 14a4 4 0 0 0 5.7 0l3-3a4 4 0 0 0-5.7-5.7l-1 1"/><path d="M14 10a4 4 0 0 0-5.7 0l-3 3a4 4 0 0 0 5.7 5.7l1-1"/></svg>';
+const ISHEET = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="3" width="16" height="18" rx="2"/><path d="M4 9h16M4 15h16M10 3v18"/></svg>';
+const IMAIL = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="m3.5 6.5 8.5 6 8.5-6"/></svg>';
+
+function tagsHtml(a){
+  const c = O.tg==='lx';
+  return `<div class="tags ${c?'lxc':''}">${tier(a)}${c?'':lc(a)}${a.ty?`<span class="tag t-ty">${esc(a.ty)}</span>`:''}${a.h?`<span class="tag t-h">${esc(a.h)}</span>`:''}${a.ex==='Yes'?'<span class="tag t-ex">Internet exposed</span>':''}${a.pd==='Yes'?'<span class="tag t-pd">Personal data</span>':''}${a.sso==='No'?'<span class="tag t-sso">No SSO</span>':''}</div>`;
+}
+const baseLxHead = lxHead;
+lxHead = function(a, jump){
+  if(O.hd!=='lx'){ const h = baseLxHead(a, jump); return O.tg==='lx' ? h.replace(/<div class="tags">[\s\S]*?<\/div>/, tagsHtml(a)) : h; }
+  const back = S.view==='heat' ? 'Heatmap' : 'Applications', q = qual(a), rv = review(a);
+  return `<div class="top"><button class="backbtn" data-back aria-label="Back to ${back.toLowerCase()}">${ICO.back}Back</button><nav class="crumbs" aria-label="Breadcrumb"><button data-back>${back}</button><span>/</span><button data-dom="${esc(a.d)}">${esc(a.d)}</button><span>/</span><span>${esc(a.n)}</span></nav></div>
+  <div class="hx">
+    <div class="r1"><h1>${esc(a.n)}</h1>${O.dq==='on'?`<span class="big ${qcls(q.all)}" data-tip="${q.f} of ${q.t} security fields filled">${q.all}%</span>`:''}
+      <div class="acts">${O.dq==='on'?`<span class="seal ${rv[0]}" data-tip="${a.val?'Last security check '+a.val:'No security check on record'}">${rv[1]}</span>`:''}
+        <button class="icon-btn" data-copylink aria-label="Copy link" data-tip="Copy link">${ILINK}</button>
+        <button class="icon-btn" data-opensheet aria-label="Open in Google Sheet" data-tip="Open row in the Sheet">${ISHEET}</button></div></div>
+    <div class="r1"><span class="tbadge"><b>A</b><span>Application</span></span><span class="lcline">${ICHK}Lifecycle: <b>${lcl(a.lc)}</b></span>${tagsHtml(a)}</div>
+    <div class="r3"><p class="desc">${esc(a.d)}${a.sd?' › '+esc(a.sd):''} · ${esc(a.g)}</p>
+      <div class="pstat">${a.st.map((s,i)=>`<button class="stag ${s}" ${jump(i+1)} data-tip="${esc(a.why[i])}">${dot(s)}${P[i]}</button>`).join('')}</div></div>
+  </div>`;
+};
+
+/* subsection bodies */
+const subsec = (t, html) => html ? `<div class="subsec"><h4>${t}</h4>${html}</div>` : '';
+function body2(a,i){
+  if(i===0) return subsec('Exposure', kv([['Front exposed on internet',yn(a.ex, a.ex==='Yes' && !a.pt[0])],['External users',a.eu]])) +
+    subsec('Testing', kv([['Last pentest',date(a.pt[0])],['Open findings',res(a.pt[1])]])) +
+    subsec('Ownership', kv([['Security officer',a.so?person(a.so):'<span class="res bad">None assigned</span>']]));
+  if(i===1) return subsec('Classification', `<div class="ciatw">${ciat(a)}</div>`) +
+    subsec('Data', kv([['Personal data',yn(a.pd)],['Personal sensitive data',yn(a.psd)],['Company sensitive data',yn(a.csd)]])) +
+    subsec('Review', kv([['Date of security check',date(a.val)],['Validated by security officer',a.ciat?(a.val?'<span class="res ok">Reviewed and validated</span>':'<span class="res warn">Not validated</span>'):'']])) +
+    subsec('Audit', kv([['Last audit',date(a.au[0])],['Audit result',res(a.au[1])]]));
+  if(i===2) return subsec('Recovery objectives', rto(a) + kv([['Max tolerable downtime',a.mtd!=null?a.mtd+' h':''],['Recovery time objective',a.rto!=null?a.rto+' h':''],['Recovery point objective',a.rpo!=null?a.rpo+' h':'']])) +
+    subsec('DRP testing', kv([['Last DRP test',date(a.dt[0])],['Test result',res(a.dt[1])]]));
+  return subsec('Hosting', kv([['Hosting type',a.h],['Typology',a.ty],['Single sign-on',a.sso==='No'?'<span class="res warn">No</span>':a.sso]])) +
+    subsec('Usage', kv([['Internal users',a.iu],['External users',a.eu]])) +
+    subsec('Lifecycle', stepper(a));
+}
+const ppl2 = a => { const rows = [['Owner',a.o,'Accountable for the application and its risks'],['Backup owner',a.bo,'Stands in for the owner'],['Security officer',a.so,'Validates the classification and follows up findings']];
+  return `<div class="subs"><div class="hd"><span>${rows.filter(r=>r[1]).length} people</span></div>` + rows.map(([r,n,d])=>
+    `<div class="r"><span>${n?person(n):'<span class="res bad">None assigned</span>'}</span>${n?`<button class="btn sm" data-contact="${esc(n)}">${IMAIL}Contact</button>`:'<span></span>'}<b>${r}</b><span class="mut">${d}</span></div>`).join('') + '</div>'; };
+
+pageSections = function(a){
+  const q = qual(a), lxs = O.sx==='lx';
+  const sx = (k,i,inner) => { const st = i>=1&&i<=4 ? a.st[i-1] : null, p = i===0?null:q.g[i-1];
+    return `<details class="fsx" id="sx-${k}" data-sx="${k}" ${S.closed.has(k)?'':'open'}><summary>${CHEV}${st?dot(st,STL[st]):''}<h2>${TITLES[i]}</h2>${O.dq==='on'&&p!=null?`<span class="pct">${p}%</span>`:''}${st?`<span class="why ${st}">${esc(a.why[i-1])}</span>`:''}</summary><div class="inner">${inner}</div></details>`; };
+  const tabs = O.tb==='lx' ? `<div class="ftabs" role="tablist"><button role="tab" data-ftab="fact" aria-selected="${S.ftab==='fact'}">Fact sheet</button><button role="tab" data-ftab="people" aria-selected="${S.ftab==='people'}">People<small>${[a.o,a.bo,a.so].filter(Boolean).length}</small></button></div>` : '';
+  if(O.tb==='lx' && S.ftab==='people') return `<article class="panel fs">${lxHead(a, i=>`data-jump="${KEYS[i]}"`)}${tabs}${ppl2(a)}</article>`;
+  const pillar = i => lxs ? body2(a,i) : body(a,i);
+  const overview = lxs ? subsec('Identity', overviewKv(a)) + (O.hd==='lx' ? '' : subsec('Lifecycle', stepper(a))) : overviewKv(a) + '<p class="sublbl">Lifecycle</p>' + stepper(a);
+  return `<article class="panel fs ${lxs?'lxs':''}">${lxHead(a, i=>`data-jump="${KEYS[i]}"`)}${tabs}
+    <div class="sbar"><select class="jump" aria-label="Jump to section">${TITLES.slice(0, O.tb==='lx'?5:6).map((t,i)=>`<option value="${KEYS[i]}">${t}</option>`).join('')}</select>
+      <label class="search">${ICO.search}<input class="fsearch" type="search" placeholder="Search for sections and fields" value="${esc(S.fq)}" aria-label="Find a field"></label></div>
+    <div>${sx('overview',0, overview)}${[0,1,2,3].map(i=>sx(KEYS[i+1],i+1, pillar(i))).join('')}${O.tb==='lx' ? '' : sx('people',5, lxs ? ppl2(a) : people(a))}</div></article>`;
+};
+const baseDq = dqSide;
+dqSide = function(a){
+  if(O.sb!=='lx') return baseDq(a);
+  const q = qual(a);
+  if(S.sbc) return `<aside class="panel dqmini" aria-label="Data quality"><button class="colb" data-sbc aria-label="Show data quality">«</button><span class="ring" style="--p:${q.all};--rc:${qcol(q.all)}" data-tip="${q.all}% complete"><b>${q.all}%</b></span></aside>`;
+  const groups = QF.map(([n,fs])=>`<div class="qg"><b>${n}</b>${fs.map(([l,f])=>`<span class="qi ${f(a)?'y':''}"><i></i>${l}</span>`).join('')}</div>`).join('');
+  const rec = S.recent.filter(i=>i!==a.i).slice(0,5);
+  return `<aside class="panel dq lxsb" aria-label="Data quality">
+    <div class="dqh"><h3>Data quality</h3><button class="colb" data-sbc aria-label="Hide data quality">»</button></div>
+    <div class="ringw"><span class="ring" style="--p:${q.all};--rc:${qcol(q.all)}"><b>${q.all}%</b></span><p><b>Completeness</b><br><small>${q.f} of ${q.t} mandatory fields filled</small></p></div>
+    <div><h3>Mandatory fields</h3>${groups}</div>
+    ${rec.length?`<div><h3>Recently viewed</h3><div class="rec">${rec.map(i=>`<button data-app="${i}"><span class="tbadge"><b>A</b></span><span>${esc(D[i].n)}</span>${dots(D[i])}</button>`).join('')}</div></div>`:''}
+  </aside>`;
+};
+/* sidebar width when collapsed */
+const pageLx = page;
+page = function(a){ const h = pageLx(a); return S.sbc && O.sb==='lx' && O.dq==='on' ? h.replace('<div class="lxwrap">','<div class="lxwrap sbc">') : h; };
+
+root.addEventListener('click', e=>{
+  const t = e.target.closest('[data-ftab],[data-sbc],[data-copylink],[data-opensheet],[data-contact]'); if(!t) return; const d = t.dataset;
+  if(d.ftab){ S.ftab = d.ftab; render(); return; }
+  if(d.sbc!==undefined){ S.sbc = !S.sbc; render(); return; }
+  if(d.copylink!==undefined){ const u = location.href;
+    try { navigator.clipboard.writeText(u).then(()=>toast('Link copied'), ()=>toast('Copy blocked here. Copy the address from the browser bar.')); } catch(err){ toast('Copy blocked here. Copy the address from the browser bar.'); } return; }
+  if(d.opensheet!==undefined){ toast('In the real app this opens the application’s row in the Google Sheet'); return; }
+  if(d.contact){ toast('In the real app this starts an email to '+d.contact); return; }
+});
+root.addEventListener('click', e=>{ if(e.target.closest('[data-app]')) S.ftab = 'fact'; }, true);
+
+document.querySelector('.opts').addEventListener('click', e=>{
+  const p = e.target.closest('[data-preset]'), b = e.target.closest('.seg button');
+  if(p){ ['hd','tg','tb','sx','sb'].forEach(k=>O[k]=p.dataset.preset); }
+  else if(b){ O[b.parentElement.dataset.o] = b.dataset.v; } else return;
+  e.stopImmediatePropagation(); applyOpts();
+  if(S.app===null){ S.settings = false; S.app = D.findIndex(a=>a.t===1 && a.st.includes('bad') && a.ciat && a.rto!=null && a.ex==='Yes'); try { history.replaceState(null,'','#app-'+S.app); } catch(err){} }
+  render();
+}, true);
+applyOpts();
+S.settings = false; S.app = D.findIndex(a=>a.t===1 && a.st.includes('bad') && a.ciat && a.rto!=null && a.ex==='Yes');
+try { history.replaceState(null,'','#app-'+S.app); } catch(e){}
+render();
+</script>

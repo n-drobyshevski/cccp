@@ -1,0 +1,27 @@
+{
+  "name": "cccp",
+  "version": "0.1.0",
+  "private": true,
+  "description": "CCCP (Cyber, Compliance, Continuity, Platform): a view-only application register as a Google Apps Script web app",
+  "type": "module",
+  "scripts": {
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "typecheck": "tsc --noEmit",
+    "lint": "eslint .",
+    "vendor:sync": "node tools/vendor.mjs sync --from /home/user/sidekick --commit 77bcf22",
+    "vendor:verify": "node tools/vendor.mjs verify",
+    "vendor:diff": "node tools/vendor.mjs diff --from /home/user/sidekick",
+    "check": "npm run typecheck && npm run lint && npm run vendor:verify && npm run test"
+  },
+  "devDependencies": {
+    "@google/clasp": "^3.4.0",
+    "@playwright/test": "^1.60.0",
+    "@types/google-apps-script": "^2.0.12",
+    "@types/node": "^22.20.1",
+    "esbuild": "^0.28.2",
+    "eslint": "^10.9.1",
+    "typescript": "^7.0.2",
+    "vitest": "^4.1.11"
+  }
+}

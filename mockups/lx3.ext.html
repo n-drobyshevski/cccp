@@ -1,0 +1,338 @@
+<!--CSS-->
+/* ---------- round 3: overview, landscape, inventory, saved views ---------- */
+.navb button svg{flex:none}
+.navb{max-width:100%;overflow-x:auto}
+.metric .segs{flex-wrap:wrap}
+.land{columns:3 300px}
+@media (max-width:600px){ .pbar{grid-template-columns:minmax(0,1fr) auto} .pbar .stk{grid-column:1/-1;grid-row:2} }
+@media (max-width:760px){ .navb button{padding:6px 8px} .navb button svg{display:none} .abin{gap:8px 10px} }
+/* menus + popovers */
+.menu2{position:absolute;top:calc(100% + 6px);right:0;z-index:20;min-width:230px;background:var(--surface);border:1px solid var(--line);border-radius:var(--r);box-shadow:var(--shadow);padding:6px;display:flex;flex-direction:column}
+.menu2.left{right:auto;left:0}
+.menu2 > button{display:flex;gap:9px;align-items:center;border:0;background:none;text-align:left;padding:7px 9px;border-radius:6px;white-space:nowrap}
+.menu2 > button:hover{background:var(--surface2)}
+.menu2 > button svg{width:15px;height:15px;color:var(--muted);flex:none}
+.menu2 > button small{margin-left:auto;color:var(--muted);font:500 11px var(--mono);padding-left:12px}
+.menu2 > button[aria-current="true"]{background:var(--accent-soft);color:var(--accent);font-weight:500}
+.menu2 hr{border:0;border-top:1px solid var(--line);margin:5px 2px}
+.menu2 .mlbl{padding:6px 9px 2px}
+.menu2 .saveform{display:flex;gap:6px;padding:4px}
+.menu2 .saveform input{flex:1;min-width:0}
+.tbtn{display:inline-flex;align-items:center;gap:7px;border:1px solid var(--line);background:var(--surface);border-radius:8px;padding:5px 10px;font-weight:500;font-size:13px;white-space:nowrap}
+.tbtn:hover{border-color:var(--line2)}
+.tbtn svg{width:14px;height:14px;color:var(--muted)}
+.tbtn[aria-expanded="true"]{border-color:var(--accent)}
+.rtools{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+/* saved views */
+.vpill{font-weight:600}
+.vpill .mod{font-weight:500;color:var(--warn);font-size:12px}
+.vtabs{display:flex;gap:2px;align-items:center;border-bottom:1px solid var(--line);margin:-2px 0 2px;overflow-x:auto}
+.vtabs > button{display:inline-flex;gap:6px;align-items:center;border:0;background:none;padding:7px 12px;border-bottom:2px solid transparent;color:var(--muted);font-weight:500;white-space:nowrap}
+.vtabs > button:hover{color:var(--fg)}
+.vtabs > button[aria-selected="true"]{color:var(--fg);border-bottom-color:var(--accent)}
+.vtabs > button svg{width:13px;height:13px}
+.vtabs .add{color:var(--accent)}
+.vtabs .vact{display:inline-flex;gap:2px;margin-left:auto;padding-left:10px}
+.vtabs .vact button{border:0;background:none;color:var(--muted);padding:4px 7px;border-radius:6px;font-size:12px;display:inline-flex;gap:5px;align-items:center;white-space:nowrap}
+.vtabs .vact button:hover{background:var(--surface2);color:var(--fg)}
+.vtabs .vact svg{width:13px;height:13px}
+.modnote{display:inline-flex;gap:8px;align-items:center;font-size:12px;color:var(--warn)}
+.modnote button{border:0;background:none;color:var(--accent);padding:0;font-weight:600;font-size:12px}
+.vform{display:flex;gap:6px;align-items:center}
+/* sortable headers */
+th .sh{border:0;background:none;padding:0;font:inherit;letter-spacing:inherit;text-transform:inherit;color:inherit;display:inline-flex;gap:4px;align-items:center}
+th .sh:hover{color:var(--fg)}
+th .sh svg{width:10px;height:10px;opacity:.35}
+th .sh[aria-sort] svg{opacity:1;color:var(--accent)}
+th[aria-sort] {color:var(--fg)}
+.ckc{display:flex;gap:9px;align-items:center;padding:5px 8px;border-radius:6px;cursor:pointer}
+.ckc:hover{background:var(--surface2)}
+.ckc input{accent-color:var(--accent);margin:0}
+.ckc.dis{color:var(--muted);cursor:default}
+/* landscape */
+.metric{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.lgd{display:flex;flex-wrap:wrap;gap:4px 12px;font-size:12px;color:var(--muted)}
+.lgd span{display:inline-flex;gap:6px;align-items:center}
+.lgd i{width:12px;height:12px;border-radius:3px;background:var(--c)}
+.lgd i.dash{background:none;border:1.5px dashed var(--none)}
+.land{columns:3 320px;column-gap:12px;padding:4px 14px 16px}
+.dbox{break-inside:avoid;margin-bottom:12px;border:1px solid var(--line);border-radius:var(--rs);background:var(--surface);overflow:hidden}
+.dbox > header{display:flex;justify-content:space-between;align-items:center;gap:8px;padding:8px 12px;background:var(--surface2);border-bottom:1px solid var(--line)}
+.dbox > header b{font-size:12px;letter-spacing:.04em;font-weight:600}
+.dbox > header small{font:500 11px var(--mono);color:var(--muted)}
+.sdg{padding:8px 10px 10px;display:flex;flex-direction:column;gap:6px}
+.sdg + .sdg{border-top:1px dashed var(--line)}
+.sdg > span{font-size:11px;color:var(--muted);letter-spacing:.04em;text-transform:uppercase}
+.tiles2{display:flex;flex-wrap:wrap;gap:4px}
+.tl{border:0;border-radius:6px;padding:4px 8px;font-size:12px;font-weight:500;max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;text-align:left;
+  background:color-mix(in srgb,var(--c) 18%,var(--surface));color:var(--fg);box-shadow:inset 3px 0 0 var(--c)}
+.tl:hover{background:color-mix(in srgb,var(--c) 30%,var(--surface))}
+.tl.dash{background:var(--surface);box-shadow:inset 0 0 0 1px var(--line2);color:var(--muted)}
+.tc{width:16px;height:16px;border:0;border-radius:3px;padding:0;background:var(--c)}
+.tc:hover{outline:2px solid var(--fg);outline-offset:1px}
+.tc.dash{background:none;box-shadow:inset 0 0 0 1.5px var(--none)}
+.tiles2.cmp{gap:3px}
+/* overview */
+.ov{display:flex;flex-direction:column;gap:14px}
+.ovh{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:flex-end;gap:8px}
+.ovh h1{margin:0;font-size:24px;font-weight:600;letter-spacing:-.015em}
+.ovh p{margin:0;color:var(--muted)}
+.kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px}
+.kpi{display:flex;flex-direction:column;gap:4px;text-align:left;border:1px solid var(--line);background:var(--surface);border-radius:var(--rs);padding:14px 16px}
+.kpi:hover{border-color:var(--accent)}
+.kpi span{color:var(--muted);font-size:13px}
+.kpi b{font:600 28px var(--sans);letter-spacing:-.02em;font-variant-numeric:tabular-nums}
+.kpi small{color:var(--muted);font-size:12px}
+.kpi.bad b{color:var(--bad)} .kpi.warn b{color:var(--warn)}
+.card2{padding:16px 18px;display:flex;flex-direction:column;gap:12px;min-width:0}
+.card2 h2{margin:0;font-size:15px;font-weight:600}
+.pbars{display:flex;flex-direction:column;gap:10px}
+.pbar{display:grid;grid-template-columns:110px minmax(0,1fr) auto;gap:12px;align-items:center;border:0;background:none;padding:4px;border-radius:8px;text-align:left}
+.pbar:hover{background:var(--surface2)}
+.pbar > span:first-child{display:flex;gap:8px;align-items:center;font-weight:500}
+.stk{display:flex;height:12px;border-radius:6px;overflow:hidden;gap:2px;background:var(--line)}
+.stk i{background:var(--c)}
+.pbar small{font:500 12px var(--mono);color:var(--muted);text-align:right;white-space:nowrap}
+.pbar small b{color:var(--bad)}
+.two{display:grid;grid-template-columns:repeat(auto-fit,minmax(340px,1fr));gap:12px;align-items:start}
+.dt td{cursor:pointer}
+.dt .qcell{gap:8px}
+.pcards{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:12px}
+.pcard{display:flex;flex-direction:column;gap:10px;padding:16px;min-width:0}
+.pcard h2{margin:0;font-size:15px;font-weight:600;display:flex;gap:8px;align-items:center}
+.pcard .bign{display:flex;align-items:baseline;gap:8px}
+.pcard .bign b{font:600 32px var(--sans);color:var(--bad);letter-spacing:-.02em;font-variant-numeric:tabular-nums}
+.pcard .bign span{color:var(--muted);font-size:13px}
+.reasons{display:flex;flex-direction:column;gap:2px;margin:0;padding:0;list-style:none}
+.reasons button{display:flex;gap:8px;align-items:center;width:100%;border:0;background:none;padding:5px 6px;border-radius:6px;text-align:left;font-size:13px}
+.reasons button:hover{background:var(--surface2)}
+.reasons button span{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.reasons small{font:500 12px var(--mono);color:var(--muted)}
+.kchips{display:flex;flex-wrap:wrap;gap:8px}
+<!--OPTS-->
+<div class="opts">
+  <h1>CCCP · round 3</h1>
+  <div class="opt"><span class="lbl">Overview</span><div class="seg" data-o="ov"><button data-v="kpi">KPI tiles + bars</button><button data-v="cards">Pillar cards</button></div></div>
+  <div class="opt"><span class="lbl">Landscape tiles</span><div class="seg" data-o="ls"><button data-v="named">Named</button><button data-v="cmp">Compact</button></div></div>
+  <div class="opt"><span class="lbl">Saved views</span><div class="seg" data-o="sv"><button data-v="dd">Dropdown</button><button data-v="tabs">Tab row</button></div></div>
+  <p class="onote" id="onote"></p>
+</div>
+<!--JS-->
+<script>
+Object.assign(O, {ov:'kpi', ls:'named', sv:'dd'});
+const R3N = {
+ ov:{kpi:'<b>Overview · KPI tiles.</b> Four headline numbers, a bar per pillar and a domain table. Every number opens the filtered list.',
+     cards:'<b>Overview · Pillar cards.</b> One card per pillar with its gap count and its most common reasons, each reason opens the matching list.'},
+ ls:{named:'<b>Landscape · named tiles.</b> Domains → subdomains → one named tile per application, coloured by the metric you pick.',
+     cmp:'<b>Landscape · compact.</b> The same grouping as small squares; hover for the name. Fits all 1,125 applications on about one screen.'},
+ sv:{dd:'<b>Saved views · dropdown.</b> A “View” menu at the start of the filter bar.',
+     tabs:'<b>Saved views · tab row.</b> Views as tabs above the filters, with copy-link and delete on the active one.'}
+};
+applyOpts = function(){ document.documentElement.dataset.shell = O.shell;
+  document.querySelectorAll('.opts .seg').forEach(g=>g.querySelectorAll('button').forEach(b=>b.setAttribute('aria-pressed', O[g.dataset.o]===b.dataset.v)));
+  $('onote').innerHTML = ['ov','ls','sv'].map(k=>R3N[k][O[k]]).join(' ') + ' Everything from earlier rounds is kept (all LeanIX-like options, settings in tabs).'; };
+
+/* ---------- nav: Overview + Landscape ---------- */
+const IOV = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/></svg>';
+const ILS = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 10h18M10 10v11"/></svg>';
+$('nav').insertAdjacentHTML('afterbegin', `<button data-go="over">${IOV}Overview</button>`);
+$('nav').insertAdjacentHTML('beforeend', `<button data-go="land">${ILS}Landscape</button>`);
+const HASH = {over:'#overview', list:'#list', heat:'#heatmap', land:'#landscape'};
+document.querySelector('.appbar').addEventListener('click', e=>{
+  const b = e.target.closest('[data-go]'); if(!b) return;
+  e.stopImmediatePropagation(); S.settings = false; S.view = b.dataset.go; S.app = null; S.pop = null;
+  try { history.replaceState(null,'',HASH[S.view]); } catch(err){} render(); scrollTo(0,0);
+}, true);
+addEventListener('popstate', ()=>{ const h = location.hash; if(h==='#overview'||h==='#landscape'){ S.app = null; S.settings = false; S.view = h==='#overview'?'over':'land'; render(); } });
+
+/* ---------- helpers ---------- */
+const RK = {bad:0, warn:1, none:2, ok:3};
+const worst = a => a.st.reduce((w,s)=>RK[s]<RK[w]?s:w,'ok');
+const IDOWN = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 4v12M6 11l6 6 6-6M5 20h14"/></svg>';
+const ICOLS = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M9 4v16M15 4v16"/></svg>';
+const IBOOK = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><path d="M6 3h12v18l-6-4-6 4z"/></svg>';
+const ITRASH = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 7h16M10 11v6M14 11v6M6 7l1 13h10l1-13M9 7V4h6v3"/></svg>';
+const IPLUS = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>';
+const ISHARE = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="9" cy="8" r="3"/><circle cx="17" cy="9" r="2.5"/><path d="M3 19c0-3 3-5 6-5s6 2 6 5M15 14c3 0 6 1.5 6 4.5"/></svg>';
+const SORTI = '<svg viewBox="0 0 10 10" fill="currentColor"><path d="M5 1 8 4.5H2zM5 9 2 5.5h6z"/></svg>';
+const SORTU = '<svg viewBox="0 0 10 10" fill="currentColor"><path d="M5 1.5 9 7H1z"/></svg>';
+const SORTD = '<svg viewBox="0 0 10 10" fill="currentColor"><path d="M5 8.5 1 3h8z"/></svg>';
+function goList(sel, view){ F.forEach(f=>S.sel[f.k] = new Set((sel||{})[f.k]||[])); S.q = ''; S.cur = null; S.view = view||'list'; S.app = null; S.settings = false; S.lim = 50; S.pop = null;
+  try { history.pushState(null,'',HASH[S.view]); } catch(e){} render(); scrollTo(0,0); }
+
+/* ---------- saved views ---------- */
+S.views = [
+ {id:'all', name:'All applications', sel:{}, sys:true},
+ {id:'t1gaps', name:'Tier 1 with gaps', sel:{tier:['T1'], gap:P}, shared:true},
+ {id:'noso', name:'No security officer', sel:{so:['None assigned']}, shared:true},
+ {id:'mine', name:'My applications', sel:{so:['Person 0009']}}
+];
+S.cur = 'all'; S.saving = false;
+const selOf = () => Object.fromEntries(F.filter(f=>S.sel[f.k].size).map(f=>[f.k,[...S.sel[f.k]].sort()]));
+const same = (a,b) => JSON.stringify(Object.fromEntries(F.map(f=>[f.k,[...(a[f.k]||[])].sort()]))) === JSON.stringify(Object.fromEntries(F.map(f=>[f.k,[...(b[f.k]||[])].sort()])));
+const curView = () => S.views.find(v=>v.id===S.cur);
+const modified = () => { const v = curView(); return !!v && (!same(v.sel, selOf()) || !!S.q); };
+function applyView(id){ const v = S.views.find(x=>x.id===id); if(!v) return; S.cur = id; F.forEach(f=>S.sel[f.k] = new Set(v.sel[f.k]||[])); S.q=''; S.lim = 50; S.pop = null; }
+const vCount = v => D.filter(a=>F.every(f=>!(v.sel[f.k]||[]).length || a.f[f.k].some(x=>v.sel[f.k].includes(x)))).length;
+function viewsDD(){
+  const v = curView(), m = modified();
+  const menu = S.pop==='views' ? `<div class="menu2 left" role="menu"><span class="lbl mlbl">Views</span>${S.views.map(x=>`<button data-view="${x.id}" aria-current="${x.id===S.cur}">${x.shared?ISHARE:IBOOK}${esc(x.name)}<small>${num(vCount(x))}</small></button>`).join('')}<hr>
+     ${S.saving ? `<div class="saveform"><input class="inp" id="vname" placeholder="View name" aria-label="View name"><button class="btn pri sm" data-vsave>Save</button></div>`
+       : `<button data-vnew>${IPLUS}Save current filters as a view</button>`}
+     ${v && !v.sys ? `<button data-vlink>${ILINK}Copy link to “${esc(v.name)}”</button><button data-vdel>${ITRASH}Delete “${esc(v.name)}”</button>` : ''}</div>` : '';
+  return `<span class="pw"><button class="pill vpill" data-vopen aria-expanded="${S.pop==='views'}" aria-haspopup="true">${IBOOK.replace('<svg','<svg width="14" height="14"')}<span>${v?esc(v.name):'Unsaved view'}${m?' <span class="mod">· edited</span>':''}</span>${ICO.cv}</button>${menu}</span>`;
+}
+function viewsTabs(){
+  const v = curView(), m = modified();
+  return `<div class="vtabs" role="tablist">${S.views.map(x=>`<button role="tab" data-view="${x.id}" aria-selected="${x.id===S.cur}">${x.shared?ISHARE:''}${esc(x.name)}</button>`).join('')}
+    ${S.saving ? `<span class="vform"><input class="inp" id="vname" placeholder="View name" aria-label="View name"><button class="btn pri sm" data-vsave>Save</button><button class="btn sm" data-vcancel>Cancel</button></span>` : `<button class="add" data-vnew>${IPLUS}Save view</button>`}
+    <span class="vact">${m?`<span class="modnote">Filters changed<button data-vupdate>Update view</button></span>`:''}${v && !v.sys ? `<button data-vlink>${ILINK}Copy link</button><button data-vdel>${ITRASH}Delete</button>` : ''}</span></div>`;
+}
+const tb2 = toolbar;
+toolbar = function(){ let h = tb2();
+  if(O.sv==='dd') h = h.replace('<div class="row"><label class="search">', '<div class="row">' + viewsDD() + '<label class="search">');
+  else h = h.replace('<section class="panel toolbar" aria-label="Filters">', '<section class="panel toolbar" aria-label="Filters">' + viewsTabs());
+  return h; };
+
+/* ---------- inventory table ---------- */
+const COLDEF = [
+ {k:'n', l:'Application', fixed:1, sv:a=>a.n.toLowerCase(), r:a=>`<button class="nm" data-app="${a.i}" title="${esc(a.n)}">${esc(a.n)}</button>`},
+ {k:'d', l:'Domain', sv:a=>a.d, r:a=>esc(a.d)},
+ {k:'sd', l:'Subdomain', sv:a=>a.sd, r:a=>v(esc(a.sd))},
+ {k:'g', l:'Support group', sv:a=>a.g, r:a=>`<span class="mut">${esc(a.g)}</span>`},
+ {k:'t', l:'Tier', sv:a=>a.t||9, r:a=>tier(a)},
+ {k:'lc', l:'Lifecycle', sv:a=>lcIdx(a.lc), r:a=>lc(a)},
+ {k:'o', l:'Owner', sv:a=>a.o||'~', r:a=>v(esc(a.o))},
+ {k:'so', l:'Security officer', sv:a=>a.so||'~', r:a=>a.so?esc(a.so):'<span class="mut">None assigned</span>'},
+ {k:'ty', l:'Typology', sv:a=>a.ty||'~', r:a=>v(esc(a.ty))},
+ {k:'h', l:'Hosting', sv:a=>a.h, r:a=>v(esc(a.h))},
+ {k:'q', l:'Completeness', sv:a=>qual(a).all, r:a=>{ const q = qual(a); return `<span class="qcell"><span class="qbar"><i style="width:${q.all}%;--c:${qcol(q.all)}"></i></span><small>${q.all}%</small></span>`; }},
+ {k:'st', l:'Status', sv:a=>-(a.st.filter(s=>s==='bad').length*100 + a.st.filter(s=>s==='warn').length*10), r:a=>dots(a), head:()=>`<span class="dhead">${PL.map((l,i)=>`<span data-tip="${P[i]}">${l}</span>`).join('')}</span>`}
+];
+S.cols = new Set(['n','d','t','lc','o','so','q','st']); S.sort = {k:'n', dir:1};
+list = function(R){
+  if(!R.length) return emptyState();
+  const cols = COLDEF.filter(c=>S.cols.has(c.k)), s = COLDEF.find(c=>c.k===S.sort.k);
+  const Rs = [...R].sort((x,y)=>{ const a = s.sv(x), b = s.sv(y); return (a<b?-1:a>b?1:0)*S.sort.dir || x.n.localeCompare(y.n); });
+  return `<div class="tw"><table><thead><tr>${cols.map(c=>{ const on = S.sort.k===c.k;
+      return `<th ${on?`aria-sort="${S.sort.dir>0?'ascending':'descending'}"`:''}><button class="sh" data-sort="${c.k}" ${on?'aria-sort="1"':''}>${c.head?c.head():c.l}${on?(S.sort.dir>0?SORTU:SORTD):SORTI}</button></th>`; }).join('')}</tr></thead><tbody>` +
+    Rs.slice(0,S.lim).map(a=>`<tr data-app="${a.i}">${cols.map(c=>`<td>${c.r(a)}</td>`).join('')}</tr>`).join('') + '</tbody></table></div>' +
+    (R.length>S.lim ? `<div class="more"><button class="btn" data-more>Show 50 more · ${num(R.length-S.lim)} left</button></div>` : '');
+};
+function listTools(n){
+  const cm = S.pop==='cols' ? `<div class="menu2" role="menu"><span class="lbl mlbl">Columns</span>${COLDEF.map(c=>`<label class="ckc ${c.fixed?'dis':''}"><input type="checkbox" data-col="${c.k}" ${S.cols.has(c.k)?'checked':''} ${c.fixed?'disabled':''}>${c.l}</label>`).join('')}</div>` : '';
+  const em = S.pop==='export' ? `<div class="menu2" role="menu"><span class="lbl mlbl">Export ${num(n)} applications</span><button data-export="csv">${IDOWN}CSV file<small>.csv</small></button><button data-export="xlsx">${IDOWN}Excel workbook<small>.xlsx</small></button><button data-export="sheet">${ISHEET}New Google Sheet</button></div>` : '';
+  return `<div class="rtools"><span class="pw"><button class="tbtn" data-pop2="cols" aria-expanded="${S.pop==='cols'}">${ICOLS}Columns</button>${cm}</span><span class="pw"><button class="tbtn" data-pop2="export" aria-expanded="${S.pop==='export'}">${IDOWN}Export</button>${em}</span></div>`;
+}
+
+/* ---------- landscape ---------- */
+S.metric = 'worst';
+const METRICS = [['worst','Worst status'],['c0','Cyber'],['c1','Compliance'],['c2','Continuity'],['c3','Platform'],['tier','Tier'],['q','Completeness']];
+const SC = {ok:'var(--ok)', warn:'var(--warn)', bad:'var(--bad)'};
+function mval(a){ const m = S.metric;
+  if(m==='worst' || m[0]==='c'){ const s = m==='worst' ? worst(a) : a.st[+m[1]]; return s==='none' ? null : SC[s]; }
+  if(m==='tier') return a.t ? `color-mix(in srgb,var(--accent) ${[0,100,70,45,25][a.t]}%,var(--surface))` : null;
+  return qcol(qual(a).all); }
+function mlegend(){ const m = S.metric, it = (c,l) => `<span><i style="--c:${c}"></i>${l}</span>`, nd = l => `<span><i class="dash"></i>${l}</span>`;
+  if(m==='tier') return [1,2,3,4].map(t=>it(`color-mix(in srgb,var(--accent) ${[0,100,70,45,25][t]}%,var(--surface))`,'T'+t)).join('') + nd('No tier');
+  if(m==='q') return it('var(--ok)','80% or more') + it('var(--warn)','50–79%') + it('var(--bad)','Under 50%');
+  return it(SC.ok,'OK') + it(SC.warn,'Needs attention') + it(SC.bad,'Gap') + nd('No data'); }
+function landscape(R){
+  if(!R.length) return emptyState();
+  const by = new Map(); R.forEach(a=>{ if(!by.has(a.d)) by.set(a.d,new Map()); const m = by.get(a.d), k = a.sd||'Other'; if(!m.has(k)) m.set(k,[]); m.get(k).push(a); });
+  const doms = [...by.entries()].sort((x,y)=>[...y[1].values()].flat().length-[...x[1].values()].flat().length);
+  const tile = a => { const c = mval(a), tip = `${a.n} · ${METRICS.find(x=>x[0]===S.metric)[1]}: ${S.metric==='tier'?(a.t?'T'+a.t:'none'):S.metric==='q'?qual(a).all+'%':S.metric==='worst'?STL[worst(a)]:STL[a.st[+S.metric[1]]]}`;
+    return O.ls==='cmp' ? `<button class="tc ${c?'':'dash'}" style="${c?`--c:${c}`:''}" data-app="${a.i}" data-tip="${esc(tip)}" aria-label="${esc(a.n)}"></button>`
+      : `<button class="tl ${c?'':'dash'}" style="${c?`--c:${c}`:''}" data-app="${a.i}" title="${esc(tip)}">${esc(a.n)}</button>`; };
+  return `<div class="land">${doms.map(([d,sm])=>{ const n = [...sm.values()].flat().length;
+    return `<section class="dbox"><header><b>${esc(d)}</b><small>${n}</small></header>${[...sm.entries()].sort((x,y)=>y[1].length-x[1].length).map(([sd,as])=>
+      `<div class="sdg"><span>${esc(sd)}</span><div class="tiles2 ${O.ls==='cmp'?'cmp':''}">${as.sort((x,y)=>x.n.localeCompare(y.n)).map(tile).join('')}</div></div>`).join('')}</section>`; }).join('')}</div>`;
+}
+
+/* ---------- results ---------- */
+const res3 = results;
+results = function(){
+  const R = rows();
+  if(S.view==='list') return `<div class="rhead"><span><b class="num">${num(R.length)}</b> <span class="mut">of ${num(D.length)} applications</span></span>${legend}${listTools(R.length)}</div>` + list(R);
+  if(S.view==='land') return `<div class="rhead"><span><b class="num">${num(R.length)}</b> <span class="mut">of ${num(D.length)} applications</span></span><div class="metric"><span class="lbl">Colour by</span><span class="segs" role="group">${METRICS.map(([k,l])=>`<button data-metric="${k}" aria-pressed="${S.metric===k}">${l}</button>`).join('')}</span></div></div><div class="rhead" style="padding-top:0"><div class="lgd">${mlegend()}</div></div>` + landscape(R);
+  return res3();
+};
+
+/* ---------- overview ---------- */
+function overview(){
+  const gap = D.filter(a=>a.st.includes('bad')), t1 = D.filter(a=>a.t===1), t1g = t1.filter(a=>a.st.includes('bad')), noso = D.filter(a=>!a.so), eol = D.filter(a=>['END_OF_LIFE','END_OF_SUPPORT'].includes(a.lc));
+  const pct = (a,b) => Math.round(a/b*100);
+  const kpis = `<div class="kpis">
+    <button class="kpi bad" data-goto='{"gap":${JSON.stringify(P)}}'><span>Applications with a gap</span><b>${num(gap.length)}</b><small>${pct(gap.length,D.length)}% of ${num(D.length)}</small></button>
+    <button class="kpi bad" data-goto='{"tier":["T1"],"gap":${JSON.stringify(P)}}'><span>Tier 1 with a gap</span><b>${num(t1g.length)}</b><small>of ${t1.length} Tier 1 applications</small></button>
+    <button class="kpi warn" data-goto='{"so":["None assigned"]}'><span>No security officer</span><b>${num(noso.length)}</b><small>${pct(noso.length,D.length)}% of applications</small></button>
+    <button class="kpi warn" data-goto='{"lc":["End of life","End of support"]}'><span>Past end of life</span><b>${num(eol.length)}</b><small>still listed as running</small></button></div>`;
+  const stk = i => { const c = {bad:0,warn:0,none:0,ok:0}; D.forEach(a=>c[a.st[i]]++);
+    return [c, `<span class="stk">${['bad','warn','none','ok'].map(s=>c[s]?`<i style="flex:${c[s]};--c:${s==='none'?'var(--line2)':SC[s]}" data-tip="${c[s]} ${STL[s].toLowerCase()}"></i>`:'').join('')}</span>`]; };
+  const doms = [...new Set(D.map(a=>a.d))].map(d=>{ const as = D.filter(a=>a.d===d); return {d, n:as.length, g:as.filter(a=>a.st.includes('bad')).length, q:Math.round(as.reduce((s,a)=>s+qual(a).all,0)/as.length)}; })
+    .sort((x,y)=>y.g-x.g).slice(0,8);
+  const domT = `<section class="panel card2"><h2>Domains with the most gaps</h2><div class="tw"><table class="dt"><thead><tr><th>Domain</th><th>Apps</th><th>With a gap</th><th>Completeness</th></tr></thead><tbody>${doms.map(x=>
+    `<tr data-goto='{"dom":[${JSON.stringify(x.d)}]}'><td><b>${esc(x.d)}</b></td><td class="num">${x.n}</td><td class="num" style="color:var(--bad)">${x.g}</td><td><span class="qcell"><span class="qbar"><i style="width:${x.q}%;--c:${qcol(x.q)}"></i></span><small>${x.q}%</small></span></td></tr>`).join('')}</tbody></table></div></section>`;
+  const head = `<div class="ovh"><div><h1>Overview</h1><p>${num(D.length)} applications · data loaded ${S.loaded||'today'}</p></div></div>`;
+  if(O.ov==='kpi'){
+    const bars = `<section class="panel card2"><h2>Status by pillar</h2><div class="pbars">${P.map((p,i)=>{ const [c,h] = stk(i);
+      return `<button class="pbar" data-goto='{"gap":["${p}"]}'><span>${dot('bad')}${p}</span>${h}<small><b>${c.bad}</b> gaps · ${c.warn} attention</small></button>`; }).join('')}</div>
+      <div class="legend">${Object.entries(STL).map(([k,l])=>`<span>${dot(k)}${l}</span>`).join('')}</div></section>`;
+    return `<div class="ov">${head}${kpis}<div class="two">${bars}${domT}</div></div>`;
+  }
+  const cards = `<div class="pcards">${P.map((p,i)=>{ const [c,h] = stk(i), rs = {}; D.forEach(a=>{ if(a.st[i]==='bad'||a.st[i]==='warn'){ const k = a.why[i]; rs[k] = rs[k]||{n:0,s:a.st[i]}; rs[k].n++; } });
+    const top = Object.entries(rs).sort((x,y)=>RK[x[1].s]-RK[y[1].s]||y[1].n-x[1].n).slice(0,4);
+    return `<section class="panel pcard"><h2>${dot(c.bad?'bad':'ok')}${p}</h2><div class="bign"><b>${c.bad}</b><span>gaps · ${c.warn} need attention</span></div>${h}
+      <ul class="reasons">${top.map(([r,o])=>`<li><button data-goto='{"gap":["${p}"]}' data-q2="${esc(r)}">${dot(o.s)}<span>${esc(r)}</span><small>${o.n}</small></button></li>`).join('')}</ul></section>`; }).join('')}</div>`;
+  const chips = `<div class="kchips"><button class="pill" data-goto='{"tier":["T1"],"gap":${JSON.stringify(P)}}'><span>Tier 1 with a gap</span><small>${t1g.length}</small></button><button class="pill" data-goto='{"so":["None assigned"]}'><span>No security officer</span><small>${noso.length}</small></button><button class="pill" data-goto='{"lc":["End of life","End of support"]}'><span>Past end of life</span><small>${eol.length}</small></button></div>`;
+  return `<div class="ov">${head}${chips}${cards}${domT}</div>`;
+}
+
+/* ---------- render ---------- */
+const r3 = render;
+render = function(focus){
+  if(!S.settings && S.app===null && S.view==='over'){
+    $('gear').setAttribute('aria-pressed','false');
+    $('nav').querySelectorAll('button').forEach(b=>b.setAttribute('aria-pressed', b.dataset.go==='over'));
+    $('root').innerHTML = overview(); return; }
+  r3(focus);
+  if(S.app===null && !S.settings) $('nav').querySelectorAll('button').forEach(b=>b.setAttribute('aria-pressed', b.dataset.go===S.view));
+  const m = document.querySelector('.menu2'); if(m){ const r = m.getBoundingClientRect(); if(r.left < 8){ m.classList.add('left'); } if(r.right > innerWidth-8) m.classList.remove('left'); }
+};
+
+/* ---------- events ---------- */
+root.addEventListener('click', e=>{
+  const t = e.target.closest('[data-goto],[data-sort],[data-pop2],[data-export],[data-metric],[data-vopen],[data-view],[data-vnew],[data-vsave],[data-vcancel],[data-vlink],[data-vdel],[data-vupdate]'); if(!t) return; const d = t.dataset;
+  if(d.goto){ goList(JSON.parse(d.goto)); return; }
+  if(d.sort){ S.sort = S.sort.k===d.sort ? {k:d.sort, dir:-S.sort.dir} : {k:d.sort, dir:1}; }
+  else if(d.pop2){ S.pop = S.pop===d.pop2 ? null : d.pop2; }
+  else if(d.export){ S.pop = null; const n = rows().length;
+    toast(d.export==='sheet' ? `In the real app this creates a Google Sheet with ${num(n)} rows` : `In the real app this downloads cccp-export.${d.export} with ${num(n)} rows`); }
+  else if(d.metric){ S.metric = d.metric; }
+  else if(d.vopen!==undefined){ S.pop = S.pop==='views' ? null : 'views'; S.saving = false; }
+  else if(d.view){ applyView(d.view); }
+  else if(d.vnew!==undefined){ S.saving = true; if(O.sv==='dd') S.pop = 'views'; render('#vname'); return; }
+  else if(d.vcancel!==undefined){ S.saving = false; }
+  else if(d.vsave!==undefined){ const n = ($('vname').value||'').trim(); if(!n){ $('vname').focus(); return; }
+    const id = 'v'+Date.now(); S.views.push({id, name:n, sel:selOf()}); S.cur = id; S.saving = false; S.pop = null; toast(`View “${n}” saved`); }
+  else if(d.vupdate!==undefined){ const v = curView(); if(v && !v.sys){ v.sel = selOf(); toast(`View “${v.name}” updated`); } else { S.saving = true; render('#vname'); return; } }
+  else if(d.vlink!==undefined){ const v = curView(); S.pop = null; toast(`Link to “${v.name}” copied. Anyone who opens it sees the same filters.`); }
+  else if(d.vdel!==undefined){ const v = curView(); S.views = S.views.filter(x=>x!==v); applyView('all'); toast(`View “${v.name}” deleted`); }
+  render();
+});
+root.addEventListener('keydown', e=>{ if(e.target.id==='vname'){ if(e.key==='Enter'){ e.preventDefault(); root.querySelector('[data-vsave]').click(); } if(e.key==='Escape'){ S.saving = false; render(); } } });
+root.addEventListener('change', e=>{ const t = e.target; if(!t.matches('input[data-col]')) return; t.checked ? S.cols.add(t.dataset.col) : S.cols.delete(t.dataset.col);
+  render(`input[data-col="${t.dataset.col}"]`); });
+/* any filter change keeps the view selected but marks it edited; clearing everything returns to “All applications” */
+root.addEventListener('click', e=>{ if(e.target.closest('[data-clear="*"]')) S.cur = 'all'; }, true);
+
+/* option strip: drop the listeners from earlier rounds */
+{ const oo = document.querySelector('.opts'); oo.replaceWith(oo.cloneNode(true)); }
+document.querySelector('.opts').addEventListener('click', e=>{ const b = e.target.closest('.seg button'); if(!b) return;
+  e.stopImmediatePropagation(); O[b.parentElement.dataset.o] = b.dataset.v; applyOpts();
+  const k = b.parentElement.dataset.o, want = {ov:'over', ls:'land', sv:'list'}[k];
+  S.settings = false; S.app = null; S.view = want; S.pop = null; try { history.replaceState(null,'',HASH[want]); } catch(err){} render(); }, true);
+applyOpts();
+S.settings = false; S.app = null; S.view = 'over'; try { history.replaceState(null,'','#overview'); } catch(e){}
+render();
+</script>

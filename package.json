@@ -12,7 +12,9 @@
     "vendor:sync": "node tools/vendor.mjs sync --from /home/user/sidekick --commit 77bcf22",
     "vendor:verify": "node tools/vendor.mjs verify",
     "vendor:diff": "node tools/vendor.mjs diff --from /home/user/sidekick",
-    "check": "npm run typecheck && npm run lint && npm run vendor:verify && npm run test"
+    "build": "node build/esbuild.config.mjs",
+    "test:build": "npm run build && vitest run --project build",
+    "check": "npm run typecheck && npm run lint && npm run vendor:verify && npm run test && npm run test:build"
   },
   "devDependencies": {
     "@google/clasp": "^3.4.0",

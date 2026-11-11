@@ -1,0 +1,2030 @@
+{
+ "version": 1,
+ "today": "2026-11-11",
+ "results": [
+  {
+   "cyber": {
+    "status": "none",
+    "why": null,
+    "sentence": "No pentest on record",
+    "fired": []
+   },
+   "compliance": {
+    "status": "bad",
+    "why": "co.majorAudit",
+    "sentence": "A major audit finding is open",
+    "fired": [
+     "co.majorAudit"
+    ]
+   },
+   "continuity": {
+    "status": "bad",
+    "why": "ct.drpFailed",
+    "sentence": "The last DRP test failed",
+    "fired": [
+     "ct.drpFailed",
+     "ct.drpAge"
+    ]
+   },
+   "platform": {
+    "status": "ok",
+    "why": null,
+    "sentence": "Complete",
+    "fired": []
+   },
+   "worst": "bad",
+   "sort": 200
+  },
+  {
+   "cyber": {
+    "status": "bad",
+    "why": "cy.critical",
+    "sentence": "A critical finding is open",
+    "fired": [
+     "cy.critical",
+     "cy.high",
+     "cy.pentestAge"
+    ]
+   },
+   "compliance": {
+    "status": "warn",
+    "why": "co.review",
+    "sentence": "Classification not checked in the last 12 months",
+    "fired": [
+     "co.review"
+    ]
+   },
+   "continuity": {
+    "status": "warn",
+    "why": "ct.drpAge",
+    "sentence": "Last DRP test older than 24 months",
+    "fired": [
+     "ct.drpAge"
+    ]
+   },
+   "platform": {
+    "status": "ok",
+    "why": null,
+    "sentence": "Complete",
+    "fired": []
+   },
+   "worst": "bad",
+   "sort": 120
+  },
+  {
+   "cyber": {
+    "status": "bad",
+    "why": "cy.noOfficer",
+    "sentence": "No security officer assigned",
+    "fired": [
+     "cy.noOfficer",
+     "cy.pentestAge"
+    ]
+   },
+   "compliance": {
+    "status": "bad",
+    "why": "co.majorAudit",
+    "sentence": "A major audit finding is open",
+    "fired": [
+     "co.majorAudit"
+    ]
+   },
+   "continuity": {
+    "status": "none",
+    "why": null,
+    "sentence": "No DRP data",
+    "fired": []
+   },
+   "platform": {
+    "status": "bad",
+    "why": "pl.eol",
+    "sentence": "End of life or end of support",
+    "fired": [
+     "pl.eol"
+    ]
+   },
+   "worst": "bad",
+   "sort": 300
+  },
+  {
+   "cyber": {
+    "status": "warn",
+    "why": "cy.high",
+    "sentence": "A high finding is open",
+    "fired": [
+     "cy.high",
+     "cy.pentestAge"
+    ]
+   },
+   "compliance": {
+    "status": "warn",
+    "why": "co.review",
+    "sentence": "Classification not checked in the last 12 months",
+    "fired": [
+     "co.review"
+    ]
+   },
+   "continuity": {
+    "status": "ok",
+    "why": null,
+    "sentence": "DRP tested, passed",
+    "fired": []
+   },
+   "platform": {
+    "status": "bad",
+    "why": "pl.eol",
+    "sentence": "End of life or end of support",
+    "fired": [
+     "pl.eol"
+    ]
+   },
+   "worst": "bad",
+   "sort": 120
+  },
+  {
+   "cyber": {
+    "status": "none",
+    "why": null,
+    "sentence": "No pentest on record",
+    "fired": []
+   },
+   "compliance": {
+    "status": "warn",
+    "why": "co.review",
+    "sentence": "Classification not checked in the last 12 months",
+    "fired": [
+     "co.review"
+    ]
+   },
+   "continuity": {
+    "status": "warn",
+    "why": "ct.drpAge",
+    "sentence": "Last DRP test older than 24 months",
+    "fired": [
+     "ct.drpAge"
+    ]
+   },
+   "platform": {
+    "status": "warn",
+    "why": "pl.decommissioning",
+    "sentence": "Being decommissioned",
+    "fired": [
+     "pl.decommissioning"
+    ]
+   },
+   "worst": "warn",
+   "sort": 30
+  },
+  {
+   "cyber": {
+    "status": "bad",
+    "why": "cy.noOfficer",
+    "sentence": "No security officer assigned",
+    "fired": [
+     "cy.noOfficer"
+    ]
+   },
+   "compliance": {
+    "status": "warn",
+    "why": "co.review",
+    "sentence": "Classification not checked in the last 12 months",
+    "fired": [
+     "co.review"
+    ]
+   },
+   "continuity": {
+    "status": "bad",
+    "why": "ct.drpFailed",
+    "sentence": "The last DRP test failed",
+    "fired": [
+     "ct.drpFailed"
+    ]
+   },
+   "platform": {
+    "status": "ok",
+    "why": null,
+    "sentence": "Complete",
+    "fired": []
+   },
+   "worst": "bad",
+   "sort": 210
+  },
+  {
+   "cyber": {
+    "status": "warn",
+    "why": "cy.high",
+    "sentence": "A high finding is open",
+    "fired": [
+     "cy.high",
+     "cy.pentestAge"
+    ]
+   },
+   "compliance": {
+    "status": "warn",
+    "why": "co.review",
+    "sentence": "Classification not checked in the last 12 months",
+    "fired": [
+     "co.review"
+    ]
+   },
+   "continuity": {
+    "status": "bad",
+    "why": "ct.drpMissing",
+    "sentence": "No DRP test on record for T1, T2",
+    "fired": [
+     "ct.drpMissing"
+    ]
+   },
+   "platform": {
+    "status": "bad",
+    "why": "pl.eol",
+    "sentence": "End of life or end of support",
+    "fired": [
+     "pl.eol",
+     "pl.noSso"
+    ]
+   },
+   "worst": "bad",
+   "sort": 220
+  },
+  {
+   "cyber": {
+    "status": "bad",
+    "why": "cy.critical",
+    "sentence": "A critical finding is open",
+    "fired": [
+     "cy.critical",
+     "cy.high",
+     "cy.pentestAge"
+    ]
+   },
+   "compliance": {
+    "status": "none",
+    "why": null,
+    "sentence": "Not classified",
+    "fired": []
+   },
+   "continuity": {
+    "status": "warn",
+    "why": "ct.drpAge",
+    "sentence": "Last DRP test older than 24 months",
+    "fired": [
+     "ct.drpAge"
+    ]
+   },
+   "platform": {
+    "status": "bad",
+    "why": "pl.eol",
+    "sentence": "End of life or end of support",
+    "fired": [
+     "pl.eol"
+    ]
+   },
+   "worst": "bad",
+   "sort": 210
+  },
+  {
+   "cyber": {
+    "status": "bad",
+    "why": "cy.exposedUntested",
+    "sentence": "Exposed on the internet and never pentested",
+    "fired": [
+     "cy.exposedUntested"
+    ]
+   },
+   "compliance": {
+    "status": "ok",
+    "why": null,
+    "sentence": "Classification validated",
+    "fired": []
+   },
+   "continuity": {
+    "status": "none",
+    "why": null,
+    "sentence": "No DRP data",
+    "fired": []
+   },
+   "platform": {
+    "status": "warn",
+    "why": "pl.noSso",
+    "sentence": "No single sign-on",
+    "fired": [
+     "pl.noSso"
+    ]
+   },
+   "worst": "bad",
+   "sort": 110
+  },
+  {
+   "cyber": {
+    "status": "warn",
+    "why": "cy.pentestAge",
+    "sentence": "Last pentest older than 18 months",
+    "fired": [
+     "cy.pentestAge"
+    ]
+   },
+   "compliance": {
+    "status": "bad",
+    "why": "co.majorAudit",
+    "sentence": "A major audit finding is open",
+    "fired": [
+     "co.majorAudit"
+    ]
+   },
+   "continuity": {
+    "status": "bad",
+    "why": "ct.drpFailed",
+    "sentence": "The last DRP test failed",
+    "fired": [
+     "ct.drpFailed"
+    ]
+   },
+   "platform": {
+    "status": "ok",
+    "why": null,
+    "sentence": "Complete",
+    "fired": []
+   },
+   "worst": "bad",
+   "sort": 210
+  },
+  {
+   "cyber": {
+    "status": "ok",
+    "why": null,
+    "sentence": "Pentest done, 2 low",
+    "fired": []
+   },
+   "compliance": {
+    "status": "bad",
+    "why": "co.majorAudit",
+    "sentence": "A major audit finding is open",
+    "fired": [
+     "co.majorAudit"
+    ]
+   },
+   "continuity": {
+    "status": "none",
+    "why": null,
+    "sentence": "No DRP data",
+    "fired": []
+   },
+   "platform": {
+    "status": "bad",
+    "why": "pl.eol",
+    "sentence": "End of life or end of support",
+    "fired": [
+     "pl.eol"
+    ]
+   },
+   "worst": "bad",
+   "sort": 200
+  },
+  {
+   "cyber": {
+    "status": "none",
+    "why": null,
+    "sentence": "No pentest on record",
+    "fired": []
+   },
+   "compliance": {
+    "status": "warn",
+    "why": "co.review",
+    "sentence": "Classification not checked in the last 12 months",
+    "fired": [
+     "co.review"
+    ]
+   },
+   "continuity": {
+    "status": "ok",
+    "why": null,
+    "sentence": "DRP data on record",
+    "fired": []
+   },
+   "platform": {
+    "status": "warn",
+    "why": "pl.noSso",
+    "sentence": "No single sign-on",
+    "fired": [
+     "pl.noSso"
+    ]
+   },
+   "worst": "warn",
+   "sort": 20
+  },
+  {
+   "cyber": {
+    "status": "none",
+    "why": null,
+    "sentence": "No pentest on record",
+    "fired": []
+   },
+   "compliance": {
+    "status": "ok",
+    "why": null,
+    "sentence": "Classification validated",
+    "fired": []
+   },
+   "continuity": {
+    "status": "warn",
+    "why": "ct.drpNeverTested",
+    "sentence": "No DRP test on record",
+    "fired": [
+     "ct.drpNeverTested"
+    ]
+   },
+   "platform": {
+    "status": "ok",
+    "why": null,
+    "sentence": "Complete",
+    "fired": []
+   },
+   "worst": "warn",
+   "sort": 10
+  },
+  {
+   "cyber": {
+    "status": "bad",
+    "why": "cy.exposedUntested",
+    "sentence": "Exposed on the internet and never pentested",
+    "fired": [
+     "cy.exposedUntested"
+    ]
+   },
+   "compliance": {
+    "status": "warn",
+    "why": "co.review",
+    "sentence": "Classification not checked in the last 12 months",
+    "fired": [
+     "co.review"
+    ]
+   },
+   "continuity": {
+    "status": "bad",
+    "why": "ct.drpFailed",
+    "sentence": "The last DRP test failed",
+    "fired": [
+     "ct.drpFailed",
+     "ct.drpAge"
+    ]
+   },
+   "platform": {
+    "status": "ok",
+    "why": null,
+    "sentence": "Complete",
+    "fired": []
+   },
+   "worst": "bad",
+   "sort": 210
+  },
+  {
+   "cyber": {
+    "status": "bad",
+    "why": "cy.noOfficer",
+    "sentence": "No security officer assigned",
+    "fired": [
+     "cy.noOfficer"
+    ]
+   },
+   "compliance": {
+    "status": "ok",
+    "why": null,
+    "sentence": "Classification validated",
+    "fired": []
+   },
+   "continuity": {
+    "status": "warn",
+    "why": "ct.drpNeverTested",
+    "sentence": "No DRP test on record",
+    "fired": [
+     "ct.drpNeverTested"
+    ]
+   },
+   "platform": {
+    "status": "ok",
+    "why": null,
+    "sentence": "Complete",
+    "fired": []
+   },
+   "worst": "bad",
+   "sort": 110
+  },
+  {
+   "cyber": {
+    "status": "ok",
+    "why": null,
+    "sentence": "Pentest done, No critical finding",
+    "fired": []
+   },
+   "compliance": {
+    "status": "ok",
+    "why": null,
+    "sentence": "Classification validated",
+    "fired": []
+   },
+   "continuity": {
+    "status": "bad",
+    "why": "ct.drpFailed",
+    "sentence": "The last DRP test failed",
+    "fired": [
+     "ct.drpFailed"
+    ]
+   },
+   "platform": {
+    "status": "bad",
+    "why": "pl.eol",
+    "sentence": "End of life or end of support",
+    "fired": [
+     "pl.eol"
+    ]
+   },
+   "worst": "bad",
+   "sort": 200
+  },
+  {
+   "cyber": {
+    "status": "bad",
+    "why": "cy.critical",
+    "sentence": "A critical finding is open",
+    "fired": [
+     "cy.critical"
+    ]
+   },
+   "compliance": {
+    "status": "none",
+    "why": null,
+    "sentence": "Not classified",
+    "fired": []
+   },
+   "continuity": {
+    "status": "warn",
+    "why": "ct.drpNeverTested",
+    "sentence": "No DRP test on record",
+    "fired": [
+     "ct.drpNeverTested"
+    ]
+   },
+   "platform": {
+    "status": "warn",
+    "why": "pl.noSso",
+    "sentence": "No single sign-on",
+    "fired": [
+     "pl.noSso"
+    ]
+   },
+   "worst": "bad",
+   "sort": 120
+  },
+  {
+   "cyber": {
+    "status": "warn",
+    "why": "cy.high",
+    "sentence": "A high finding is open",
+    "fired": [
+     "cy.high",
+     "cy.pentestAge"
+    ]
+   },
+   "compliance": {
+    "status": "warn",
+    "why": "co.review",
+    "sentence": "Classification not checked in the last 12 months",
+    "fired": [
+     "co.review"
+    ]
+   },
+   "continuity": {
+    "status": "ok",
+    "why": null,
+    "sentence": "DRP tested, passed",
+    "fired": []
+   },
+   "platform": {
+    "status": "warn",
+    "why": "pl.noSso",
+    "sentence": "No single sign-on",
+    "fired": [
+     "pl.noSso"
+    ]
+   },
+   "worst": "warn",
+   "sort": 30
+  },
+  {
+   "cyber": {
+    "status": "bad",
+    "why": "cy.noOfficer",
+    "sentence": "No security officer assigned",
+    "fired": [
+     "cy.noOfficer",
+     "cy.exposedUntested"
+    ]
+   },
+   "compliance": {
+    "status": "warn",
+    "why": "co.review",
+    "sentence": "Classification not checked in the last 12 months",
+    "fired": [
+     "co.review"
+    ]
+   },
+   "continuity": {
+    "status": "ok",
+    "why": null,
+    "sentence": "DRP data on record",
+    "fired": []
+   },
+   "platform": {
+    "status": "ok",
+    "why": null,
+    "sentence": "Complete",
+    "fired": []
+   },
+   "worst": "bad",
+   "sort": 110
+  },
+  {
+   "cyber": {
+    "status": "bad",
+    "why": "cy.noOfficer",
+    "sentence": "No security officer assigned",
+    "fired": [
+     "cy.noOfficer",
+     "cy.high",
+     "cy.pentestAge"
+    ]
+   },
+   "compliance": {
+    "status": "bad",
+    "why": "co.majorAudit",
+    "sentence": "A major audit finding is open",
+    "fired": [
+     "co.majorAudit",
+     "co.review"
+    ]
+   },
+   "continuity": {
+    "status": "bad",
+    "why": "ct.drpMissing",
+    "sentence": "No DRP test on record for T1, T2",
+    "fired": [
+     "ct.drpMissing"
+    ]
+   },
+   "platform": {
+    "status": "warn",
+    "why": "pl.noSso",
+    "sentence": "No single sign-on",
+    "fired": [
+     "pl.noSso"
+    ]
+   },
+   "worst": "bad",
+   "sort": 310
+  },
+  {
+   "cyber": {
+    "status": "none",
+    "why": null,
+    "sentence": "No pentest on record",
+    "fired": []
+   },
+   "compliance": {
+    "status": "ok",
+    "why": null,
+    "sentence": "Classification validated",
+    "fired": []
+   },
+   "continuity": {
+    "status": "warn",
+    "why": "ct.drpNeverTested",
+    "sentence": "No DRP test on record",
+    "fired": [
+     "ct.drpNeverTested"
+    ]
+   },
+   "platform": {
+    "status": "warn",
+    "why": "pl.decommissioning",
+    "sentence": "Being decommissioned",
+    "fired": [
+     "pl.decommissioning"
+    ]
+   },
+   "worst": "warn",
+   "sort": 20
+  },
+  {
+   "cyber": {
+    "status": "bad",
+    "why": "cy.noOfficer",
+    "sentence": "No security officer assigned",
+    "fired": [
+     "cy.noOfficer",
+     "cy.exposedUntested"
+    ]
+   },
+   "compliance": {
+    "status": "bad",
+    "why": "co.majorAudit",
+    "sentence": "A major audit finding is open",
+    "fired": [
+     "co.majorAudit",
+     "co.review"
+    ]
+   },
+   "continuity": {
+    "status": "bad",
+    "why": "ct.drpFailed",
+    "sentence": "The last DRP test failed",
+    "fired": [
+     "ct.drpFailed"
+    ]
+   },
+   "platform": {
+    "status": "bad",
+    "why": "pl.eol",
+    "sentence": "End of life or end of support",
+    "fired": [
+     "pl.eol"
+    ]
+   },
+   "worst": "bad",
+   "sort": 400
+  },
+  {
+   "cyber": {
+    "status": "none",
+    "why": null,
+    "sentence": "No pentest on record",
+    "fired": []
+   },
+   "compliance": {
+    "status": "ok",
+    "why": null,
+    "sentence": "Classification validated",
+    "fired": []
+   },
+   "continuity": {
+    "status": "bad",
+    "why": "ct.drpFailed",
+    "sentence": "The last DRP test failed",
+    "fired": [
+     "ct.drpFailed"
+    ]
+   },
+   "platform": {
+    "status": "ok",
+    "why": null,
+    "sentence": "Complete",
+    "fired": []
+   },
+   "worst": "bad",
+   "sort": 100
+  },
+  {
+   "cyber": {
+    "status": "warn",
+    "why": "cy.pentestAge",
+    "sentence": "Last pentest older than 18 months",
+    "fired": [
+     "cy.pentestAge"
+    ]
+   },
+   "compliance": {
+    "status": "warn",
+    "why": "co.review",
+    "sentence": "Classification not checked in the last 12 months",
+    "fired": [
+     "co.review"
+    ]
+   },
+   "continuity": {
+    "status": "bad",
+    "why": "ct.drpMissing",
+    "sentence": "No DRP test on record for T1, T2",
+    "fired": [
+     "ct.drpMissing"
+    ]
+   },
+   "platform": {
+    "status": "ok",
+    "why": null,
+    "sentence": "Complete",
+    "fired": []
+   },
+   "worst": "bad",
+   "sort": 120
+  },
+  {
+   "cyber": {
+    "status": "bad",
+    "why": "cy.critical",
+    "sentence": "A critical finding is open",
+    "fired": [
+     "cy.critical"
+    ]
+   },
+   "compliance": {
+    "status": "ok",
+    "why": null,
+    "sentence": "Classification validated",
+    "fired": []
+   },
+   "continuity": {
+    "status": "bad",
+    "why": "ct.drpFailed",
+    "sentence": "The last DRP test failed",
+    "fired": [
+     "ct.drpFailed"
+    ]
+   },
+   "platform": {
+    "status": "ok",
+    "why": null,
+    "sentence": "Complete",
+    "fired": []
+   },
+   "worst": "bad",
+   "sort": 200
+  },
+  {
+   "cyber": {
+    "status": "bad",
+    "why": "cy.noOfficer",
+    "sentence": "No security officer assigned",
+    "fired": [
+     "cy.noOfficer"
+    ]
+   },
+   "compliance": {
+    "status": "warn",
+    "why": "co.review",
+    "sentence": "Classification not checked in the last 12 months",
+    "fired": [
+     "co.review"
+    ]
+   },
+   "continuity": {
+    "status": "warn",
+    "why": "ct.drpNeverTested",
+    "sentence": "No DRP test on record",
+    "fired": [
+     "ct.drpNeverTested"
+    ]
+   },
+   "platform": {
+    "status": "bad",
+    "why": "pl.eol",
+    "sentence": "End of life or end of support",
+    "fired": [
+     "pl.eol"
+    ]
+   },
+   "worst": "bad",
+   "sort": 220
+  },
+  {
+   "cyber": {
+    "status": "bad",
+    "why": "cy.critical",
+    "sentence": "A critical finding is open",
+    "fired": [
+     "cy.critical"
+    ]
+   },
+   "compliance": {
+    "status": "warn",
+    "why": "co.review",
+    "sentence": "Classification not checked in the last 12 months",
+    "fired": [
+     "co.review"
+    ]
+   },
+   "continuity": {
+    "status": "warn",
+    "why": "ct.drpNeverTested",
+    "sentence": "No DRP test on record",
+    "fired": [
+     "ct.drpNeverTested"
+    ]
+   },
+   "platform": {
+    "status": "warn",
+    "why": "pl.noSso",
+    "sentence": "No single sign-on",
+    "fired": [
+     "pl.noSso"
+    ]
+   },
+   "worst": "bad",
+   "sort": 130
+  },
+  {
+   "cyber": {
+    "status": "bad",
+    "why": "cy.noOfficer",
+    "sentence": "No security officer assigned",
+    "fired": [
+     "cy.noOfficer",
+     "cy.critical",
+     "cy.pentestAge"
+    ]
+   },
+   "compliance": {
+    "status": "warn",
+    "why": "co.review",
+    "sentence": "Classification not checked in the last 12 months",
+    "fired": [
+     "co.review"
+    ]
+   },
+   "continuity": {
+    "status": "warn",
+    "why": "ct.drpAge",
+    "sentence": "Last DRP test older than 24 months",
+    "fired": [
+     "ct.drpAge"
+    ]
+   },
+   "platform": {
+    "status": "bad",
+    "why": "pl.eol",
+    "sentence": "End of life or end of support",
+    "fired": [
+     "pl.eol",
+     "pl.noSso"
+    ]
+   },
+   "worst": "bad",
+   "sort": 220
+  },
+  {
+   "cyber": {
+    "status": "none",
+    "why": null,
+    "sentence": "No pentest on record",
+    "fired": []
+   },
+   "compliance": {
+    "status": "warn",
+    "why": "co.review",
+    "sentence": "Classification not checked in the last 12 months",
+    "fired": [
+     "co.review"
+    ]
+   },
+   "continuity": {
+    "status": "none",
+    "why": null,
+    "sentence": "No DRP data",
+    "fired": []
+   },
+   "platform": {
+    "status": "ok",
+    "why": null,
+    "sentence": "Complete",
+    "fired": []
+   },
+   "worst": "warn",
+   "sort": 10
+  },
+  {
+   "cyber": {
+    "status": "warn",
+    "why": "cy.pentestAge",
+    "sentence": "Last pentest older than 18 months",
+    "fired": [
+     "cy.pentestAge"
+    ]
+   },
+   "compliance": {
+    "status": "none",
+    "why": null,
+    "sentence": "Not classified",
+    "fired": []
+   },
+   "continuity": {
+    "status": "ok",
+    "why": null,
+    "sentence": "DRP data on record",
+    "fired": []
+   },
+   "platform": {
+    "status": "ok",
+    "why": null,
+    "sentence": "Complete",
+    "fired": []
+   },
+   "worst": "warn",
+   "sort": 10
+  },
+  {
+   "cyber": {
+    "status": "warn",
+    "why": "cy.high",
+    "sentence": "A high finding is open",
+    "fired": [
+     "cy.high",
+     "cy.pentestAge"
+    ]
+   },
+   "compliance": {
+    "status": "bad",
+    "why": "co.majorAudit",
+    "sentence": "A major audit finding is open",
+    "fired": [
+     "co.majorAudit",
+     "co.review"
+    ]
+   },
+   "continuity": {
+    "status": "ok",
+    "why": null,
+    "sentence": "DRP tested, passed",
+    "fired": []
+   },
+   "platform": {
+    "status": "warn",
+    "why": "pl.decommissioning",
+    "sentence": "Being decommissioned",
+    "fired": [
+     "pl.decommissioning",
+     "pl.noSso"
+    ]
+   },
+   "worst": "bad",
+   "sort": 120
+  },
+  {
+   "cyber": {
+    "status": "none",
+    "why": null,
+    "sentence": "No pentest on record",
+    "fired": []
+   },
+   "compliance": {
+    "status": "bad",
+    "why": "co.majorAudit",
+    "sentence": "A major audit finding is open",
+    "fired": [
+     "co.majorAudit"
+    ]
+   },
+   "continuity": {
+    "status": "bad",
+    "why": "ct.drpFailed",
+    "sentence": "The last DRP test failed",
+    "fired": [
+     "ct.drpFailed"
+    ]
+   },
+   "platform": {
+    "status": "bad",
+    "why": "pl.eol",
+    "sentence": "End of life or end of support",
+    "fired": [
+     "pl.eol"
+    ]
+   },
+   "worst": "bad",
+   "sort": 300
+  },
+  {
+   "cyber": {
+    "status": "bad",
+    "why": "cy.noOfficer",
+    "sentence": "No security officer assigned",
+    "fired": [
+     "cy.noOfficer",
+     "cy.critical",
+     "cy.high",
+     "cy.pentestAge"
+    ]
+   },
+   "compliance": {
+    "status": "none",
+    "why": null,
+    "sentence": "Not classified",
+    "fired": []
+   },
+   "continuity": {
+    "status": "warn",
+    "why": "ct.drpNeverTested",
+    "sentence": "No DRP test on record",
+    "fired": [
+     "ct.drpNeverTested"
+    ]
+   },
+   "platform": {
+    "status": "ok",
+    "why": null,
+    "sentence": "Complete",
+    "fired": []
+   },
+   "worst": "bad",
+   "sort": 110
+  },
+  {
+   "cyber": {
+    "status": "bad",
+    "why": "cy.noOfficer",
+    "sentence": "No security officer assigned",
+    "fired": [
+     "cy.noOfficer",
+     "cy.pentestAge"
+    ]
+   },
+   "compliance": {
+    "status": "none",
+    "why": null,
+    "sentence": "Not classified",
+    "fired": []
+   },
+   "continuity": {
+    "status": "ok",
+    "why": null,
+    "sentence": "DRP data on record",
+    "fired": []
+   },
+   "platform": {
+    "status": "ok",
+    "why": null,
+    "sentence": "Complete",
+    "fired": []
+   },
+   "worst": "bad",
+   "sort": 100
+  },
+  {
+   "cyber": {
+    "status": "none",
+    "why": null,
+    "sentence": "No pentest on record",
+    "fired": []
+   },
+   "compliance": {
+    "status": "warn",
+    "why": "co.review",
+    "sentence": "Classification not checked in the last 12 months",
+    "fired": [
+     "co.review"
+    ]
+   },
+   "continuity": {
+    "status": "ok",
+    "why": null,
+    "sentence": "DRP tested, passed",
+    "fired": []
+   },
+   "platform": {
+    "status": "warn",
+    "why": "pl.noSso",
+    "sentence": "No single sign-on",
+    "fired": [
+     "pl.noSso"
+    ]
+   },
+   "worst": "warn",
+   "sort": 20
+  },
+  {
+   "cyber": {
+    "status": "bad",
+    "why": "cy.noOfficer",
+    "sentence": "No security officer assigned",
+    "fired": [
+     "cy.noOfficer",
+     "cy.high",
+     "cy.pentestAge"
+    ]
+   },
+   "compliance": {
+    "status": "none",
+    "why": null,
+    "sentence": "Not classified",
+    "fired": []
+   },
+   "continuity": {
+    "status": "bad",
+    "why": "ct.drpFailed",
+    "sentence": "The last DRP test failed",
+    "fired": [
+     "ct.drpFailed"
+    ]
+   },
+   "platform": {
+    "status": "bad",
+    "why": "pl.eol",
+    "sentence": "End of life or end of support",
+    "fired": [
+     "pl.eol"
+    ]
+   },
+   "worst": "bad",
+   "sort": 300
+  },
+  {
+   "cyber": {
+    "status": "warn",
+    "why": "cy.pentestAge",
+    "sentence": "Last pentest older than 18 months",
+    "fired": [
+     "cy.pentestAge"
+    ]
+   },
+   "compliance": {
+    "status": "ok",
+    "why": null,
+    "sentence": "Classification validated",
+    "fired": []
+   },
+   "continuity": {
+    "status": "ok",
+    "why": null,
+    "sentence": "DRP data on record",
+    "fired": []
+   },
+   "platform": {
+    "status": "ok",
+    "why": null,
+    "sentence": "Complete",
+    "fired": []
+   },
+   "worst": "warn",
+   "sort": 10
+  },
+  {
+   "cyber": {
+    "status": "none",
+    "why": null,
+    "sentence": "No pentest on record",
+    "fired": []
+   },
+   "compliance": {
+    "status": "ok",
+    "why": null,
+    "sentence": "Classification validated",
+    "fired": []
+   },
+   "continuity": {
+    "status": "ok",
+    "why": null,
+    "sentence": "DRP tested, passed",
+    "fired": []
+   },
+   "platform": {
+    "status": "ok",
+    "why": null,
+    "sentence": "Complete",
+    "fired": []
+   },
+   "worst": "none",
+   "sort": 0
+  },
+  {
+   "cyber": {
+    "status": "ok",
+    "why": null,
+    "sentence": "Pentest done, 2 low",
+    "fired": []
+   },
+   "compliance": {
+    "status": "warn",
+    "why": "co.review",
+    "sentence": "Classification not checked in the last 12 months",
+    "fired": [
+     "co.review"
+    ]
+   },
+   "continuity": {
+    "status": "bad",
+    "why": "ct.drpFailed",
+    "sentence": "The last DRP test failed",
+    "fired": [
+     "ct.drpFailed"
+    ]
+   },
+   "platform": {
+    "status": "ok",
+    "why": null,
+    "sentence": "Complete",
+    "fired": []
+   },
+   "worst": "bad",
+   "sort": 110
+  },
+  {
+   "cyber": {
+    "status": "ok",
+    "why": null,
+    "sentence": "Pentest done, No critical finding",
+    "fired": []
+   },
+   "compliance": {
+    "status": "none",
+    "why": null,
+    "sentence": "Not classified",
+    "fired": []
+   },
+   "continuity": {
+    "status": "bad",
+    "why": "ct.drpFailed",
+    "sentence": "The last DRP test failed",
+    "fired": [
+     "ct.drpFailed"
+    ]
+   },
+   "platform": {
+    "status": "warn",
+    "why": "pl.noSso",
+    "sentence": "No single sign-on",
+    "fired": [
+     "pl.noSso"
+    ]
+   },
+   "worst": "bad",
+   "sort": 110
+  },
+  {
+   "cyber": {
+    "status": "bad",
+    "why": "cy.exposedUntested",
+    "sentence": "Exposed on the internet and never pentested",
+    "fired": [
+     "cy.exposedUntested"
+    ]
+   },
+   "compliance": {
+    "status": "warn",
+    "why": "co.review",
+    "sentence": "Classification not checked in the last 12 months",
+    "fired": [
+     "co.review"
+    ]
+   },
+   "continuity": {
+    "status": "warn",
+    "why": "ct.drpNeverTested",
+    "sentence": "No DRP test on record",
+    "fired": [
+     "ct.drpNeverTested"
+    ]
+   },
+   "platform": {
+    "status": "bad",
+    "why": "pl.eol",
+    "sentence": "End of life or end of support",
+    "fired": [
+     "pl.eol"
+    ]
+   },
+   "worst": "bad",
+   "sort": 220
+  },
+  {
+   "cyber": {
+    "status": "bad",
+    "why": "cy.critical",
+    "sentence": "A critical finding is open",
+    "fired": [
+     "cy.critical",
+     "cy.pentestAge"
+    ]
+   },
+   "compliance": {
+    "status": "warn",
+    "why": "co.review",
+    "sentence": "Classification not checked in the last 12 months",
+    "fired": [
+     "co.review"
+    ]
+   },
+   "continuity": {
+    "status": "bad",
+    "why": "ct.drpFailed",
+    "sentence": "The last DRP test failed",
+    "fired": [
+     "ct.drpFailed",
+     "ct.drpAge"
+    ]
+   },
+   "platform": {
+    "status": "ok",
+    "why": null,
+    "sentence": "Complete",
+    "fired": []
+   },
+   "worst": "bad",
+   "sort": 210
+  },
+  {
+   "cyber": {
+    "status": "warn",
+    "why": "cy.pentestAge",
+    "sentence": "Last pentest older than 18 months",
+    "fired": [
+     "cy.pentestAge"
+    ]
+   },
+   "compliance": {
+    "status": "bad",
+    "why": "co.majorAudit",
+    "sentence": "A major audit finding is open",
+    "fired": [
+     "co.majorAudit",
+     "co.review"
+    ]
+   },
+   "continuity": {
+    "status": "bad",
+    "why": "ct.drpMissing",
+    "sentence": "No DRP test on record for T1, T2",
+    "fired": [
+     "ct.drpMissing"
+    ]
+   },
+   "platform": {
+    "status": "warn",
+    "why": "pl.noSso",
+    "sentence": "No single sign-on",
+    "fired": [
+     "pl.noSso"
+    ]
+   },
+   "worst": "bad",
+   "sort": 220
+  },
+  {
+   "cyber": {
+    "status": "bad",
+    "why": "cy.noOfficer",
+    "sentence": "No security officer assigned",
+    "fired": [
+     "cy.noOfficer",
+     "cy.exposedUntested"
+    ]
+   },
+   "compliance": {
+    "status": "warn",
+    "why": "co.review",
+    "sentence": "Classification not checked in the last 12 months",
+    "fired": [
+     "co.review"
+    ]
+   },
+   "continuity": {
+    "status": "ok",
+    "why": null,
+    "sentence": "DRP tested, passed",
+    "fired": []
+   },
+   "platform": {
+    "status": "warn",
+    "why": "pl.decommissioning",
+    "sentence": "Being decommissioned",
+    "fired": [
+     "pl.decommissioning"
+    ]
+   },
+   "worst": "bad",
+   "sort": 120
+  },
+  {
+   "cyber": {
+    "status": "bad",
+    "why": "cy.exposedUntested",
+    "sentence": "Exposed on the internet and never pentested",
+    "fired": [
+     "cy.exposedUntested"
+    ]
+   },
+   "compliance": {
+    "status": "warn",
+    "why": "co.review",
+    "sentence": "Classification not checked in the last 12 months",
+    "fired": [
+     "co.review"
+    ]
+   },
+   "continuity": {
+    "status": "ok",
+    "why": null,
+    "sentence": "DRP tested, passed",
+    "fired": []
+   },
+   "platform": {
+    "status": "warn",
+    "why": "pl.decommissioning",
+    "sentence": "Being decommissioned",
+    "fired": [
+     "pl.decommissioning"
+    ]
+   },
+   "worst": "bad",
+   "sort": 120
+  },
+  {
+   "cyber": {
+    "status": "bad",
+    "why": "cy.exposedUntested",
+    "sentence": "Exposed on the internet and never pentested",
+    "fired": [
+     "cy.exposedUntested"
+    ]
+   },
+   "compliance": {
+    "status": "bad",
+    "why": "co.majorAudit",
+    "sentence": "A major audit finding is open",
+    "fired": [
+     "co.majorAudit",
+     "co.review"
+    ]
+   },
+   "continuity": {
+    "status": "none",
+    "why": null,
+    "sentence": "No DRP data",
+    "fired": []
+   },
+   "platform": {
+    "status": "bad",
+    "why": "pl.eol",
+    "sentence": "End of life or end of support",
+    "fired": [
+     "pl.eol"
+    ]
+   },
+   "worst": "bad",
+   "sort": 300
+  },
+  {
+   "cyber": {
+    "status": "bad",
+    "why": "cy.noOfficer",
+    "sentence": "No security officer assigned",
+    "fired": [
+     "cy.noOfficer"
+    ]
+   },
+   "compliance": {
+    "status": "warn",
+    "why": "co.review",
+    "sentence": "Classification not checked in the last 12 months",
+    "fired": [
+     "co.review"
+    ]
+   },
+   "continuity": {
+    "status": "none",
+    "why": null,
+    "sentence": "No DRP data",
+    "fired": []
+   },
+   "platform": {
+    "status": "ok",
+    "why": null,
+    "sentence": "Complete",
+    "fired": []
+   },
+   "worst": "bad",
+   "sort": 110
+  },
+  {
+   "cyber": {
+    "status": "warn",
+    "why": "cy.pentestAge",
+    "sentence": "Last pentest older than 18 months",
+    "fired": [
+     "cy.pentestAge"
+    ]
+   },
+   "compliance": {
+    "status": "none",
+    "why": null,
+    "sentence": "Not classified",
+    "fired": []
+   },
+   "continuity": {
+    "status": "none",
+    "why": null,
+    "sentence": "No DRP data",
+    "fired": []
+   },
+   "platform": {
+    "status": "ok",
+    "why": null,
+    "sentence": "Complete",
+    "fired": []
+   },
+   "worst": "warn",
+   "sort": 10
+  },
+  {
+   "cyber": {
+    "status": "bad",
+    "why": "cy.noOfficer",
+    "sentence": "No security officer assigned",
+    "fired": [
+     "cy.noOfficer"
+    ]
+   },
+   "compliance": {
+    "status": "none",
+    "why": null,
+    "sentence": "Not classified",
+    "fired": []
+   },
+   "continuity": {
+    "status": "bad",
+    "why": "ct.drpMissing",
+    "sentence": "No DRP test on record for T1, T2",
+    "fired": [
+     "ct.drpMissing"
+    ]
+   },
+   "platform": {
+    "status": "bad",
+    "why": "pl.eol",
+    "sentence": "End of life or end of support",
+    "fired": [
+     "pl.eol"
+    ]
+   },
+   "worst": "bad",
+   "sort": 300
+  },
+  {
+   "cyber": {
+    "status": "bad",
+    "why": "cy.critical",
+    "sentence": "A critical finding is open",
+    "fired": [
+     "cy.critical"
+    ]
+   },
+   "compliance": {
+    "status": "ok",
+    "why": null,
+    "sentence": "Classification validated",
+    "fired": []
+   },
+   "continuity": {
+    "status": "none",
+    "why": null,
+    "sentence": "No DRP data",
+    "fired": []
+   },
+   "platform": {
+    "status": "ok",
+    "why": null,
+    "sentence": "Complete",
+    "fired": []
+   },
+   "worst": "bad",
+   "sort": 100
+  },
+  {
+   "cyber": {
+    "status": "bad",
+    "why": "cy.critical",
+    "sentence": "A critical finding is open",
+    "fired": [
+     "cy.critical",
+     "cy.high",
+     "cy.pentestAge"
+    ]
+   },
+   "compliance": {
+    "status": "warn",
+    "why": "co.review",
+    "sentence": "Classification not checked in the last 12 months",
+    "fired": [
+     "co.review"
+    ]
+   },
+   "continuity": {
+    "status": "none",
+    "why": null,
+    "sentence": "No DRP data",
+    "fired": []
+   },
+   "platform": {
+    "status": "bad",
+    "why": "pl.eol",
+    "sentence": "End of life or end of support",
+    "fired": [
+     "pl.eol",
+     "pl.noSso"
+    ]
+   },
+   "worst": "bad",
+   "sort": 210
+  },
+  {
+   "cyber": {
+    "status": "ok",
+    "why": null,
+    "sentence": "Pentest done, 2 low",
+    "fired": []
+   },
+   "compliance": {
+    "status": "warn",
+    "why": "co.review",
+    "sentence": "Classification not checked in the last 12 months",
+    "fired": [
+     "co.review"
+    ]
+   },
+   "continuity": {
+    "status": "bad",
+    "why": "ct.drpMissing",
+    "sentence": "No DRP test on record for T1, T2",
+    "fired": [
+     "ct.drpMissing"
+    ]
+   },
+   "platform": {
+    "status": "warn",
+    "why": "pl.decommissioning",
+    "sentence": "Being decommissioned",
+    "fired": [
+     "pl.decommissioning"
+    ]
+   },
+   "worst": "bad",
+   "sort": 120
+  },
+  {
+   "cyber": {
+    "status": "bad",
+    "why": "cy.noOfficer",
+    "sentence": "No security officer assigned",
+    "fired": [
+     "cy.noOfficer"
+    ]
+   },
+   "compliance": {
+    "status": "warn",
+    "why": "co.review",
+    "sentence": "Classification not checked in the last 12 months",
+    "fired": [
+     "co.review"
+    ]
+   },
+   "continuity": {
+    "status": "warn",
+    "why": "ct.drpNeverTested",
+    "sentence": "No DRP test on record",
+    "fired": [
+     "ct.drpNeverTested"
+    ]
+   },
+   "platform": {
+    "status": "bad",
+    "why": "pl.eol",
+    "sentence": "End of life or end of support",
+    "fired": [
+     "pl.eol"
+    ]
+   },
+   "worst": "bad",
+   "sort": 220
+  },
+  {
+   "cyber": {
+    "status": "bad",
+    "why": "cy.noOfficer",
+    "sentence": "No security officer assigned",
+    "fired": [
+     "cy.noOfficer",
+     "cy.pentestAge"
+    ]
+   },
+   "compliance": {
+    "status": "warn",
+    "why": "co.review",
+    "sentence": "Classification not checked in the last 12 months",
+    "fired": [
+     "co.review"
+    ]
+   },
+   "continuity": {
+    "status": "warn",
+    "why": "ct.drpNeverTested",
+    "sentence": "No DRP test on record",
+    "fired": [
+     "ct.drpNeverTested"
+    ]
+   },
+   "platform": {
+    "status": "bad",
+    "why": "pl.eol",
+    "sentence": "End of life or end of support",
+    "fired": [
+     "pl.eol",
+     "pl.noSso"
+    ]
+   },
+   "worst": "bad",
+   "sort": 220
+  },
+  {
+   "cyber": {
+    "status": "bad",
+    "why": "cy.noOfficer",
+    "sentence": "No security officer assigned",
+    "fired": [
+     "cy.noOfficer"
+    ]
+   },
+   "compliance": {
+    "status": "none",
+    "why": null,
+    "sentence": "Not classified",
+    "fired": []
+   },
+   "continuity": {
+    "status": "bad",
+    "why": "ct.drpFailed",
+    "sentence": "The last DRP test failed",
+    "fired": [
+     "ct.drpFailed"
+    ]
+   },
+   "platform": {
+    "status": "ok",
+    "why": null,
+    "sentence": "Complete",
+    "fired": []
+   },
+   "worst": "bad",
+   "sort": 200
+  },
+  {
+   "cyber": {
+    "status": "none",
+    "why": null,
+    "sentence": "No pentest on record",
+    "fired": []
+   },
+   "compliance": {
+    "status": "none",
+    "why": null,
+    "sentence": "Not classified",
+    "fired": []
+   },
+   "continuity": {
+    "status": "none",
+    "why": null,
+    "sentence": "No DRP data",
+    "fired": []
+   },
+   "platform": {
+    "status": "bad",
+    "why": "pl.eol",
+    "sentence": "End of life or end of support",
+    "fired": [
+     "pl.eol"
+    ]
+   },
+   "worst": "bad",
+   "sort": 100
+  },
+  {
+   "cyber": {
+    "status": "bad",
+    "why": "cy.noOfficer",
+    "sentence": "No security officer assigned",
+    "fired": [
+     "cy.noOfficer",
+     "cy.exposedUntested"
+    ]
+   },
+   "compliance": {
+    "status": "warn",
+    "why": "co.review",
+    "sentence": "Classification not checked in the last 12 months",
+    "fired": [
+     "co.review"
+    ]
+   },
+   "continuity": {
+    "status": "bad",
+    "why": "ct.drpMissing",
+    "sentence": "No DRP test on record for T1, T2",
+    "fired": [
+     "ct.drpMissing"
+    ]
+   },
+   "platform": {
+    "status": "bad",
+    "why": "pl.eol",
+    "sentence": "End of life or end of support",
+    "fired": [
+     "pl.eol"
+    ]
+   },
+   "worst": "bad",
+   "sort": 310
+  },
+  {
+   "cyber": {
+    "status": "warn",
+    "why": "cy.pentestAge",
+    "sentence": "Last pentest older than 18 months",
+    "fired": [
+     "cy.pentestAge"
+    ]
+   },
+   "compliance": {
+    "status": "none",
+    "why": null,
+    "sentence": "Not classified",
+    "fired": []
+   },
+   "continuity": {
+    "status": "none",
+    "why": null,
+    "sentence": "No DRP data",
+    "fired": []
+   },
+   "platform": {
+    "status": "warn",
+    "why": "pl.decommissioning",
+    "sentence": "Being decommissioned",
+    "fired": [
+     "pl.decommissioning",
+     "pl.noSso"
+    ]
+   },
+   "worst": "warn",
+   "sort": 20
+  },
+  {
+   "cyber": {
+    "status": "bad",
+    "why": "cy.noOfficer",
+    "sentence": "No security officer assigned",
+    "fired": [
+     "cy.noOfficer"
+    ]
+   },
+   "compliance": {
+    "status": "ok",
+    "why": null,
+    "sentence": "Classification validated",
+    "fired": []
+   },
+   "continuity": {
+    "status": "warn",
+    "why": "ct.drpNeverTested",
+    "sentence": "No DRP test on record",
+    "fired": [
+     "ct.drpNeverTested"
+    ]
+   },
+   "platform": {
+    "status": "bad",
+    "why": "pl.eol",
+    "sentence": "End of life or end of support",
+    "fired": [
+     "pl.eol",
+     "pl.noSso"
+    ]
+   },
+   "worst": "bad",
+   "sort": 210
+  },
+  {
+   "cyber": {
+    "status": "none",
+    "why": null,
+    "sentence": "No pentest on record",
+    "fired": []
+   },
+   "compliance": {
+    "status": "none",
+    "why": null,
+    "sentence": "Not classified",
+    "fired": []
+   },
+   "continuity": {
+    "status": "none",
+    "why": null,
+    "sentence": "No DRP data",
+    "fired": []
+   },
+   "platform": {
+    "status": "none",
+    "why": null,
+    "sentence": "Typology not set",
+    "fired": []
+   },
+   "worst": "none",
+   "sort": 0
+  }
+ ]
+}

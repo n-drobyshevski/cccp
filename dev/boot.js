@@ -17,6 +17,9 @@
 //   coldcache      CacheService accepts writes but never returns them
 //   slow=<ms>      artificial RPC latency
 //   tz=<IANA>      the spreadsheet's time zone (default Europe/Paris)
+//   inline         ship the bootstrap in the page, as doGet does when the register is warm
+//
+// window.__rpcLog lists the name of every google.script.run call the client made, in order.
 
 (function () {
   "use strict";
@@ -41,6 +44,20 @@
   console.log("[dev] seeded: signed in as " + (as || fakes.OWNER) + ", tz " + tz +
     (wb ? ", workbook " + wb.source : ", no workbook"));
 
+  window.__rpcLog = [];
+
+  // doGet inlines the bootstrap, and the register when it is warm. Priming the register first
+  // makes the same true here. Direct calls, so they are not in __rpcLog.
+  if (flag("inline")) {
+    try {
+      window.api_getRegister({});
+      var boot = document.getElementById("boot-data");
+      if (boot) boot.textContent = JSON.stringify(window.api_bootstrap({}));
+    } catch (e) {
+      console.error("[dev] inline bootstrap failed:", e);
+    }
+  }
+
   var SLOW_MS = Math.max(0, Number(query.get("slow")) || 0);
 
   function roundTrip(v) { return v === undefined ? v : JSON.parse(JSON.stringify(v)); }
@@ -57,6 +74,7 @@
         if (prop in t) return t[prop];
         if (typeof prop !== "string") return undefined;
         return function (params) {
+          window.__rpcLog.push(String(prop).replace(/^api_/, ""));
           var arg = roundTrip(params);
           setTimeout(function () {
             try {

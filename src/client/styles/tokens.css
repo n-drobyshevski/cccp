@@ -1,0 +1,71 @@
+/* Design tokens. The only file in src/client that may hold a colour literal. Ported from the
+   approved mockups (proto.src.html), light and dark. Dark is declared twice on purpose: once
+   for the system preference when no choice was made, once for an explicit data-theme. */
+:root {
+  --bg: #eef1f5;
+  --surface: #ffffff;
+  --surface2: #f5f7fa;
+  --line: #dde2ea;
+  --line2: #c9d0db;
+  --fg: #151a23;
+  --muted: #5a6474;
+  --accent: oklch(0.48 0.17 265);
+  --on-accent: #ffffff;
+  --accent-soft: oklch(0.95 0.03 265);
+  --ok: #1b8556;
+  --warn: #b36e00;
+  --bad: #c9303e;
+  --none: #6f7a8b;
+  --tip-bg: #151a23;
+  --tip-fg: #ffffff;
+  --sans: "Inter", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --mono: "IBM Plex Mono", ui-monospace, Menlo, Consolas, monospace;
+  --r: 10px;
+  --rc: 18px;
+  --rs: 14px;
+  --shadow: 0 10px 30px color-mix(in srgb, var(--fg) 16%, transparent);
+  --scrim: color-mix(in srgb, var(--fg) 40%, transparent);
+  color-scheme: light;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #0e1117;
+    --surface: #161a22;
+    --surface2: #1c212b;
+    --line: #2a313e;
+    --line2: #3a4252;
+    --fg: #e7eaf0;
+    --muted: #97a1b2;
+    --accent: oklch(0.76 0.12 265);
+    --on-accent: #0e1117;
+    --accent-soft: oklch(0.3 0.06 265);
+    --ok: #4bc088;
+    --warn: #e2a03a;
+    --bad: #ee6370;
+    --none: #7e899b;
+    --tip-bg: #e7eaf0;
+    --tip-fg: #0e1117;
+    color-scheme: dark;
+  }
+}
+
+:root[data-theme="dark"] {
+  --bg: #0e1117;
+  --surface: #161a22;
+  --surface2: #1c212b;
+  --line: #2a313e;
+  --line2: #3a4252;
+  --fg: #e7eaf0;
+  --muted: #97a1b2;
+  --accent: oklch(0.76 0.12 265);
+  --on-accent: #0e1117;
+  --accent-soft: oklch(0.3 0.06 265);
+  --ok: #4bc088;
+  --warn: #e2a03a;
+  --bad: #ee6370;
+  --none: #7e899b;
+  --tip-bg: #e7eaf0;
+  --tip-fg: #0e1117;
+  color-scheme: dark;
+}

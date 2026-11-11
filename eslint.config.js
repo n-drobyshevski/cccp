@@ -57,7 +57,7 @@ export default [
   },
   {
     files: ["test/**/*.js", "test/**/*.mjs"],
-    languageOptions: { ecmaVersion: 2022, sourceType: "module", globals: nodeGlobals },
+    languageOptions: { ecmaVersion: 2022, sourceType: "module", globals: { ...nodeGlobals, __dirname: "readonly", globalThis: "readonly" } },
     rules: { "no-undef": "error" },
   },
 ];

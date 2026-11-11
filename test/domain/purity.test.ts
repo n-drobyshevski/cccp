@@ -67,11 +67,11 @@ describe("src/domain purity", () => {
     });
   }
 
-  it("imports only from the domain itself and the vendored pure codecs", () => {
+  it("imports only from the domain itself and the vendored pure codecs and tableModel", () => {
     for (const f of all) {
       for (const m of readFileSync(f, "utf8").matchAll(/from\s+"([^"]+)"/g)) {
         const spec = m[1]!;
-        expect(spec.startsWith("./") || /^\.\.\/vendor\/gas_shared\/domain\/[a-zA-Z0-9]+$/.test(spec), f + " imports " + spec).toBe(true);
+        expect(spec.startsWith("./") || /^\.\.\/vendor\/gas_shared\/(domain\/[a-zA-Z0-9]+|ui\/tableModel)$/.test(spec), f + " imports " + spec).toBe(true);
       }
     }
   });

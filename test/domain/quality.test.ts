@@ -51,6 +51,10 @@ describe("completeness", () => {
 });
 
 describe("reviewSeal", () => {
+  it("an unreadable date reads as 'Review needed', matching the co.review rule", () => {
+    expect(reviewSeal(mk({ securityCheck: "not a date" }), 12, TODAY).state).toBe("need");
+  });
+
   const TODAY = "2026-11-11";
   it("no check date needs review", () => {
     expect(reviewSeal(mk(), 12, TODAY)).toEqual({ state: "need", label: "Review needed", reason: "no-check" });

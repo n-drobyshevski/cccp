@@ -28,7 +28,9 @@ const CASES: Array<[string, Partial<AppRecord>, Partial<AppRecord>, Partial<AppR
   ["co.review", { ciat: CI, securityCheck: "2024-06-01" }, { ciat: CI, securityCheck: "2026-11-11" }],
   ["ct.drpMissing", { rto: 4, tier: 1 }, { rto: 4, tier: 3 }, { rto: 4, tier: null }],
   ["ct.drpMissing", { mtd: 4, tier: 2 }, { mtd: 4, tier: 2, lastDrpTest: "2026-01-01" }, { tier: 1 }],
-  ["ct.drpNeverTested", { rto: 4, tier: 3 }, { rto: 4, tier: 1 }, { rto: 4, tier: null }],
+  ["ct.drpNeverTested", { rto: 4, tier: 3 }, { rto: 4, tier: 1 }, {}],
+  ["ct.drpNeverTested", { rto: 4, tier: null }, { rto: 4, tier: null, lastDrpTest: "2026-01-01" }],
+  ["co.review", { ciat: CI, securityCheck: "not a date" }, { ciat: CI, securityCheck: "2026-06-01" }],
   ["ct.drpFailed", { drpResult: "failed" }, { drpResult: "passed" }, { drpResult: null }],
   ["ct.drpAge", { lastDrpTest: "2024-01-01" }, { lastDrpTest: "2025-06-01" }, { lastDrpTest: "garbage" }],
   ["pl.eol", { lifecycle: "END_OF_LIFE" }, { lifecycle: "PRODUCTION" }, { lifecycle: null }],
@@ -50,8 +52,12 @@ describe("rule catalogue", () => {
     expect(RULE_BY_ID["pl.decommissioning"]).toMatchObject({ level: "warn", toggle: false });
   });
 
-  it("every rule has at least a fires and a not-fires case", () => {
+  it("every rule has at least a fires and a not-fires case, and a null case", () => {
     for (const r of RULES) expect(CASES.filter((c) => c[0] === r.id).length, r.id).toBeGreaterThanOrEqual(1);
+    // cy.noOfficer fires on the null app by design; it is pinned by the null-app test below.
+    const FIRES_ON_NULL = ["cy.noOfficer"];
+    for (const r of RULES)
+      expect(FIRES_ON_NULL.includes(r.id) || CASES.some((c) => c[0] === r.id && c[3] !== undefined), r.id).toBe(true);
   });
 
   describe.each(CASES)("%s", (id, fires, quiet, nul) => {
@@ -80,6 +86,17 @@ describe("rule catalogue", () => {
 const STATUS_RANK: Record<Status, number> = { bad: 3, warn: 2, none: 1, ok: 0 };
 const apps = apps60 as unknown as AppRecord[];
 
+/** mulberry32: a small seeded generator so the property run is reproducible. */
+function seeded(seed: number): () => number {
+  let t = seed >>> 0;
+  return () => {
+    t = (t + 0x6d2b79f5) >>> 0;
+    let x = Math.imul(t ^ (t >>> 15), 1 | t);
+    x = (x + Math.imul(x ^ (x >>> 7), 61 | x)) ^ x;
+    return ((x ^ (x >>> 14)) >>> 0) / 4294967296;
+  };
+}
+
 describe("pillar semantics", () => {
   const ids = (p: PillarResult) => p.fired;
 
@@ -90,19 +107,40 @@ describe("pillar semantics", () => {
     expect(worst(["warn", "bad", "none"])).toBe("bad");
   });
 
-  it("worst-wins and why-order hold for every pillar of every fixture app", () => {
-    const rules = R();
-    for (const a of apps) {
+  it("worst-wins and why-order hold for fixture apps and seeded random apps", () => {
+    const rnd = seeded(12345);
+    const pick = <T,>(xs: readonly T[]): T => xs[Math.floor(rnd() * xs.length)]!;
+    const gen = (): AppRecord => mk({
+      securityOfficer: pick([null, "Ann"]), exposed: pick([null, true, false]),
+      lastPentest: pick([null, "2024-01-01", "2026-05-01", "junk"]),
+      findingsCritical: pick([null, 0, 2]), findingsHigh: pick([null, 0, 1]),
+      findingsText: pick([null, "all low", "one high", "critical"]),
+      auditMajor: pick([null, 0, 1]), auditResult: pick([null, "Passed", "major"]),
+      ciat: pick([null, CI]), securityCheck: pick([null, "2024-01-01", "2026-09-01", "junk"]),
+      rto: pick([null, 4]), mtd: pick([null, 2]), tier: pick([null, 1, 2, 3, 4]),
+      lastDrpTest: pick([null, "2023-01-01", "2026-01-01"]), drpResult: pick([null, "passed", "failed"]),
+      lifecycle: pick([null, "PRODUCTION", "END_OF_LIFE", "DECOMMISSIONING"]), sso: pick([null, true, false]),
+      typology: pick([null, "Web"]), hosting: pick([null, "Cloud"]),
+    } as Partial<AppRecord>);
+    const rand: AppRecord[] = Array.from({ length: 400 }, gen);
+    for (const withRandomRules of [false, true]) for (const a of [...apps, ...rand]) {
+      const rules = R();
+      if (withRandomRules) {
+        for (const t of RULES.filter((x) => x.toggle)) rules.rules[t.id]!.on = rnd() > 0.4;
+        rules.rules["cy.pentestAge"]!.months = pick([1, 6, 18, 60]);
+        rules.rules["co.review"]!.months = pick([1, 6, 12]);
+        rules.rules["ct.drpAge"]!.months = pick([6, 24]);
+        rules.rules["ct.drpMissing"]!.tiers = pick([[1], [1, 2], [3, 4]]);
+      }
       const s = evaluate(a, rules, TODAY);
       for (const p of PILLARS as readonly Pillar[]) {
         const res = s[p];
-        const catalogue = RULES.filter((r) => r.pillar === p);
-        const fired = catalogue.filter((r) => ids(res).includes(r.id));
+        const fired = RULES.filter((r) => r.pillar === p && (!r.toggle || rules.rules[r.id]?.on !== false) && ruleCounts([a], rules, TODAY)[r.id] === 1);
+        expect(ids(res)).toEqual(fired.map((r) => r.id)); // catalogue order
         if (fired.length) {
           const top = Math.max(...fired.map((r) => (r.level === "bad" ? 3 : 2)));
           expect(STATUS_RANK[res.status]).toBe(top);
           expect(res.why).toBe(fired.find((r) => (r.level === "bad" ? 3 : 2) === top)!.id);
-          expect(ids(res)).toEqual(fired.map((r) => r.id)); // catalogue order
         } else {
           expect(res.why).toBeNull();
           expect(res.status).toBe(noData(p, a) ? "none" : "ok");

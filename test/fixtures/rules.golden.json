@@ -397,10 +397,12 @@
     ]
    },
    "continuity": {
-    "status": "ok",
-    "why": null,
-    "sentence": "DRP data on record",
-    "fired": []
+    "status": "warn",
+    "why": "ct.drpNeverTested",
+    "sentence": "No DRP test on record",
+    "fired": [
+     "ct.drpNeverTested"
+    ]
    },
    "platform": {
     "status": "warn",
@@ -411,7 +413,7 @@
     ]
    },
    "worst": "warn",
-   "sort": 20
+   "sort": 30
   },
   {
    "cyber": {
@@ -630,10 +632,12 @@
     ]
    },
    "continuity": {
-    "status": "ok",
-    "why": null,
-    "sentence": "DRP data on record",
-    "fired": []
+    "status": "warn",
+    "why": "ct.drpNeverTested",
+    "sentence": "No DRP test on record",
+    "fired": [
+     "ct.drpNeverTested"
+    ]
    },
    "platform": {
     "status": "ok",
@@ -642,7 +646,7 @@
     "fired": []
    },
    "worst": "bad",
-   "sort": 110
+   "sort": 120
   },
   {
    "cyber": {
@@ -1006,10 +1010,12 @@
     "fired": []
    },
    "continuity": {
-    "status": "ok",
-    "why": null,
-    "sentence": "DRP data on record",
-    "fired": []
+    "status": "warn",
+    "why": "ct.drpNeverTested",
+    "sentence": "No DRP test on record",
+    "fired": [
+     "ct.drpNeverTested"
+    ]
    },
    "platform": {
     "status": "ok",
@@ -1018,7 +1024,7 @@
     "fired": []
    },
    "worst": "warn",
-   "sort": 10
+   "sort": 20
   },
   {
    "cyber": {
@@ -1143,10 +1149,12 @@
     "fired": []
    },
    "continuity": {
-    "status": "ok",
-    "why": null,
-    "sentence": "DRP data on record",
-    "fired": []
+    "status": "warn",
+    "why": "ct.drpNeverTested",
+    "sentence": "No DRP test on record",
+    "fired": [
+     "ct.drpNeverTested"
+    ]
    },
    "platform": {
     "status": "ok",
@@ -1155,7 +1163,7 @@
     "fired": []
    },
    "worst": "bad",
-   "sort": 100
+   "sort": 110
   },
   {
    "cyber": {
@@ -1241,10 +1249,12 @@
     "fired": []
    },
    "continuity": {
-    "status": "ok",
-    "why": null,
-    "sentence": "DRP data on record",
-    "fired": []
+    "status": "warn",
+    "why": "ct.drpNeverTested",
+    "sentence": "No DRP test on record",
+    "fired": [
+     "ct.drpNeverTested"
+    ]
    },
    "platform": {
     "status": "ok",
@@ -1253,7 +1263,7 @@
     "fired": []
    },
    "worst": "warn",
-   "sort": 10
+   "sort": 20
   },
   {
    "cyber": {

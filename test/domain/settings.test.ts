@@ -17,8 +17,8 @@ describe("defaults", () => {
   it("have every field and every rule", () => {
     expect(Object.keys(DEFAULT_SETTINGS.fields).sort()).toEqual([...FIELD_KEYS].sort());
     expect(Object.keys(DEFAULT_SETTINGS.rules.rules).sort()).toEqual(Object.keys(RULE_PARAMS).sort());
-    expect(DEFAULT_SETTINGS.rules.rules["co.review"]).toEqual({ on: true, months: 12 });
-    expect(DEFAULT_SETTINGS.rules.rules["ct.drpMissing"]).toEqual({ on: true, tiers: [1, 2] });
+    expect(DEFAULT_SETTINGS.rules.rules["co.review"]).toEqual({ months: 12 });
+    expect(DEFAULT_SETTINGS.rules.rules["ct.drpMissing"]).toEqual({ tiers: [1, 2] });
   });
 
   it("keeps each section under 8000 bytes", () => {
@@ -137,7 +137,7 @@ describe("applyPatch", () => {
     expect(s.source.cacheMinutes).toBe(1);
     expect(s.source.tabs.aud.name).toBe("Pentests");
     expect(s.source.tabs.aud.pick).toBe("latest");
-    expect(s.rules.rules["co.review"]).toEqual({ on: true, months: 6 });
+    expect(s.rules.rules["co.review"]).toEqual({ months: 6 });
   });
 
   it("does not change its input", () => {

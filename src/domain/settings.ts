@@ -34,16 +34,17 @@ const SHEET_ID_MAX = 100;
  * default. rules.ts builds its catalogue on these ids. Fixed rules (cy.high, ct.drpNeverTested,
  * pl.decommissioning) have no entry: they have no switch and no parameter.
  */
+// `on` is stored only for rules that have a switch (toggle:true in the rules catalogue); the others are always on.
 export const RULE_PARAMS: Readonly<Record<string, RuleParams>> = {
   "cy.noOfficer": { on: true },
   "cy.exposedUntested": { on: true },
   "cy.critical": { on: true },
-  "cy.pentestAge": { on: true, months: 18 },
+  "cy.pentestAge": { months: 18 },
   "co.majorAudit": { on: true },
-  "co.review": { on: true, months: 12 },
-  "ct.drpMissing": { on: true, tiers: [1, 2] },
+  "co.review": { months: 12 },
+  "ct.drpMissing": { tiers: [1, 2] },
   "ct.drpFailed": { on: true },
-  "ct.drpAge": { on: true, months: 24 },
+  "ct.drpAge": { months: 24 },
   "pl.eol": { on: true },
   "pl.noSso": { on: true },
 };

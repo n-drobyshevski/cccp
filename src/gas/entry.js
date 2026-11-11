@@ -42,3 +42,16 @@ function timedApi_(name, params) {
 /* One per export in src/server/api.ts, in that file's order. */
 
 function api_bootstrap(p) { return timedApi_("bootstrap", p); }
+function api_getAccess(p) { return timedApi_("getAccess", p); }
+function api_saveAccess(p) { return timedApi_("saveAccess", p); }
+function api_saveAdmins(p) { return timedApi_("saveAdmins", p); }
+function api_saveAccessMode(p) { return timedApi_("saveAccessMode", p); }
+
+/* ------------------------------------------------------- editor-run, not RPC */
+/* Gated: these run as whoever opened the editor, which is not necessarily the owner. */
+
+/** One-time owner setup. Seeds the owner and defaults; optionally binds the register Sheet. */
+function setup(sheetUrl) {
+  Server.access.assertOwner("setup");
+  return Server.setup(sheetUrl);
+}

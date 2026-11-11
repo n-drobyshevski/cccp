@@ -14,7 +14,8 @@
     "vendor:diff": "node tools/vendor.mjs diff --from /home/user/sidekick",
     "build": "node build/esbuild.config.mjs",
     "test:build": "npm run build && vitest run --project build",
-    "check": "npm run typecheck && npm run lint && npm run vendor:verify && npm run test && npm run test:build"
+    "check": "npm run typecheck && npm run lint && npm run vendor:verify && npm run test && npm run test:build",
+    "dev": "node dev/serve.mjs"
   },
   "devDependencies": {
     "@google/clasp": "^3.4.0",

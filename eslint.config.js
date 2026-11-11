@@ -46,7 +46,7 @@ export default [
     languageOptions: {
       ecmaVersion: 2022,
       sourceType: "script",
-      globals: { ...browserGlobals, ...platformGlobals, Server: "readonly", PropertiesService: "readonly" },
+      globals: { ...browserGlobals, ...platformGlobals, Server: "readonly", PropertiesService: "readonly", Buffer: "readonly", process: "readonly", XMLHttpRequest: "readonly", Intl: "readonly" },
     },
     rules: { "no-undef": "error" },
   },

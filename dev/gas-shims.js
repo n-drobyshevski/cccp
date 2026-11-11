@@ -513,6 +513,7 @@
     p.setProperty("ALLOWED_ADMINS", o.admins != null ? o.admins : "admin@example.com");
     p.setProperty("ALLOWED_USERS", "viewer@example.com");
     if (o.mode === "org") p.setProperty("ACCESS_MODE", "org");
+    if (o.hidePrefix) p.setProperty("CFG_DISPLAY", JSON.stringify({ hidePrefix: o.hidePrefix }));
     if (o.nosource || !o.sheetId) return;
     var tab = function (name, pick) { return { name: name, joinColumn: "UUID", joinOn: "id", pick: pick }; };
     p.setProperty("CFG_SOURCE", JSON.stringify({

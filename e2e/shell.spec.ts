@@ -176,6 +176,31 @@ test.describe("register", () => {
   });
 });
 
+test.describe("history and hidden count", () => {
+  test("a view switch pushes history, a replace keeps it", async ({ page }) => {
+    await page.goto("/?r=list");
+    await expect(page.locator("[data-page=list]")).toBeVisible();
+    const before = await page.evaluate(() => history.length);
+    await page.locator('[data-k="nav-heatmap"]').click();
+    await expect(page.locator("[data-page=heatmap]")).toBeVisible();
+    const after = await page.evaluate(() => history.length);
+    expect(after).toBe(before + 1);
+    await page.evaluate(() => (window as any).google.script.history.replace(null, { r: "heatmap", x: "1" }, ""));
+    expect(await page.evaluate(() => history.length)).toBe(after);
+  });
+
+  test("a hidden-name prefix shows a non-zero hidden count", async ({ page }) => {
+    await page.goto("/?r=list&hideprefix=n");
+    await expect(page.locator("[data-page=list]")).toBeVisible();
+    await expect(page.locator("[data-count=hidden]")).toBeVisible();
+    const n = await appCount(page);
+    const vis = Number((await page.locator("[data-count=visible]").innerText()).split(" ")[0].replace(/,/g, ""));
+    const hid = Number((await page.locator("[data-count=hidden]").innerText()).trim().split(" ")[1].replace(/,/g, ""));
+    expect(hid).toBeGreaterThan(0);
+    expect(vis + hid).toBe(n);
+  });
+});
+
 test.describe("renderRegion in a real browser", () => {
   test("keeps focus, caret and scroll across a re-render, and rejects strings", async ({ page }) => {
     const out = await build({

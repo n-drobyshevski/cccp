@@ -24,6 +24,7 @@
 .navb { display: inline-flex; gap: 2px; max-width: 100%; overflow-x: auto; }
 .navb button { display: inline-flex; align-items: center; gap: 6px; border: 0; background: none; padding: 6px 11px; border-radius: 8px; font-weight: 500; color: var(--muted); }
 .navb button svg { width: 15px; height: 15px; flex: none; }
+.navb button:focus-visible { outline-offset: -2px; }
 .navb button:hover { color: var(--fg); }
 .navb button[aria-current] { background: var(--surface); color: var(--fg); box-shadow: 0 0 0 1px var(--line); }
 

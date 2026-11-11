@@ -17,6 +17,7 @@
 //   coldcache      CacheService accepts writes but never returns them
 //   slow=<ms>      artificial RPC latency
 //   tz=<IANA>      the spreadsheet's time zone (default Europe/Paris)
+//   hideprefix=<s> Display setting: hide apps whose name starts with s
 //   inline         ship the bootstrap in the page, as doGet does when the register is warm
 //
 // window.__rpcLog lists the name of every google.script.run call the client made, in order.
@@ -40,6 +41,7 @@
     mode: query.get("mode"),
     admins: query.has("admins") ? query.get("admins") : null,
     nosource: flag("nosource"),
+    hidePrefix: query.get("hideprefix"),
   });
   console.log("[dev] seeded: signed in as " + (as || fakes.OWNER) + ", tz " + tz +
     (wb ? ", workbook " + wb.source : ", no workbook"));

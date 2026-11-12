@@ -2,6 +2,7 @@
 
 Cyber, Compliance, Continuity, Platform: a view-only application register as a standalone Google
 Apps Script web app. Agents: read `CLAUDE.md` first. Provenance of reused code: `VENDOR.md`.
+Release audit results and the manual live `/exec` checklist: `VERIFY.md`.
 
 ## Dev loop
 
@@ -57,4 +58,4 @@ node tools/vendor.mjs sync --from /home/user/sidekick --commit <sha>
 6. Open the URL as the owner and configure Settings.
 7. Later releases: `DEPLOYMENT_ID=... npm run deploy` (updates in place).
 8. Rollback: `clasp deploy -i <DEPLOYMENT_ID> -V <previous version>`.
-9. Run `deploymentDiagnostic` after each deploy.
+9. Run `deploymentDiagnostic` after each deploy, then work through the live checklist in `VERIFY.md`.

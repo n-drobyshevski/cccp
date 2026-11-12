@@ -1,7 +1,8 @@
 // The vendored contracts, run against this app's own registries: the settings draft kernel
-// (settingsForm) and, once the Access tab exists, the access save helpers.
-import { existsSync } from "node:fs";
+// (settingsForm) and the access save helpers.
+import { readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
+import { registerAccessSaveContract } from "../../src/vendor/gas_shared/test/contracts/accessSave.js";
 import { registerSettingsFormContract } from "../../src/vendor/gas_shared/test/contracts/settingsForm.js";
 import { DEFAULT_TAB, SETTINGS_TABS, SETTING_FIELDS } from "../../src/client/pages/settings/draft.js";
 
@@ -20,10 +21,21 @@ registerSettingsFormContract({
   spine: false,
 });
 
-describe("CCCP: the access save contract", () => {
-  const present = existsSync(new URL("../../src/client/pages/settings/access.js", import.meta.url));
-  it.skipIf(!present)("runs against pages/settings/access.js", async () => {
-    // Registered by the step that adds the Access tab.
-    expect(present).toBe(true);
+// The access save contract, against the Access tab's own source. The contract looks for the
+// sidekick call spelling (call("api_getAccess")) only to order two strings; CCCP's rpc seam names
+// the endpoint without the api_ prefix, which the ordering check tolerates (see the test below).
+registerAccessSaveContract({
+  describe,
+  it,
+  expect,
+  editorSrc: readFileSync(new URL("../../src/client/pages/settings/access.js", import.meta.url), "utf8"),
+});
+
+describe("CCCP: the access editor says Access updated only after the fresh read", () => {
+  const src = readFileSync(new URL("../../src/client/pages/settings/access.js", import.meta.url), "utf8");
+  const fn = src.slice(src.indexOf("async function save("));
+  it("reads getAccess again before the success toast", () => {
+    expect(fn.indexOf('rpc.call("getAccess")')).toBeGreaterThan(-1);
+    expect(fn.indexOf('toast("Access updated."')).toBeGreaterThan(fn.indexOf('rpc.call("getAccess")'));
   });
 });

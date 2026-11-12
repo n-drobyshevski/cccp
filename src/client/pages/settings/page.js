@@ -24,13 +24,15 @@ import {
   SETTINGS_TABS, barModel, clampedText, committed, discard, edit, errorsOf, form, guardSettings, isDirty,
   newSession, sectionsOf, tabMarks, toPatch,
 } from "./draft.js";
+import { accessView, createAccess } from "./access.js";
 import { displayView } from "./display.js";
 import { fieldsView } from "./fields.js";
+import { editRule, toggleTier, rulesView } from "./rules.js";
 import { sourceView } from "./source.js";
 
-const VIEWS = { source: sourceView, fields: fieldsView, display: displayView };
+const VIEWS = { source: sourceView, fields: fieldsView, rules: rulesView, access: accessView, display: displayView };
 
-/** Later steps add the Status rules and Access tabs: registerSettingsTab('rules', view). */
+/** Another step may register a tab view: registerSettingsTab(key, view). */
 export function registerSettingsTab(key, view) {
   VIEWS[key] = view;
 }
@@ -100,6 +102,7 @@ export const settingsPage = {
     let banner = null;
     const ui = { adv: false, probe: { state: "idle" }, reloadBusy: false, reloadedAt: false };
     guardSettings(() => isDirty(sessionOf()));
+    const accessCtl = createAccess({ el, redraw: () => draw() });
 
     function draw() {
       const st = store.get();
@@ -108,10 +111,12 @@ export const settingsPage = {
       const tab = form.normalizeTab(st.tab);
       const { errors, problems } = errorsOf(session);
       const marks = tabMarks(session, errors);
+      marks.access = { ...marks.access, dirty: accessCtl.dirty() };
       const bar = barModel(session);
       const view = VIEWS[tab] || soon;
-      const vctx = { session, meta: st.core.sourceMeta, viewer: st.live.viewer, ui, errors, rows: register.allRows() };
+      const vctx = { session, meta: st.core.sourceMeta, viewer: st.live.viewer, ui, errors, rows: register.allRows(), today: st.live.today, access: accessCtl.state };
       const def = SETTINGS_TABS.find((t) => t.key === tab);
+      if (tab === "access") accessCtl.ensureLoaded();
       renderRegion(el, html`<div class="stw" data-page="settings" data-tab="${tab}">
         <div class="top"><button type="button" class="backbtn" data-act="s-back" data-k="back">${icon("arrowleft")}Back</button></div>
         <div class="sth"><h1>Settings</h1><p>Changes apply to everyone who opens CCCP after you save.</p></div>
@@ -126,6 +131,12 @@ export const settingsPage = {
         </div>
         ${savebar({ count: bar.count, text: bar.text, tabs: bar.tabs, busy, problems: problems.length })}
       </div>`);
+    }
+
+    function setRule(id, prop, value) {
+      const s = sessionOf();
+      if (!s) return;
+      store.set({ settingsDraft: prop === "tier" ? toggleTier(s, id, value) : editRule(s, id, prop, value) });
     }
 
     function setDraft(key, value) {
@@ -241,6 +252,7 @@ export const settingsPage = {
       const s = sessionOf();
       if (act === "s-tab") navigate({ tab: b.getAttribute("data-tab") }, "replace");
       else if (act === "s-back") navigate({ route: homeRoute(store.get()), app: null, tab: null, view: null }, "push");
+      else if (act === "s-tier") setRule(b.getAttribute("data-rule"), "tier", Number(b.getAttribute("data-tier")));
       else if (act === "s-set") setDraft(b.getAttribute("data-key"), b.getAttribute("data-v"));
       else if (act === "s-discard" && s) { banner = null; ui.probe = { state: "idle" }; store.set({ settingsDraft: discard(s) }); draw(); }
       else if (act === "s-save") save();
@@ -261,6 +273,12 @@ export const settingsPage = {
       const v = read(t);
       if (v !== undefined) setDraft(t.getAttribute("data-key"), v);
     };
+    const onRule = (ev, t) => {
+      const v = read(t);
+      if (v !== undefined) setRule(t.getAttribute("data-rule"), t.getAttribute("data-prop"), v);
+    };
+    offs.push(delegate(el, "input", "input[data-rule][data-type=number]", onRule));
+    offs.push(delegate(el, "change", "input[data-rule][type=checkbox]", onRule));
     offs.push(delegate(el, "input", "input[data-key]:not([type=checkbox])", onField));
     offs.push(delegate(el, "change", "select[data-key], input[type=checkbox][data-key]", onField));
 
@@ -275,7 +293,7 @@ export const settingsPage = {
     }));
 
     load();
-    return () => { alive = false; offs.forEach((f) => f()); };
+    return () => { alive = false; offs.forEach((f) => f()); accessCtl.dispose(); };
   },
 };
 

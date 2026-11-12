@@ -171,7 +171,8 @@ test.describe("register", () => {
     expect(d).not.toBeNull();
     expect(d!.apps).toBe(n);
     expect(d!.ms).toBeLessThan(150);
-    await expect(page.locator("[data-count=visible]")).toHaveText(new RegExp("^" + n.toLocaleString("en-US").replace(",", ",") + " application"));
+    await expect(page.locator("[data-count=visible]")).toHaveText(n.toLocaleString("en-US"));
+    await expect(page.locator("[data-count=of]")).toHaveText("of " + n.toLocaleString("en-US") + " applications");
     await expect(page.locator("[data-count=hidden]")).toHaveCount(0);
   });
 });

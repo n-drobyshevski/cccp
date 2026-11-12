@@ -126,7 +126,7 @@ test.describe("pills and popovers", () => {
     await page.goto("/?r=list");
     await expect(page.locator(".toolbar")).toBeVisible();
     await open(page, "dom");
-    await page.locator("[data-page=list] h1").click();
+    await page.locator("[data-page=list] .rhead").click();
     await expect(pop(page)).toHaveCount(0);
     await page.locator('[data-k="nav-heatmap"]').click();
     await expect(page.locator("[data-page=heatmap]")).toBeVisible();
@@ -199,7 +199,7 @@ test.describe("search, tiers, count, Clear all", () => {
     await expect.poll(() => visible(page)).toBe(0);
     expect(urlParam(page, "q")).toBe("zzzzqqqq");
     await expect(page.locator(".badge")).toHaveText("2");
-    await page.getByRole("button", { name: "Clear all" }).click();
+    await page.getByRole("button", { name: "Clear all", exact: true }).click();
     await expect.poll(() => visible(page)).toBe(total);
     await expect(page.getByRole("searchbox", { name: "Search applications" })).toHaveValue("");
     await expect(page.locator(".tg [aria-pressed=true]")).toHaveCount(0);

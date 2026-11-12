@@ -36,7 +36,7 @@ UTC+14 as well as UTC.
 | No colour literals outside tokens | `grep -rlE "#[0-9a-fA-F]{3,8}\b\|rgba?\(\|hsla?\(" src/client`; `test/build/noHexOutsideTokens.test.js` | `src/client/styles/tokens.css` only; static test passes |
 | No `//` violations | `test/build/guards.test.js` and `htmlLowering.test.js` replay the middlebox comment stripping over the built JS and CSS; no backticks in the bundle | pass. The only `//` in client sources are comments and the two `https://fonts.googleapis.com` attributes in `src/client/index.html`, which are HTML attribute values outside the guarded JS and CSS (`dist/js_app.html` and `dist/styles.html` contain none) |
 | Every export in `roles.ts` and `entry.js` | script over `exportedNames(api.ts)`, plus `roleMatrix` "covers every export of api.ts" and `roles` "classifies every export of api.ts" | 14 exports, all 14 in `ENDPOINT_ROLES` and all 14 in `entry.js` (15 `timedApi_` references: 14 delegators and the definition) |
-| Manifest has exactly 4 scopes | `test/build/manifestScopes.test.js`; `dist/appsscript.json` | `spreadsheets.readonly`, `drive.file`, `userinfo.email`, `script.scriptapp`; webapp `DOMAIN` / `USER_DEPLOYING`; advanced services Sheets v4 and Drive v3 |
+| Manifest has exactly 4 scopes | `test/build/manifestScopes.test.js`; `dist/appsscript.json` | `spreadsheets` (SpreadsheetApp.openById refuses `.readonly`; the source stays read-only by code and static scans), `drive.file`, `userinfo.email`, `script.scriptapp`; webapp `DOMAIN` / `USER_DEPLOYING`; advanced services Sheets v4 and Drive v3 |
 
 ## 3. Role matrix and leak tests
 

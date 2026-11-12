@@ -6,7 +6,10 @@ const manifest = JSON.parse(readFileSync(new URL("../../src/gas/appsscript.json"
 const SCOPES = [
   "https://www.googleapis.com/auth/drive.file",
   "https://www.googleapis.com/auth/script.scriptapp",
-  "https://www.googleapis.com/auth/spreadsheets.readonly",
+  // SpreadsheetApp.openById refuses spreadsheets.readonly, so the full scope is required. The
+  // source stays read-only by code: only sourceSheet.ts touches SpreadsheetApp, and the static
+  // scans refuse any mutator in src/server.
+  "https://www.googleapis.com/auth/spreadsheets",
   "https://www.googleapis.com/auth/userinfo.email",
 ];
 
@@ -18,8 +21,7 @@ describe("the manifest", () => {
   it("pins exactly the four scopes", () => {
     expect([...manifest.oauthScopes].sort()).toEqual(SCOPES);
   });
-  it("never asks for a writable spreadsheet or full drive scope", () => {
-    expect(manifest.oauthScopes).not.toContain("https://www.googleapis.com/auth/spreadsheets");
+  it("never asks for full Drive access", () => {
     expect(manifest.oauthScopes).not.toContain("https://www.googleapis.com/auth/drive");
   });
   it("enables the Sheets v4 and Drive v3 advanced services", () => {

@@ -53,6 +53,7 @@ function api_reloadData(p) { return timedApi_("reloadData", p); }
 function api_saveSharedView(p) { return timedApi_("saveSharedView", p); }
 function api_deleteSharedView(p) { return timedApi_("deleteSharedView", p); }
 function api_getDiagnostics(p) { return timedApi_("getDiagnostics", p); }
+function api_exportToSheet(p) { return timedApi_("exportToSheet", p); }
 
 /* ------------------------------------------------------- editor-run, not RPC */
 /* Gated: these run as whoever opened the editor, which is not necessarily the owner. */

@@ -10,6 +10,7 @@ import type { BootstrapResponse, RegisterPayload, SaveSettingsResponse, Settings
 import type { SavedView } from "../domain/types";
 import * as access from "./access";
 import { getBootstrap } from "./bootstrap";
+import { exportToSheet as exportSheet, type ExportResult } from "./exportSheet";
 import { diagnosticsReport, type DiagnosticsReport } from "./diagnostics";
 import { ApiError, recordError, type ErrorKind } from "./errors";
 import { PROP_KEYS, setProp } from "./props";
@@ -175,4 +176,9 @@ export function deleteSharedView(p?: { id?: unknown }): ApiResult<{ views: Saved
 /** The diagnostics report. Admin. Never throws. */
 export function getDiagnostics(_p?: unknown): ApiResult<DiagnosticsReport> {
   return run("getDiagnostics", () => diagnosticsReport());
+}
+
+/** Build a new Google Sheet from the given application ids and columns, shared to the caller. Viewer. */
+export function exportToSheet(p?: { ids?: unknown; columns?: unknown; title?: unknown }): ApiResult<ExportResult> {
+  return run("exportToSheet", () => exportSheet(p));
 }

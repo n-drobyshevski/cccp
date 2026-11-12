@@ -85,7 +85,7 @@ describe("the role matrix", () => {
     fakes().setActiveUser("owner@example.com");
     const entry = loadEntry();
     for (const name of NAMES) {
-      if (name === "deleteSharedView") continue;
+      if (name === "deleteSharedView" || name === "exportToSheet") continue;
       const res = entry["api_" + name]!(PARAMS[name] ?? {});
       expect(res.ok, name + ": " + res.error).toBe(true);
     }

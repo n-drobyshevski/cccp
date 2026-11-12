@@ -74,7 +74,7 @@ export function getCore(): BootstrapCore {
   return warm && core.sourceMeta.title !== "" ? { ...core, sourceMeta: warm.meta } : core;
 }
 
-function todayIn(tz: string): string {
+export function todayIn(tz: string): string {
   const now = new Date();
   try {
     return Utilities.formatDate(now, tz, "yyyy-MM-dd");

@@ -8,9 +8,9 @@ import { html } from "../lib/html.js";
 import { icon } from "../lib/icons.js";
 import { count, num } from "../lib/format.js";
 import { closePopovers, openPopover } from "../lib/popover.js";
-import { toast } from "../lib/toast.js";
 import { filtersShell, mountFilters } from "../components/toolbar.js";
 import { chooserView, readCols, writeCols } from "../components/columnChooser.js";
+import { exportMenuView, runExport } from "../components/exportMenu.js";
 import { legend } from "../components/legend.js";
 import { PAGE_STEP, emptyView, moreView, sortAfter, tableView } from "../components/table.js";
 import { registerPage } from "../shell/router.js";
@@ -26,7 +26,7 @@ let memo = null;
 
 /** The results head: 'N of M applications', the hidden note, the legend and the tools. */
 export function headView(shown, total, hidden) {
-  return html`<div class="rhead"><span class="rcount"><span data-count="visible"><b class="num">${num(shown)}</b></span> <span class="mut" data-count="of">of ${count(total, "application")}</span>${hidden ? html` <span class="mut" data-count="hidden"> and ${count(hidden, "application")} hidden by the display settings</span>` : ""}</span>${legend()}<div class="rtools"><span class="pw"><button type="button" class="tbtn" data-act="cols" data-k="cols" aria-haspopup="dialog" aria-expanded="false">${icon("columns")}<span>Columns</span></button></span><button type="button" class="tbtn" data-act="export" data-k="export" aria-label="Export (arrives in a later step)" data-tip="Export arrives in a later step">${icon("download")}<span>Export</span></button></div></div>`;
+  return html`<div class="rhead"><span class="rcount"><span data-count="visible"><b class="num">${num(shown)}</b></span> <span class="mut" data-count="of">of ${count(total, "application")}</span>${hidden ? html` <span class="mut" data-count="hidden"> and ${count(hidden, "application")} hidden by the display settings</span>` : ""}</span>${legend()}<div class="rtools"><span class="pw"><button type="button" class="tbtn" data-act="cols" data-k="cols" aria-haspopup="dialog" aria-expanded="false">${icon("columns")}<span>Columns</span></button></span><span class="pw"><button type="button" class="tbtn" data-act="export" data-k="export" aria-haspopup="dialog" aria-expanded="false">${icon("download")}<span>Export</span></button></span></div></div>`;
 }
 
 /** The whole results panel for a store state. Pure. */
@@ -51,6 +51,7 @@ export const listPage = {
     }
 
     let chooser = null;
+    let exporter = null;
     const draw = () => {
       const s = store.get();
       const visible = register.visibleRows();
@@ -58,6 +59,10 @@ export const listPage = {
       if (chooser) {
         chooser.update(chooserView(s.cols, s.sort));
         chooser.setAnchor(qs(content, '[data-act="cols"]'));
+      }
+      if (exporter) {
+        exporter.update(exportMenuView(runQuery(visible, s).length));
+        exporter.setAnchor(qs(content, '[data-act="export"]'));
       }
     };
     draw();
@@ -94,6 +99,27 @@ export const listPage = {
       });
     };
 
+    const exportCtx = () => {
+      const s = store.get();
+      return { rows: runQuery(register.visibleRows(), s), cols: visibleColumnDefs(s.cols, s.sort), route: "list", today: (s.live && s.live.today) || "", title: "List" };
+    };
+    const openExport = (btn) => {
+      if (exporter) { exporter.close(); return; }
+      const h = openPopover(btn, exportMenuView(exportCtx().rows.length), {
+        label: "Export", align: "end",
+        onClose: () => { if (exporter === h) exporter = null; },
+      });
+      exporter = h;
+      h.el.classList.add("pop-menu");
+      h.setAnchor(btn);
+      delegate(h.el, "click", "[data-act^=export-]", (ev, b) => {
+        const kind = b.getAttribute("data-act").slice("export-".length);
+        const ctx = exportCtx();
+        h.close();
+        runExport(kind, ctx);
+      });
+    };
+
     const offs = [];
     offs.push(delegate(content, "click", "[data-act]", (ev, b) => {
       const act = b.getAttribute("data-act");
@@ -104,7 +130,7 @@ export const listPage = {
       } else if (act === "more") store.set({ limit: s.limit + PAGE_STEP });
       else if (act === "clear-all") replace({ q: "", f: {}, limit: PAGE_STEP });
       else if (act === "cols") openChooser(b);
-      else if (act === "export") toast("Export is not available yet.");
+      else if (act === "export") openExport(b);
     }));
     offs.push(delegate(content, "click", "tr[data-id]", (ev, tr) => open(tr.getAttribute("data-id"))));
 

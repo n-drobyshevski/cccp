@@ -153,12 +153,6 @@ test.describe("count, Show more and the empty state", () => {
     await expect(page.getByLabel("Search applications")).toHaveValue("");
     expect(await visible(page)).toBe(await total(page));
   });
-
-  test("Export is a placeholder", async ({ page }) => {
-    await ready(page);
-    await page.getByRole("button", { name: "Export" }).click();
-    await expect(page.locator(".toast")).toContainText("not available yet");
-  });
 });
 
 test.describe("rows open the application", () => {

@@ -37,6 +37,17 @@ describe("saveSharedView", () => {
     expect(cfgGen()).toBe(0);
   });
 
+  it("a view is not bound to a page: one without a route is stored without one, an older route is kept as it was", () => {
+    as("admin@example.com");
+    const { route: _r, ...bare } = view("Bare");
+    const a = api.saveSharedView({ view: bare });
+    expect(a.ok).toBe(true);
+    expect(a.data!.views[0]).not.toHaveProperty("route");
+    const b = api.saveSharedView({ view: view("Old", { route: "landscape" }) });
+    expect(b.data!.views.map((v) => v.route)).toEqual([undefined, "landscape"]);
+    expect(listSharedViews().map((v) => v.name)).toEqual(["Bare", "Old"]);
+  });
+
   it("replaces a view with the same id instead of adding one", () => {
     as("admin@example.com");
     const id = api.saveSharedView({ view: view("A") }).data!.id;

@@ -17,8 +17,9 @@
 import { sha1Hex } from "../vendor/gas_shared/domain/sha1";
 import { getProp, PROP_KEYS, setProp } from "./props";
 
-/** Bump to make every cached entry unreachable on the next deploy. */
-export const CACHE_EPOCH = "2";
+/** Bump to make every cached entry unreachable on the next deploy. 3: shared views in the core no
+ *  longer carry the page they were saved on (identity G part 2). */
+export const CACHE_EPOCH = "3";
 const KEY_PREFIX = "cccp:" + CACHE_EPOCH;
 const CHUNK_CHARS = 90_000;
 export const TTL_MIN_SEC = 60;

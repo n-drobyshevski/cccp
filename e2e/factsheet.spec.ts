@@ -39,6 +39,27 @@ test("header, tabs, sections and sidebar are drawn", async ({ page }) => {
   expect(bad).toEqual([]);
 });
 
+test("each pillar section is ruled and headed in its own colour, Overview in ink", async ({ page }) => {
+  const [id] = await ids(page);
+  await open(page, id!);
+  const colours = await page.evaluate(() => {
+    const out: Record<string, string[]> = {};
+    for (const k of ["overview", "cyber", "compliance", "continuity", "platform"]) {
+      const d = document.querySelector("#sx-" + k)!;
+      out[k] = [getComputedStyle(d).borderTopColor, getComputedStyle(d.querySelector("h2")!).color, getComputedStyle(d).borderTopWidth];
+    }
+    return out;
+  });
+  expect(colours.overview![0]).toBe(colours.overview![1]);
+  const rules = ["cyber", "compliance", "continuity", "platform"].map((k) => colours[k]![0]);
+  expect(new Set(rules).size).toBe(4);
+  for (const k of ["cyber", "compliance", "continuity", "platform"]) {
+    expect(colours[k]![0]).toBe(colours[k]![1]);
+    expect(colours[k]![0]).not.toBe(colours.overview![0]);
+    expect(colours[k]![2]).toBe("2px");
+  }
+});
+
 test("status buttons and the jump select go to their section, find narrows", async ({ page }) => {
   const [id] = await ids(page);
   await open(page, id!);

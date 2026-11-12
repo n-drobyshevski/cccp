@@ -31,6 +31,9 @@
 .appbar .icon-btn:hover { background: var(--surface); border-color: var(--line); }
 .appbar .gear[aria-current] { background: var(--surface); color: var(--fg); border-color: var(--line); }
 
+/* The subtitle is what pushes the theme toggle onto its own line around 820px. */
+@media (max-width: 960px) { .brand small { display: none; } }
+
 @media (max-width: 760px) {
   .navb button { padding: 6px 8px; }
   .navb button svg { display: none; }

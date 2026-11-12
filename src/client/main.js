@@ -7,6 +7,7 @@ import { startRouter } from "./shell/router.js";
 import "./pages/overview.js";
 import "./pages/list.js";
 import "./pages/heatmap.js";
+import "./pages/landscape.js";
 import * as theme from "./shell/theme.js";
 import * as register from "./state/register.js";
 import { store } from "./state/store.js";

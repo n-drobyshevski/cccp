@@ -70,3 +70,11 @@
   --tip-fg: #0e1117;
   color-scheme: dark;
 }
+
+/* Landscape tier ramp (lx3 mval): the accent mixed into the surface, deepest for Tier 1. */
+:root {
+  --tier1: color-mix(in srgb, var(--accent) 100%, var(--surface));
+  --tier2: color-mix(in srgb, var(--accent) 70%, var(--surface));
+  --tier3: color-mix(in srgb, var(--accent) 45%, var(--surface));
+  --tier4: color-mix(in srgb, var(--accent) 25%, var(--surface));
+}

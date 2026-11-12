@@ -10,16 +10,16 @@ async function theme(page: Page, t: "light" | "dark") {
 
 for (const t of ["light", "dark"] as const) {
   for (const w of [1280, 1440]) {
-    test("list status dots stay inside the card, " + t + " at " + w, async ({ page }) => {
+    test("list status glyphs stay inside the table, " + t + " at " + w, async ({ page }) => {
       await theme(page, t);
       await page.setViewportSize({ width: w, height: 900 });
       await page.goto("/?r=list");
       await page.locator("tr[data-id]").first().waitFor();
       const r = await page.evaluate(() => {
-        const tw = document.querySelector(".results .tw") as HTMLElement;
+        const tw = document.querySelector(".tbl .tw") as HTMLElement;
         const box = tw.getBoundingClientRect();
-        const dots = Array.from(document.querySelectorAll("td[data-col=st] .dots")).map((d) => d.getBoundingClientRect());
-        const head = document.querySelector("th [data-col=st]")!.getBoundingClientRect();
+        const dots = Array.from(document.querySelectorAll("td[data-col=st] .gl")).map((d) => d.getBoundingClientRect());
+        const head = Array.from(document.querySelectorAll("th [data-col=st]")).pop()!.getBoundingClientRect();
         return { right: box.right, vw: innerWidth, overflow: tw.scrollWidth - tw.clientWidth, dotsRight: Math.max(...dots.map((d) => d.right)), headRight: head.right };
       });
       expect(r.overflow).toBeLessThanOrEqual(0);
@@ -54,13 +54,13 @@ test("any cell of a domain row opens the List, and only actionable tables look c
   expect(await tr.evaluate((e) => getComputedStyle(e).cursor)).not.toBe("pointer");
 });
 
-test("a fact sheet with no tier shows the dashed badge in the header and in Identity", async ({ page }) => {
+test("a fact sheet with no tier shows the dashed No tier in the meta line and in Identity", async ({ page }) => {
   await page.goto("/?r=list");
   await page.locator("tr[data-id]").first().waitFor();
   const id = await page.locator("tr[data-id]:has(td[data-col=t] .tier.t0)").first().getAttribute("data-id");
   test.skip(!id, "every application in the data has a tier");
   await page.goto("/?app=" + id);
-  await expect(page.locator(".hx .tags .tier.t0")).toHaveCount(1);
+  await expect(page.locator(".hx .meta .tier.t0")).toHaveCount(1);
   await expect(page.locator("[data-sub=identity] .kv .tier.t0").first()).toBeVisible();
 });
 

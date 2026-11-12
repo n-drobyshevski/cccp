@@ -1,35 +1,51 @@
-// The fact sheet header (lx2): back button and breadcrumb, the name, the big completeness
-// figure, the review seal, Copy link and Open row in sheet, the type badge, lifecycle line and
-// tags, the subline and the four pillar status buttons that jump to their section. Pure.
+// The fact sheet header (identity G): breadcrumb, the large name with the review seal and its
+// link actions, one meta line (tier, lifecycle, typology, hosting, owner), the exposure tags and
+// the four-pillar scorecard whose cells jump to their section. Pure.
 import { html } from "../../lib/html.js";
 import { icon } from "../../lib/icons.js";
-import { dot } from "../../components/dots.js";
-import { tagsView, typeBadge } from "../../components/tags.js";
+import { glyphMark } from "../../components/glyph.js";
+import { tagsView, tierBadge } from "../../components/tags.js";
 
-export const BACK_LABEL = { list: "Applications", heatmap: "Heatmap", landscape: "Landscape", overview: "Overview" };
-
-const LEVEL_CLASS = { bad: "lo", warn: "mid", ok: "" };
+export const BACK_LABEL = { list: "Inventory", heatmap: "Heatmap", landscape: "Landscape", overview: "Overview" };
 
 export function sealView(seal) {
   const label = seal.label + ". " + seal.tip;
   return html`<span class="seal ${seal.state}" tabindex="0" role="img" aria-label="${label}" data-tip="${seal.tip}">${icon(seal.state === "done" ? "check" : "alert")}${seal.label}</span>`;
 }
 
-/** m is a FactSheet header; from is the route Back returns to. */
+const SEP = () => html`<span class="sep" aria-hidden="true">·</span>`;
+
+/** The meta line: 'No tier · General availability · Cloud · owned by Person 0307'. */
+export function metaView(h) {
+  const hosting = h.tags.find((t) => t.key === "h");
+  const typology = h.tags.find((t) => t.key === "ty");
+  const parts = [
+    tierBadge(h.tier),
+    h.lifecycle ? html`<b>${h.lifecycle.label}</b>` : html`<span class="mut">Lifecycle not set</span>`,
+    typology ? html`<span>${typology.label}</span>` : "",
+    hosting ? html`<span>${hosting.label}</span>` : "",
+    h.owner ? html`<span>owned by <b>${h.owner}</b></span>` : html`<span class="mut">no owner</span>`,
+  ].filter((p) => p !== "");
+  return html`<p class="meta" data-fs="meta">${parts.map((p, i) => html`${i ? SEP() : ""}${p}`)}</p>`;
+}
+
+/** The scorecard: one cell per pillar with its glyph, status word and reason. */
+export function scorecardView(statuses) {
+  return html`<div class="score" role="group" aria-label="Status by pillar">${statuses.map((s) => html`<button type="button" class="sc pc-${s.pillar}" data-act="jump" data-sx="${s.section}" data-k="fs-st-${s.section}" data-tip="${s.why}" aria-label="${s.label + ": " + s.word + ". " + s.why + ". Jump to the section"}"><span class="k">${s.label}</span><span class="v">${glyphMark(s.status, true)}<b>${s.word}</b></span><span class="w">${s.why}</span></button>`)}</div>`;
+}
+
+/** h is a FactSheet header; from is the route Back returns to. */
 export function headerView(h, from, sheetEnabled) {
   const back = BACK_LABEL[from] || BACK_LABEL.list;
-  const big = h.completeness.pct + "%";
-  const bigTip = h.completeness.filled + " of " + h.completeness.total + " mandatory fields filled";
-  return html`<div class="top"><button type="button" class="backbtn" data-act="fs-back" data-k="fs-back" aria-label="${"Back to " + back.toLowerCase()}">${icon("arrowleft")}Back</button>
-    <nav class="crumbs" aria-label="Breadcrumb"><button type="button" data-act="fs-back" data-k="fs-crumb-back">${back}</button><span aria-hidden="true">/</span><button type="button" data-act="crumb-domain" data-dom="${h.domain}" data-k="fs-crumb-dom">${h.domain}</button><span aria-hidden="true">/</span><span aria-current="page">${h.name}</span></nav></div>
-  <div class="hx">
-    <div class="r1"><h1 tabindex="-1" data-k="fs-title">${h.name}</h1><span class="big ${LEVEL_CLASS[h.completeness.level]}" data-fs="pct" tabindex="0" role="img" aria-label="${big + " complete. " + bigTip}" data-tip="${bigTip}">${big}</span>
+  return html`<div class="hx">
+    <nav class="crumbs" aria-label="Breadcrumb"><button type="button" data-act="fs-back" data-k="fs-crumb-back" aria-label="${"Back to " + back.toLowerCase()}">${back}</button><span aria-hidden="true">›</span><button type="button" data-act="crumb-domain" data-dom="${h.domain}" data-k="fs-crumb-dom">${h.domain}</button>${h.subdomain ? html`<span aria-hidden="true">›</span><span>${h.subdomain}</span>` : ""}</nav>
+    <div class="r1"><h1 tabindex="-1" data-k="fs-title">${h.name}</h1>
       <div class="acts">${sealView(h.seal)}
         <button type="button" class="icon-btn" data-act="copy" data-k="fs-copy" aria-label="Copy link" data-tip="Copy link">${icon("link")}</button>
         ${h.sheetLink && sheetEnabled !== false ? html`<a class="icon-btn" data-act="sheet" data-k="fs-sheet" href="${h.sheetLink}" target="_blank" rel="noopener noreferrer" aria-label="Open row in the Sheet. Needs access to the Sheet." data-tip="Open row in the Sheet. Needs access to the Sheet.">${icon("sheet")}</a>` : ""}</div></div>
-    <div class="r1">${typeBadge()}<span class="lcline">${icon("check")}Lifecycle: <b>${h.lifecycle ? h.lifecycle.label : html`<span class="mut" aria-hidden="true">—</span><span class="sr-only">Not set</span>`}</b></span>${tagsView(h.tier, h.tags)}</div>
-    <div class="r3"><p class="desc">${h.subline}</p>
-      <div class="pstat">${h.statuses.map((s) => html`<button type="button" class="stag ${s.status}" data-act="jump" data-sx="${s.section}" data-k="fs-st-${s.section}" data-tip="${s.why}" aria-label="${s.label + ": " + s.word + ". " + s.why + ". Jump to the section"}">${dot(s.status)}${s.label}</button>`)}</div></div>
+    ${metaView(h)}
+    ${tagsView(h.tags)}
+    ${scorecardView(h.statuses)}
   </div>`;
 }
 

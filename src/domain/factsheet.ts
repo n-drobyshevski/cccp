@@ -69,6 +69,8 @@ export interface FsHeader {
   id: string;
   name: string;
   domain: string;
+  subdomain: string | null;
+  owner: string | null;
   subline: string;
   tier: Level | null;
   lifecycle: { key: string; label: string } | null;
@@ -219,6 +221,8 @@ export function factsheetModel(row: Row, ctx: FsContext): FactSheet {
     id: a.id,
     name: a.name,
     domain: a.domain,
+    subdomain: sd,
+    owner: text(a.owner),
     subline,
     tier: a.tier,
     lifecycle: lc === null ? null : { key: lifecycleKey(lc), label: lifecycleLabel(lc) },

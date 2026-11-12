@@ -1,9 +1,11 @@
-// The Sections page body (lx2): the jump select and Find a field, then Overview and the four
+// The Sections page body (identity G): the jump select and Find a field, then Overview and the four
 // pillars as collapsible sections, each split into titled subsections. A value that is unknown is
 // drawn as a muted dash. Pure views; the page owns the state (closed sections, the find text).
 import { html } from "../../lib/html.js";
 import { icon } from "../../lib/icons.js";
 import { dot } from "../../components/dots.js";
+import { glyphMark } from "../../components/glyph.js";
+import { STATUS_WORD } from "../../../domain/facets";
 import { lifecycleMark, tierBadge } from "../../components/tags.js";
 import { SECTION_KEYS, SECTION_TITLE } from "../../../domain/factsheet";
 import { personView } from "./people.js";
@@ -56,7 +58,7 @@ export const subsectionView = (u) => html`<div class="subsec" data-sub="${u.key}
 
 /** One collapsible section. `open` is decided by the page (its state, or forced by a find). */
 export function sectionView(s, open) {
-  return html`<details class="fsx" id="sx-${s.key}" data-sx="${s.key}"${open ? html` open` : ""}><summary data-k="fs-sum-${s.key}">${CHEV()}${s.status ? dot(s.status) : ""}<h2>${s.title}</h2>${s.pct !== null ? html`<span class="pct" aria-label="${s.pct + "% of the mandatory fields filled"}" data-tip="${s.pct + "% of the mandatory fields filled"}">${s.pct}%</span>` : ""}${s.status ? html`<span class="why ${s.status}">${s.why}</span>` : ""}</summary><div class="inner">${s.subsections.map(subsectionView)}</div></details>`;
+  return html`<details class="fsx${s.status ? " pc-" + s.key : ""}" id="sx-${s.key}" data-sx="${s.key}"${open ? html` open` : ""}><summary data-k="fs-sum-${s.key}">${CHEV()}<h2>${s.title}</h2>${s.status ? html`${glyphMark(s.status)}<span class="sr-only">${STATUS_WORD[s.status]}</span>` : ""}${s.pct !== null ? html`<span class="pct" aria-label="${s.pct + "% of the mandatory fields filled"}" data-tip="${s.pct + "% of the mandatory fields filled"}">${s.pct}%</span>` : ""}${s.status ? html`<span class="why ${s.status}">${s.why}</span>` : ""}</summary><div class="inner">${s.subsections.map(subsectionView)}</div></details>`;
 }
 
 /** The list of sections for a find query. `closed` is the set of collapsed keys. */

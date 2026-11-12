@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
-import { headerView, tabsView } from "../../src/client/pages/factsheet/header.js";
+import { headerView, metaView, scorecardView, tabsView } from "../../src/client/pages/factsheet/header.js";
 import { peopleView } from "../../src/client/pages/factsheet/people.js";
-import { tagsView, tierBadge } from "../../src/client/components/tags.js";
+import { tierBadge } from "../../src/client/components/tags.js";
 import { barView, sectionsView, valueView } from "../../src/client/pages/factsheet/sections.js";
 import { sidebarView } from "../../src/client/pages/factsheet/dqSidebar.js";
 import { factsheetModel } from "../../src/domain/factsheet";
@@ -23,11 +23,12 @@ const all = () => s(headerView(m.header, "list", true)) + s(tabsView("sheet", 3)
 
 describe("fact sheet no-tier badge", () => {
   it("the header keeps the dashed no-tier badge, and Identity > Tier draws it too", () => {
-    const h = s(tagsView(null, []));
-    expect(h).toContain('class="tier t0"');
+    const h = s(metaView({ ...m.header, tier: null }));
+    expect(h).toContain('class="tier tw t0"');
+    expect(h).toContain("No tier");
     expect(h).toContain("No tiering set");
     expect(s(valueView({ kind: "tier", value: null }))).toContain("No tiering set");
-    expect(s(valueView({ kind: "tier", value: 2 }))).toContain("T2");
+    expect(s(valueView({ kind: "tier", value: 2 }))).toContain("Tier 2");
   });
   it("the badge is focusable so the tip works from the keyboard", () => {
     expect(s(tierBadge(null))).toContain('tabindex="0"');
@@ -68,6 +69,35 @@ describe("fact sheet views", () => {
     const h = s(headerView(clean.header, "heatmap", true));
     for (const k of ["cyber", "compliance", "continuity", "platform"]) expect(h).toContain('data-act="jump" data-sx="' + k + '"');
     expect(h).toContain("Back to heatmap");
+  });
+  it("the scorecard has one cell per pillar with glyph, status word and why", () => {
+    const row = rowOf({ id: "g1", name: "Gee", securityOfficer: null });
+    const fm = factsheetModel(row, ctx);
+    const h = s(scorecardView(fm.header.statuses));
+    expect([...h.matchAll(/class="sc pc-(\w+)"/g)].map((m) => m[1])).toEqual(["cyber", "compliance", "continuity", "platform"]);
+    expect([...h.matchAll(/<span class="gl (\w+)/g)].length).toBe(4);
+    for (const st of fm.header.statuses) {
+      expect(h).toContain("<b>" + st.word + "</b>");
+      expect(h).toContain('<span class="w">' + st.why.replace(/&/g, "&amp;") + "</span>");
+    }
+  });
+  it("the meta line reads tier, lifecycle, hosting and owner", () => {
+    const fm = factsheetModel(rowOf({ id: "m1", name: "Em", tier: 2, lifecycle: "GENERAL_AVAILABILITY", hosting: "Cloud", owner: "Ann Lee" }), ctx);
+    const h = s(metaView(fm.header)).replace(/<[^>]+>/g, "");
+    expect(h).toBe("Tier 2·General availability·Cloud·owned by Ann Lee");
+  });
+  it("the rail shows the big percentage and Missing or Filled in words", () => {
+    const h = s(sidebarView(clean.dq, [], false));
+    expect(h).toContain('data-fs="pct"');
+    expect(h).toContain(clean.dq.pct + "%");
+    expect(h).toContain(clean.dq.filled + " of " + clean.dq.total + " mandatory fields");
+    expect(h).toContain('<span class="qs">Missing</span>');
+    expect(h).toContain("qi x");
+  });
+  it("sections are headed in their pillar colour class, Overview is not", () => {
+    const h = s(sectionsView(clean.sections, new Set(), false));
+    expect(h).toContain('class="fsx pc-cyber"');
+    expect(h).toContain('class="fsx" id="sx-overview"');
   });
   it("closed sections render closed, a find forces them open", () => {
     const closed = new Set(["cyber"]);

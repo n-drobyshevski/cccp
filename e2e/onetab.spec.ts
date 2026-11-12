@@ -22,9 +22,9 @@ test("the list shows all 1,125 applications and a fact sheet opens with no pilla
   const id = await page.locator("tr[data-id]").first().getAttribute("data-id");
   await page.goto("/?onetab&app=" + id);
   await expect(page.locator(".hx h1")).toBeVisible();
-  await expect(page.locator(".pstat .stag")).toHaveCount(4);
+  await expect(page.locator(".score .sc")).toHaveCount(4);
   // Compliance and Continuity read only pillar columns, so they have no data. (Cyber and Platform also judge identity columns the inventory does have.)
-  const labels = await page.locator(".pstat .stag").evaluateAll((els) => els.map((e) => e.getAttribute("aria-label") ?? ""));
+  const labels = await page.locator(".score .sc").evaluateAll((els) => els.map((e) => e.getAttribute("aria-label") ?? ""));
   for (const pillar of ["Compliance", "Continuity"]) {
     expect(labels.find((l) => l.startsWith(pillar + ":")), pillar).toMatch(/No data/);
   }

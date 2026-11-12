@@ -26,13 +26,15 @@ test("header, tabs, sections and sidebar are drawn", async ({ page }) => {
   const bad = watchConsole(page);
   const [id] = await ids(page);
   await open(page, id!);
-  await expect(page.locator(".tbadge").first()).toContainText("Application");
-  await expect(page.locator(".big")).toContainText("%");
+  await expect(page.locator(".crumbs")).toContainText("Inventory");
+  await expect(page.locator(".hx .meta")).toContainText("owned by");
+  await expect(page.locator("[data-fs=pct]")).toContainText("%");
   await expect(page.locator(".seal").first()).toBeVisible();
-  await expect(page.locator(".pstat .stag")).toHaveCount(4);
+  await expect(page.locator(".score .sc")).toHaveCount(4);
+  await expect(page.locator(".score .sc .gl")).toHaveCount(4);
   await expect(page.locator("details.fsx")).toHaveCount(5);
   await expect(page.locator(".ftabs [role=tab]")).toHaveText([/Fact sheet/, /People/]);
-  await expect(page.locator("aside.dq")).toContainText("Mandatory fields");
+  await expect(page.locator("aside.dq")).toContainText("mandatory fields");
   expect(await page.locator("[title]").count()).toBe(0);
   expect(bad).toEqual([]);
 });
@@ -40,7 +42,7 @@ test("header, tabs, sections and sidebar are drawn", async ({ page }) => {
 test("status buttons and the jump select go to their section, find narrows", async ({ page }) => {
   const [id] = await ids(page);
   await open(page, id!);
-  await page.locator(".pstat .stag", { hasText: "Platform" }).click();
+  await page.locator(".score .sc", { hasText: "Platform" }).click();
   await expect(page.locator("#sx-platform")).toBeInViewport();
   await page.locator("select.jump").selectOption("continuity");
   await expect(page.locator("#sx-continuity")).toBeInViewport();
@@ -128,8 +130,8 @@ test("back returns to where the viewer came from, the domain crumb filters the l
   await expect(page.locator("table[data-table=heatmap]")).toBeVisible();
   await page.locator("button.nm").first().click();
   await expect(page.locator(".hx h1")).toBeVisible();
-  await expect(page.locator(".backbtn")).toHaveAttribute("aria-label", "Back to heatmap");
-  await page.locator(".backbtn").click();
+  await expect(page.locator("[data-k=fs-crumb-back]")).toHaveAttribute("aria-label", "Back to heatmap");
+  await page.locator("[data-k=fs-crumb-back]").click();
   await expect(page.locator("table[data-table=heatmap]")).toBeVisible();
   await page.locator("button.nm").first().click();
   const dom = (await page.locator(".crumbs [data-act=crumb-domain]").innerText()).trim();

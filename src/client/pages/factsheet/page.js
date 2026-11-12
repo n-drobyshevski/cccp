@@ -75,7 +75,7 @@ export const factsheetPage = {
     let collapsed = sidebarCollapsed();
     let model = modelFor(row, store.get());
 
-    renderRegion(el, html`<div class="lxwrap${collapsed ? " sbc" : ""}" data-page="app" data-app-id="${id}"><article class="panel fs lxs"><div data-region="fshead"></div><div data-region="fsbody" id="fs-panel" role="tabpanel"></div></article><div data-region="fsside"></div></div>`, { keepFocus: false, keepScroll: false });
+    renderRegion(el, html`<div class="lxwrap${collapsed ? " sbc" : ""}" data-page="app" data-app-id="${id}"><article class="fs lxs"><div data-region="fshead"></div><div data-region="fsbody" id="fs-panel" role="tabpanel"></div></article><div data-region="fsside"></div></div>`, { keepFocus: false, keepScroll: false });
     const wrap = qs(el, ".lxwrap");
     const head = qs(el, '[data-region="fshead"]');
     const body = qs(el, '[data-region="fsbody"]');

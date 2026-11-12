@@ -105,7 +105,7 @@ function render(el) {
   teardown = page.mount(el, ctx) || null;
 }
 
-const keyOf = (s) => [s.route, s.app, s.tab, s.view, s.boot.status, s.boot.message].join("|");
+const keyOf = (s) => [s.route, s.app, s.tab, s.boot.status, s.boot.message].join("|");
 
 /** Mount the router in `el`. hooks: {retry}. Returns a stop function. */
 export function startRouter(el, h) {

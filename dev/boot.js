@@ -18,6 +18,7 @@
 //   slow=<ms>      artificial RPC latency
 //   tz=<IANA>      the spreadsheet's time zone (default Europe/Paris)
 //   hideprefix=<s> Display setting: hide apps whose name starts with s
+//   sharedviews=<json>  seed the SHARED_VIEWS Script Property (a list of saved views)
 //   inline         ship the bootstrap in the page, as doGet does when the register is warm
 //
 // window.__rpcLog lists the name of every google.script.run call the client made, in order.
@@ -43,6 +44,9 @@
     nosource: flag("nosource"),
     hidePrefix: query.get("hideprefix"),
   });
+  if (query.get("sharedviews")) {
+    window.PropertiesService.getScriptProperties().setProperty("SHARED_VIEWS", query.get("sharedviews"));
+  }
   console.log("[dev] seeded: signed in as " + (as || fakes.OWNER) + ", tz " + tz +
     (wb ? ", workbook " + wb.source : ", no workbook"));
 

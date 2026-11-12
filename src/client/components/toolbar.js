@@ -2,7 +2,7 @@
 // Domain / Lifecycle / Security officer / Gap in with their checklist popovers, Clear all and the
 // Filter panel toggle. While the panel is open, chips replace the pills. The state is the
 // shared filter state in the store (q and f), written through url.replace, so the address, the
-// pills, the panel and the page all read one source. Saved views (WP11) render into the empty
+// pills, the panel and the page all read one source. Saved views (viewTabs.js) render into
 // [data-slot=views] at the top of the toolbar.
 import { delegate, qs, renderRegion } from "../lib/dom.js";
 import { html } from "../lib/html.js";
@@ -16,6 +16,7 @@ import { activeFilterCount, facetOptions } from "../../domain/query";
 import { facetPopover } from "./facetList.js";
 import { panelView, readSide, writeSide } from "./filterPanel.js";
 import { segmented } from "./segmented.js";
+import { mountViewTabs } from "./viewTabs.js";
 
 /** The facets that have a pill (and a panel section). Tier is the toggle group. */
 export const PILL_FACETS = ["dom", "lc", "so", "gap"];
@@ -97,6 +98,7 @@ export function mountFilters(root) {
   renderRegion(tbHost, frameView(store.get().q), { keepFocus: false, keepScroll: false });
   const input = qs(tbHost, "input[data-k=q]");
   const dyn = qs(tbHost, '[data-region="tbdyn"]');
+  const offViews = mountViewTabs(qs(tbHost, "[data-slot=views]"));
 
   const apply = (patch) => replace({ ...patch, limit: 50 });
   const setF = (f) => apply({ f });
@@ -190,6 +192,7 @@ export function mountFilters(root) {
 
   return () => {
     clearTimeout(timer);
+    offViews();
     offStore();
     offReg();
     offs.forEach((f) => f());

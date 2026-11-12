@@ -111,3 +111,10 @@ describe("url.js", () => {
     expect(url.linkFor("", store.get())).toBe("");
   });
 });
+
+describe("a bare view link", () => {
+  it("opens the list when the address carries only ?view=<id>", () => {
+    expect(url.patchFromParams({ view: "abc123" })).toMatchObject({ route: "list", view: "abc123" });
+    expect(url.patchFromParams({ r: "heatmap", view: "abc123" }).route).toBe("heatmap");
+  });
+});

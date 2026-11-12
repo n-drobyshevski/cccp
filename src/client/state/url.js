@@ -49,6 +49,7 @@ export function patchFromParams(params) {
   let route = p.state.route;
   if (p.app && (route === "" || route === "app")) route = "app";
   if (route === "app" && !p.app) route = "";
+  if (route === "" && p.view) route = "list";
   if (route === "") route = defaultRoute;
   return {
     route,

@@ -1,0 +1,21 @@
+/* The saved-views tab row at the top of the toolbar. Ported from lx3.ext.html (.vtabs). */
+.vtabs { display: flex; gap: 2px; align-items: center; border-bottom: 1px solid var(--line); margin: -2px 0 2px; overflow-x: auto; scrollbar-width: thin; }
+.vlist { display: flex; gap: 2px; align-items: center; }
+.vtabs .vt { display: inline-flex; gap: 6px; align-items: center; border: 0; background: none; padding: 7px 12px; border-bottom: 2px solid transparent; color: var(--muted); font-weight: 500; white-space: nowrap; }
+.vtabs .vt:hover { color: var(--fg); }
+.vtabs .vt[aria-selected="true"] { color: var(--fg); border-bottom-color: var(--accent); }
+.vtabs .vt svg, .vtabs .add svg { width: 13px; height: 13px; }
+.vtabs .add { display: inline-flex; gap: 6px; align-items: center; border: 0; background: none; padding: 7px 12px; color: var(--accent); font-weight: 500; white-space: nowrap; }
+.vtabs .vact { display: inline-flex; gap: 2px; align-items: center; margin-left: auto; padding-left: 10px; }
+.vtabs .vact > button { border: 0; background: none; color: var(--muted); padding: 4px 7px; border-radius: 6px; font-size: 12px; display: inline-flex; gap: 5px; align-items: center; white-space: nowrap; }
+.vtabs .vact > button:hover { background: var(--surface2); color: var(--fg); }
+.vtabs .vact svg { width: 13px; height: 13px; }
+.modnote { display: inline-flex; gap: 0; align-items: center; font-size: 12px; color: var(--warn); margin-right: 8px; white-space: nowrap; }
+.modnote button { border: 0; background: none; color: var(--accent); padding: 0; font-weight: 600; font-size: 12px; }
+.vform { display: inline-flex; gap: 8px; align-items: center; padding: 3px 6px; flex-wrap: nowrap; }
+.vform .inp { border: 1px solid var(--line); background: var(--surface); border-radius: 8px; padding: 4px 9px; min-width: 150px; }
+.vform .inp:focus { outline: none; border-color: var(--accent); }
+.vform .inp:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.vshare { display: inline-flex; gap: 6px; align-items: center; font-size: 12px; color: var(--muted); white-space: nowrap; }
+.vfail { color: var(--bad); font-size: 12px; white-space: nowrap; }
+.modnote .dotsep { white-space: pre; }

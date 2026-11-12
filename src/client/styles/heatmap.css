@@ -1,0 +1,27 @@
+/* Heatmap (proto.src.html): domain group rows with a status bar per pillar and the gap count in
+   red; application rows with a dot and the reason in each pillar cell. Tokens only. */
+.heat td { padding: 8px 14px; }
+.heat td.hc { white-space: normal; min-width: 160px; font-size: 12px; padding: 3px 4px; }
+.heat td.hc > span { display: flex; gap: 7px; align-items: center; padding: 6px 9px; border-radius: 8px; background: color-mix(in srgb, var(--c) 13%, var(--surface)); }
+.hc.ok { --c: var(--ok); }
+.hc.warn { --c: var(--warn); }
+.hc.bad { --c: var(--bad); }
+.hc.none { --c: var(--none); }
+.hc.none > span { color: var(--muted); }
+.hc .dot { flex: none; }
+.grp td { background: var(--surface2); border-top: 1px solid var(--line); }
+.grp:first-child td { border-top: 0; }
+.grp { cursor: default; }
+.gb { border: 0; background: none; padding: 0; font-weight: 600; display: inline-flex; gap: 8px; align-items: center; font-size: 12px; letter-spacing: 0.04em; text-transform: uppercase; }
+.gb svg { width: 12px; height: 12px; transition: transform 0.15s; transform: rotate(-90deg); }
+.gb[aria-expanded="true"] svg { transform: none; }
+.gb span { color: var(--muted); font: 500 11px var(--mono); }
+.grp td.sbc { padding: 8px 6px; }
+.sbw { display: flex; align-items: center; gap: 8px; }
+.sb { display: flex; flex: 1; min-width: 90px; height: 8px; border-radius: 4px; overflow: hidden; gap: 1px; background: var(--line); }
+.sb i { background: var(--ok); }
+.sb i.bad { background: var(--bad); }
+.sb i.warn { background: var(--warn); }
+.sb i.none { background: var(--line2); }
+.sbw small { font: 600 11px var(--mono); color: var(--bad); min-width: 18px; text-align: right; }
+.hint { font-size: 12px; }

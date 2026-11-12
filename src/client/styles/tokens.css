@@ -78,3 +78,26 @@
   --tier3: color-mix(in srgb, var(--accent) 45%, var(--surface));
   --tier4: color-mix(in srgb, var(--accent) 25%, var(--surface));
 }
+
+/* Fact sheet tag and title colours (lx2.ext.html), light and dark. --warn-strong is the solid
+   warning fill: darker than --warn in light so white text on it reaches 4.5:1. */
+:root {
+  --violet: oklch(0.5 0.17 300);
+  --teal: oklch(0.5 0.1 190);
+  --title: oklch(0.38 0.08 265);
+  --warn-strong: #9a5f00;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --violet: oklch(0.8 0.11 300);
+    --teal: oklch(0.8 0.09 190);
+    --title: oklch(0.85 0.05 265);
+    --warn-strong: #e2a03a;
+  }
+}
+:root[data-theme="dark"] {
+  --violet: oklch(0.8 0.11 300);
+  --teal: oklch(0.8 0.09 190);
+  --title: oklch(0.85 0.05 265);
+  --warn-strong: #e2a03a;
+}

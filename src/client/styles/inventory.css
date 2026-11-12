@@ -2,14 +2,18 @@
    line with the lens switch, the pillar tabs and the lens (table, heatmap or landscape) on the
    right. Below 1024 px the panel, views included, is a drawer behind the Filters button. Tokens only. */
 .wb { display: grid; grid-template-columns: 250px minmax(0, 1fr); align-items: start; min-height: calc(100vh - 51px); }
-.facets { border-right: 1px solid var(--line2); background: var(--surface); padding: 8px 0 20px; align-self: stretch; min-width: 0; }
+/* The panel scrolls on its own: it pins to the top of the window once the app bar has scrolled
+   away, and its views and facets scroll inside it without moving the page. */
+.facets { border-right: 1px solid var(--line2); background: var(--surface); padding: 8px 0 20px; min-width: 0; position: sticky; top: 0; align-self: start; height: 100vh; overflow-y: auto; overscroll-behavior: contain; }
 .fscrim { display: none; }
 .fhead { display: none; }
 
 .fg { padding: 0 0 6px; }
 .fh { display: flex; justify-content: space-between; align-items: center; gap: 8px; margin: 0; padding: 14px 16px 6px; font: 700 11.5px var(--sans); text-transform: uppercase; letter-spacing: 0.08em; color: var(--muted); }
 .fh .fact { display: inline-flex; gap: 10px; text-transform: none; letter-spacing: 0; }
-.fh .tlink { font-size: 12px; }
+/* A fixed line box: a Clear or "+ N more" link appearing must not change the header height. */
+.fh, .fh .fact { line-height: 18px; min-height: 18px; }
+.fh .tlink { font-size: 12px; line-height: 18px; padding-block: 0; }
 .facets .find { margin: 0 16px 4px; width: calc(100% - 32px); }
 .facets .popin, .facets .plist { padding: 0; }
 .facets .plist { max-height: none; overflow: visible; padding-right: 0; scrollbar-gutter: auto; }
@@ -60,7 +64,7 @@
 @media (max-width: 1023px) {
   .wb { grid-template-columns: minmax(0, 1fr); }
   .fbtn { display: inline-block; }
-  .facets { position: fixed; z-index: 62; top: 0; bottom: 0; left: 0; width: min(320px, 88vw); overflow-y: auto; border-right: 1px solid var(--line2); transform: translateX(-102%); visibility: hidden; transition: transform 0.18s ease, visibility 0s linear 0.18s; box-shadow: var(--shadow); }
+  .facets { position: fixed; z-index: 62; top: 0; bottom: 0; left: 0; height: auto; align-self: auto; width: min(320px, 88vw); overflow-y: auto; border-right: 1px solid var(--line2); transform: translateX(-102%); visibility: hidden; transition: transform 0.18s ease, visibility 0s linear 0.18s; box-shadow: var(--shadow); }
   .fopen .facets { transform: none; visibility: visible; transition: transform 0.18s ease; }
   .fopen .fscrim { display: block; position: fixed; inset: 0; z-index: 61; border: 0; padding: 0; background: var(--scrim); }
   .fhead { display: flex; justify-content: space-between; align-items: center; padding: 10px 16px; border-bottom: 1px solid var(--line); position: sticky; top: 0; background: var(--surface); z-index: 1; }

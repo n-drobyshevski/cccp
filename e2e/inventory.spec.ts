@@ -62,6 +62,51 @@ test.describe("facet panel", () => {
     await expect(dom.locator(".ck")).toHaveCount(5);
   });
 
+  for (const lens of ["table", "heatmap"]) {
+    test(`on the ${lens} lens the panel pins to the window and scrolls on its own`, async ({ page }) => {
+      const bad = watchConsole(page);
+      await page.setViewportSize({ width: 1440, height: 900 });
+      await page.goto("/?r=list&lens=" + lens);
+      await expect(page.locator("[data-region=content]")).toBeVisible();
+      const panel = facets(page);
+      await panel.locator('section[data-facet="dom"] [data-k="fmore-dom"]').click();
+      await page.evaluate(() => window.scrollTo(0, 1500));
+      await expect.poll(() => page.evaluate(() => window.scrollY)).toBeGreaterThan(1000);
+      const box = (await panel.boundingBox())!;
+      expect(Math.round(box.y)).toBe(0);
+      expect(Math.round(box.height)).toBe(900);
+      const m = await panel.evaluate((el) => ({ sh: el.scrollHeight, ch: el.clientHeight }));
+      expect(m.sh).toBeGreaterThan(m.ch);
+      const y = await page.evaluate(() => window.scrollY);
+      await panel.evaluate((el) => { el.scrollTop = 400; });
+      expect(await panel.evaluate((el) => el.scrollTop)).toBe(400);
+      expect(await page.evaluate(() => window.scrollY)).toBe(y);
+      // What the viewer is looking at in the panel must not jump when a facet re-renders. (The
+      // views list above may grow a "changed" line; scroll anchoring then moves scrollTop with it.)
+      const anchor = panel.locator('section[data-facet="dom"] .fh');
+      const before = (await anchor.boundingBox())!.y;
+      // Click through the DOM: a Playwright click would scroll the box into view first.
+      await panel.locator('[data-k="side-tier-T1"]').evaluate((el) => (el as HTMLInputElement).click());
+      await expect.poll(() => urlParam(page, "tier")).toBe("T1");
+      expect(Math.abs((await anchor.boundingBox())!.y - before)).toBeLessThan(2);
+      expect(await panel.evaluate((el) => el.scrollTop)).toBeGreaterThanOrEqual(400);
+      expect(bad).toEqual([]);
+    });
+  }
+
+  test("below 1024 px the drawer is the window's height and scrolls inside", async ({ page }) => {
+    await page.setViewportSize({ width: 390, height: 800 });
+    await ready(page);
+    await page.locator('[data-k="fopen"]').click();
+    const panel = facets(page);
+    await expect(panel).toBeInViewport();
+    const m = await panel.evaluate((el) => ({ h: el.getBoundingClientRect().height, sh: el.scrollHeight, ch: el.clientHeight }));
+    expect(Math.round(m.h)).toBe(800);
+    expect(m.sh).toBeGreaterThan(m.ch);
+    await panel.locator('[data-k="fmore-so"]').click();
+    await expect(panel.locator('section[data-facet="so"] input.find')).toBeVisible();
+  });
+
   test("below 1024 px the panel is behind a Filters button and opens as a drawer", async ({ page }) => {
     await page.setViewportSize({ width: 820, height: 900 });
     await ready(page);

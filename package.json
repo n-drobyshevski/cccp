@@ -16,7 +16,10 @@
     "test:build": "npm run build && vitest run --project build",
     "check": "npm run typecheck && npm run lint && npm run vendor:verify && npm run test && npm run test:build",
     "dev": "node dev/serve.mjs",
-    "e2e": "playwright test"
+    "e2e": "playwright test",
+    "push": "npm run check && clasp push",
+    "deploy": "node src/vendor/gas_shared/build/deploy.mjs",
+    "deploy:new": "npm run push && clasp deploy"
   },
   "devDependencies": {
     "@google/clasp": "^3.4.0",

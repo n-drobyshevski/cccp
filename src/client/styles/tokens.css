@@ -1,7 +1,7 @@
 /* Design tokens. The only file in src/client that may hold a colour literal. Ported from the
    approved mockups (proto.src.html), light and dark. Dark is declared twice on purpose: once
    for the system preference when no choice was made, once for an explicit data-theme.
-   Light --none is #6f7a8b, darker than the mockup #98a1b0 (2.6:1 on --surface) so it clears 4.5:1. */
+   Light --none is #667180, darker than the mockup #98a1b0 (2.6:1 on --surface) so it clears 4.5:1. */
 :root {
   --bg: #eef1f5;
   --surface: #ffffff;
@@ -16,7 +16,7 @@
   --ok: #1b8556;
   --warn: #c07a00;
   --bad: #c9303e;
-  --none: #6f7a8b;
+  --none: #667180;
   --tip-bg: #151a23;
   --tip-fg: #ffffff;
   --sans: "Inter", system-ui, -apple-system, "Segoe UI", sans-serif;

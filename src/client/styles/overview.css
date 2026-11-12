@@ -10,7 +10,7 @@
 .kpi b { font: 600 28px var(--sans); letter-spacing: -0.02em; font-variant-numeric: tabular-nums; }
 .kpi small { color: var(--muted); font-size: 12px; }
 .kpi.bad b { color: var(--bad); }
-.kpi.warn b { color: var(--warn); }
+.kpi.warn b { color: var(--warn-strong); }
 .card2 { padding: 16px 18px; display: flex; flex-direction: column; gap: 12px; min-width: 0; }
 .card2 h2 { font-size: 15px; }
 .pbars { display: flex; flex-direction: column; gap: 10px; }
@@ -25,7 +25,7 @@
 .pbar small { font: 500 12px var(--mono); color: var(--muted); text-align: right; white-space: nowrap; }
 .pbar small b { color: var(--bad); }
 .two { display: grid; grid-template-columns: repeat(auto-fit, minmax(340px, 1fr)); gap: 12px; align-items: start; }
-.tw { overflow-x: auto; }
+.tw { overflow-x: auto; position: relative; }
 .dt { width: 100%; border-collapse: collapse; }
 .dt th { text-align: left; font-weight: 500; font-size: 12px; color: var(--muted); padding: 6px 8px; border-bottom: 1px solid var(--line); }
 .dt td { padding: 10px 8px; border-bottom: 1px solid var(--line); }

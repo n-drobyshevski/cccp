@@ -7,6 +7,8 @@ export default defineConfig({
   timeout: 30_000,
   fullyParallel: true,
   reporter: [["list"]],
+  workers: process.env.CI ? 2 : undefined,
+  retries: 0,
   use: {
     baseURL: "http://localhost:8791",
     trace: "off",

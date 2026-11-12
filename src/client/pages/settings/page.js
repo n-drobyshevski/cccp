@@ -23,7 +23,7 @@ import { withRefresh } from "../../state/refresh.js";
 import { store } from "../../state/store.js";
 import { navigate } from "../../state/url.js";
 import {
-  SETTINGS_TABS, barModel, clampedText, committed, discard, edit, errorsOf, form, guardSettings, isDirty,
+  SETTINGS_TABS, barModel, chooseTab, clampedText, committed, discard, edit, errorsOf, form, guardSettings, isDirty,
   newSession, sectionsOf, tabMarks, toPatch,
 } from "./draft.js";
 import { accessView, createAccess } from "./access.js";
@@ -291,6 +291,10 @@ export const settingsPage = {
       const v = read(t);
       if (v !== undefined) setDraft(t.getAttribute("data-key"), v);
     };
+    const onTab = (ev, t) => {
+      const s = sessionOf();
+      if (s) store.set({ settingsDraft: chooseTab(s, t.getAttribute("data-tabpick"), t.value) });
+    };
     const onRule = (ev, t) => {
       const v = read(t);
       if (v !== undefined) setRule(t.getAttribute("data-rule"), t.getAttribute("data-prop"), v);
@@ -298,6 +302,7 @@ export const settingsPage = {
     offs.push(delegate(el, "input", "input[data-rule][data-type=number]", onRule));
     offs.push(delegate(el, "change", "input[data-rule][type=checkbox]", onRule));
     offs.push(delegate(el, "input", "input[data-key]:not([type=checkbox])", onField));
+    offs.push(delegate(el, "change", "select[data-tabpick]", onTab));
     offs.push(delegate(el, "change", "select[data-key], input[type=checkbox][data-key]", onField));
 
     offs.push(delegate(el, "keydown", '[role="tab"]', (ev, t) => {

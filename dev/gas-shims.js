@@ -505,7 +505,7 @@
     workbooks.set(book.id, book);
     return book.id;
   }
-  /** The default Script Properties of the dev harness. Flags: mode, admins, nosource. */
+  /** The default Script Properties of the dev harness. Flags: mode, admins, nosource, oneTab. */
   function seedDefaults(o) {
     o = o || {};
     effectiveUser = OWNER;
@@ -516,6 +516,8 @@
     if (o.hidePrefix) p.setProperty("CFG_DISPLAY", JSON.stringify({ hidePrefix: o.hidePrefix }));
     if (o.nosource || !o.sheetId) return;
     var tab = function (name, pick) { return { name: name, joinColumn: "UUID", joinOn: "id", pick: pick }; };
+    // onetab: only the sheet id is saved, so the tab bindings are the untouched defaults.
+    if (o.oneTab) { p.setProperty("CFG_SOURCE", JSON.stringify({ sheetId: o.sheetId })); return; }
     p.setProperty("CFG_SOURCE", JSON.stringify({
       sheetId: o.sheetId,
       cacheMinutes: 10,

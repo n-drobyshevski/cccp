@@ -13,6 +13,8 @@
 //   mode=org       ACCESS_MODE=org
 //   admins=<list>  override ALLOWED_ADMINS (empty value: no admins)
 //   nosource       no CFG_SOURCE, so the app starts unconfigured
+//   onetab         the workbook is one tab named Inventory (the synthetic inventory) and the
+//                  Settings are untouched defaults: the single-tab owner's setup
 //   empty          the workbook keeps header rows only
 //   coldcache      CacheService accepts writes but never returns them
 //   slow=<ms>      artificial RPC latency
@@ -30,7 +32,7 @@
   var fakes = window.__gasFakes;
   var flag = function (n) { return query.has(n); };
 
-  var wb = window.__CCCP_WORKBOOK__;
+  var wb = flag("onetab") && window.__CCCP_WORKBOOK_ONETAB__ ? window.__CCCP_WORKBOOK_ONETAB__ : window.__CCCP_WORKBOOK__;
   var tz = query.get("tz") || (wb && wb.tz) || "Europe/Paris";
   if (wb) fakes.loadWorkbook(wb, { empty: flag("empty"), tz: tz });
 
@@ -42,6 +44,7 @@
     mode: query.get("mode"),
     admins: query.has("admins") ? query.get("admins") : null,
     nosource: flag("nosource"),
+    oneTab: flag("onetab"),
     hidePrefix: query.get("hideprefix"),
   });
   if (query.get("sharedviews")) {

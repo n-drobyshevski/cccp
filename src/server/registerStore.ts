@@ -7,6 +7,7 @@
 
 import { assemble, type TabData, type TabsInput } from "../domain/assemble";
 import { REGISTER_FORMAT, encodeRegister, type RegisterPayload, type SourceMeta, type SourceTabMeta } from "../domain/payload";
+import { FIELDS } from "../domain/fields";
 import type { Issues } from "../domain/types";
 import { TAB_KEYS } from "../domain/types";
 import { markRecorded, recordError } from "./errors";
@@ -40,7 +41,7 @@ function build(): { entry: RegisterEntry; ttlSec: number } {
   }
   let read;
   try {
-    read = readTabs(settings.source);
+    read = readTabs(settings.source, { idHeader: settings.fields.id.header });
   } catch (e) {
     recordError("register", e);
     const err = new Error(UNREACHABLE);
@@ -56,17 +57,29 @@ function build(): { entry: RegisterEntry; ttlSec: number } {
     }
     return assemble(input, settings);
   })();
+  const countRows = (t: { rows: Array<Array<string | number | boolean | null>> }): number =>
+    t.rows.filter((r) => r.some((c) => c !== null && String(c).trim() !== "")).length;
   for (const k of TAB_KEYS) {
-    const t = read.tabs[k];
+    const same = k !== "apps" && settings.source.tabs[k].sameTab;
+    const t = same ? read.tabs.apps : read.tabs[k];
     if (!t) continue;
-    tabs.push({
+    const entry: SourceTabMeta = {
       key: k,
       name: t.name,
       gid: t.gid,
-      rows: t.rows.filter((r) => r.some((c) => c !== null && String(c).trim() !== "")).length,
+      rows: countRows(t),
       missingHeaders: result.issues.missingHeaders.filter((m) => m.tab === k).map((m) => m.header),
       unmatched: result.issues.unmatched.filter((u) => u.tab === k).reduce((n, u) => n + u.count, 0),
-    });
+    };
+    if (k === "apps" && t.detected) entry.detected = true;
+    if (same) {
+      const mapped = FIELDS.filter((d) => settings.fields[d.key].binding === k && settings.fields[d.key].header !== "");
+      const absent = mapped.filter((d) => result.issues.unmapped.some((u) => u.field === d.key && u.reason === "not provided yet")).length;
+      entry.sameTab = true;
+      entry.columnsMapped = mapped.length;
+      entry.columnsFound = mapped.length - absent;
+    }
+    tabs.push(entry);
   }
   const meta: SourceMeta = { title: read.title, url: read.url, tz: read.tz, loadedAt, dataVersion: dv, tabs, issues: result.issues };
   return { entry: { register: encodeRegister(result.apps, { loadedAt, dataVersion: dv }), meta }, ttlSec };

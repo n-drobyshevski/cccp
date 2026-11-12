@@ -235,6 +235,19 @@ export function genWorkbook(opts = {}) {
   };
 }
 
+/** The tab name of the one-tab workbook: deliberately not "Apps". */
+export const ONETAB_NAME = "Inventory";
+
+/**
+ * A workbook that holds ONLY the inventory tab, named "Inventory", from the committed synthetic
+ * CSV (never the machine-local export): what an owner with a single register tab has.
+ */
+export function genOneTabWorkbook() {
+  const full = genWorkbook({ csvPath: SYNTHETIC_CSV });
+  const apps = full.tabs.find((t) => t.name === "Apps");
+  return { ...full, name: "CCCP dev register (one tab)", source: "synthetic", tabs: [{ ...apps, name: ONETAB_NAME }] };
+}
+
 /** The same workbook as a stable JSON string (key order is fixed by construction). */
 export function workbookJson(opts) {
   return JSON.stringify(genWorkbook(opts));

@@ -69,7 +69,16 @@ export function assemble(tabs: TabsInput, settings: Settings): AssembleResult {
   const state = {} as Record<TabKey, State>;
   const data = {} as Record<TabKey, TabData | null>;
   const hIdx = {} as Record<TabKey, Map<string, number>>;
+  // A pillar bound to the Applications tab shares its state, data and headers (apps comes first).
+  const same = {} as Record<TabKey, boolean>;
   for (const k of TAB_KEYS) {
+    same[k] = k !== "apps" && src[k].sameTab;
+    if (same[k]) {
+      state[k] = state.apps;
+      data[k] = data.apps;
+      hIdx[k] = hIdx.apps;
+      continue;
+    }
     const d = tabs[k] ?? null;
     state[k] = src[k].name === "" ? "unused" : d ? "ok" : "missing";
     data[k] = state[k] === "ok" ? d : null;
@@ -96,8 +105,12 @@ export function assemble(tabs: TabsInput, settings: Settings): AssembleResult {
     else {
       const at = hIdx[m.binding].get(norm(m.header));
       if (at === undefined) {
-        addMissing(m.binding, m.header, def.key);
-        unmapped.push({ field: def.key, reason: "column missing" });
+        // A pillar column that the Applications tab does not have yet is not an error.
+        if (same[m.binding]) unmapped.push({ field: def.key, reason: "not provided yet" });
+        else {
+          addMissing(m.binding, m.header, def.key);
+          unmapped.push({ field: def.key, reason: "column missing" });
+        }
       } else col[def.key] = at;
     }
   }
@@ -106,7 +119,7 @@ export function assemble(tabs: TabsInput, settings: Settings): AssembleResult {
   const joinCol = {} as Record<TabKey, Col>;
   for (const k of TAB_KEYS) {
     joinCol[k] = null;
-    if (state[k] !== "ok") continue;
+    if (state[k] !== "ok" || same[k]) continue;
     const at = hIdx[k].get(norm(src[k].joinColumn));
     if (at === undefined) {
       if (k !== "apps") addMissing(k, src[k].joinColumn, null);
@@ -158,9 +171,25 @@ export function assemble(tabs: TabsInput, settings: Settings): AssembleResult {
   }
   for (const [id, rows] of dupRows) issues.duplicateIds.push({ tab: "apps", id, rows } satisfies DuplicateId);
 
+  // ---- pillars in the Applications tab: each application row joins to itself
+  for (const k of TAB_KEYS) {
+    if (!same[k] || state[k] !== "ok") continue;
+    const defs = FIELDS.filter((d) => settings.fields[d.key].binding === k && col[d.key] !== null);
+    apps.forEach((rec, i) => {
+      const r = appRows[i]!;
+      rec._row[k] = rec._row.apps!;
+      for (const def of defs) {
+        const raw = r[col[def.key]!];
+        const { v, bad: b } = readValue(def, raw);
+        if (b) noteBad(k, def.key, raw);
+        setField(rec, def.key, v);
+      }
+    });
+  }
+
   // ---- side tabs
   for (const k of TAB_KEYS) {
-    if (k === "apps" || state[k] !== "ok" || joinCol[k] === null) continue;
+    if (k === "apps" || same[k] || state[k] !== "ok" || joinCol[k] === null) continue;
     const t = data[k]!;
     const jc = joinCol[k]!;
     const byName = src[k].joinOn === "name";

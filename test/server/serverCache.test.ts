@@ -9,19 +9,19 @@ const fakes = useGasEnv();
 
 describe("keys", () => {
   it("hold DATA_VERSION for the register and DATA_VERSION.CFG_GEN for the core", () => {
-    expect(cacheKey("register", undefined)).toBe("cccp:1:0:register");
-    expect(cacheKey("core", undefined, "cfg")).toBe("cccp:1:0.0.0:core");
+    expect(cacheKey("register", undefined)).toBe("cccp:2:0:register");
+    expect(cacheKey("core", undefined, "cfg")).toBe("cccp:2:0.0.0:core");
     bumpDataVersion();
     bumpDataVersion();
     bumpCfgGen();
     expect(dataVersion()).toBe(2);
     expect(cfgGen()).toBe(1);
-    expect(cacheKey("register", undefined)).toBe("cccp:1:2:register");
-    expect(cacheKey("core", undefined, "cfg")).toBe("cccp:1:2.1.0:core");
+    expect(cacheKey("register", undefined)).toBe("cccp:2:2:register");
+    expect(cacheKey("core", undefined, "cfg")).toBe("cccp:2:2.1.0:core");
   });
   it("hash params, and carry no identity", () => {
     const a = cacheKey("headers", { id: "x" });
-    expect(a).toMatch(/^cccp:1:0:headers:[0-9a-f]{12}$/);
+    expect(a).toMatch(/^cccp:2:0:headers:[0-9a-f]{12}$/);
     expect(a).not.toBe(cacheKey("headers", { id: "y" }));
     expect(a).not.toMatch(/@/);
   });

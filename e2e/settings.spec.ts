@@ -72,7 +72,7 @@ test("an owner edits and probes the Sheet; an admin reads it", async ({ page, br
   await expect(admin.locator("input[data-key='source.sheetId']")).toHaveCount(0);
   await expect(admin.getByRole("button", { name: "Probe" })).toHaveCount(0);
   await expect(admin.locator(".why-ro")).toContainText("Only the owner");
-  await expect(admin.locator("select[data-key='source.tabs.aud.name']")).toBeVisible();
+  await expect(admin.locator("select[data-tabpick='aud']")).toBeVisible();
   await admin.close();
 });
 

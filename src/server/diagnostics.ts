@@ -22,7 +22,7 @@ export interface DiagnosticsReport {
     sheetId: string;
     title: string;
     tz: string;
-    tabs: Array<{ key: string; name: string; rows: number; found: boolean; missingHeaders: string[]; unmatched: number }>;
+    tabs: Array<{ key: string; name: string; rows: number; found: boolean; missingHeaders: string[]; unmatched: number; detected: boolean; sameTab: boolean; columnsFound: number | null; columnsMapped: number | null }>;
   } | null;
   issues: Record<string, number> | null;
   versions: { dataVersion: number | null; cfgGen: number | null };
@@ -65,7 +65,7 @@ export function diagnosticsReport(): DiagnosticsReport {
         title: entry ? entry.meta.title : "",
         tz: entry ? entry.meta.tz : "",
         tabs: entry
-          ? entry.meta.tabs.map((t) => ({ key: t.key, name: t.name, rows: t.rows, found: t.gid !== null, missingHeaders: t.missingHeaders, unmatched: t.unmatched }))
+          ? entry.meta.tabs.map((t) => ({ key: t.key, name: t.name, rows: t.rows, found: t.gid !== null, missingHeaders: t.missingHeaders, unmatched: t.unmatched, detected: t.detected === true, sameTab: t.sameTab === true, columnsFound: t.columnsFound ?? null, columnsMapped: t.columnsMapped ?? null }))
           : [],
       }
     : null;
@@ -76,7 +76,8 @@ export function diagnosticsReport(): DiagnosticsReport {
         unmatched: entry.meta.issues.unmatched.length,
         duplicateIds: entry.meta.issues.duplicateIds.length,
         unparseable: entry.meta.issues.unparseable.length,
-        unmapped: entry.meta.issues.unmapped.length,
+        unmapped: entry.meta.issues.unmapped.filter((u) => u.reason !== "not provided yet").length,
+        notProvidedYet: entry.meta.issues.unmapped.filter((u) => u.reason === "not provided yet").length,
       }
     : null;
 
@@ -121,7 +122,10 @@ export function diagnosticsText(): string {
     r.source ? "Sheet " + (r.source.title || "(not configured)") + " " + r.source.tz : "Sheet unknown",
   ];
   for (const t of r.source ? r.source.tabs : []) {
-    lines.push("  " + t.name + ": " + (t.found ? t.rows + " rows" : "NOT FOUND") + (t.missingHeaders.length ? ", missing " + t.missingHeaders.join(", ") : ""));
+    const tail = t.sameTab
+      ? " (" + t.key + ": same tab, " + t.columnsFound + " of " + t.columnsMapped + " columns provided yet)"
+      : (t.detected ? " (detected)" : "") + (t.missingHeaders.length ? ", missing " + t.missingHeaders.join(", ") : "");
+    lines.push("  " + t.name + ": " + (t.found ? t.rows + " rows" : "NOT FOUND") + tail);
   }
   lines.push("Versions data " + r.versions.dataVersion + ", settings " + r.versions.cfgGen + ". Register " + r.register.bytes + " bytes.");
   for (const w of r.register.warnings) lines.push("WARNING " + w);

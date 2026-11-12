@@ -19,7 +19,7 @@ import { ApiError } from "./errors";
 import { withScriptLock } from "./locks";
 import { getJsonProp, putJsonProp } from "./props";
 import { bumpCfgGen, bumpDataVersion, cached, cfgGen } from "./serverCache";
-import { sampleTabs } from "./sourceSheet";
+import { sampleWorkbook } from "./sourceSheet";
 
 /** A patch larger than this is refused before it is even merged. */
 export const PATCH_MAX_BYTES = 40_000;
@@ -88,12 +88,14 @@ export function getSettingsView(): SettingsResponse {
   const settings = loadSettings();
   const headers: SettingsResponse["headers"] = {};
   const examples: SettingsResponse["examples"] = {};
+  let tabNames: string[] | undefined;
   if (settings.source.sheetId !== "") {
     try {
-      const names = TAB_KEYS.map((k) => settings.source.tabs[k].name);
-      const sample = cached("headers", { id: settings.source.sheetId, names }, () => sampleTabs(settings.source), HEADERS_TTL_SEC);
-      for (const k of Object.keys(sample) as TabKey[]) {
-        const s = sample[k];
+      const names = TAB_KEYS.map((k) => settings.source.tabs[k].name + (settings.source.tabs[k].sameTab ? "\u0001same" : ""));
+      const sample = cached("headers", { id: settings.source.sheetId, names, idHeader: settings.fields.id.header }, () => sampleWorkbook(settings.source, { idHeader: settings.fields.id.header }), HEADERS_TTL_SEC);
+      tabNames = sample.tabNames;
+      for (const k of Object.keys(sample.tabs) as TabKey[]) {
+        const s = sample.tabs[k];
         if (s && s.found) {
           headers[k] = s.headers;
           examples[k] = s.examples;
@@ -103,5 +105,5 @@ export function getSettingsView(): SettingsResponse {
       console.warn("Headers could not be read: " + e);
     }
   }
-  return { settings, headers, examples, cfgGen: cfgGen() };
+  return { settings, headers, examples, ...(tabNames ? { tabNames } : {}), cfgGen: cfgGen() };
 }

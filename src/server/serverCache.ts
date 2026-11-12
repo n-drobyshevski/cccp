@@ -18,7 +18,7 @@ import { sha1Hex } from "../vendor/gas_shared/domain/sha1";
 import { getProp, PROP_KEYS, setProp } from "./props";
 
 /** Bump to make every cached entry unreachable on the next deploy. */
-export const CACHE_EPOCH = "1";
+export const CACHE_EPOCH = "2";
 const KEY_PREFIX = "cccp:" + CACHE_EPOCH;
 const CHUNK_CHARS = 90_000;
 export const TTL_MIN_SEC = 60;

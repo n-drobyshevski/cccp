@@ -8,9 +8,10 @@ import { FIELD_KEYS } from "../../src/domain/fields";
 import { decodeRegister, encodeRegister, payloadBytes } from "../../src/domain/payload";
 import { applyPatch, makeDefaultSettings } from "../../src/domain/settings";
 import type { Settings, TabKey } from "../../src/domain/types";
+import { separateTabs } from "./mk";
 import { ZONES, useZone } from "./tz";
 
-const D = (): Settings => makeDefaultSettings();
+const D = (): Settings => separateTabs(makeDefaultSettings());
 const APPS_H = ["UUID", "Name", "Domain", "Subdomain", "Support Group", "Owner Name", "Backup Owner Name", "Lifecycle", "Typology", "Tiering", "Security Officer Name"];
 const appRow = (id: string, name: string, extra: Partial<Record<string, unknown>> = {}) =>
   APPS_H.map((h) => (h === "UUID" ? id : h === "Name" ? name : (extra[h] ?? "")));
@@ -257,5 +258,73 @@ describe("register codec", () => {
     expect(decodeRegister(JSON.parse(JSON.stringify(p)))).toEqual(JSON.parse(JSON.stringify(apps)));
     expect(Object.keys(apps[0]!).length).toBeGreaterThanOrEqual(FIELD_KEYS.length - 6);
     expect(() => decodeRegister({ ...p, v: 99 })).toThrow();
+  });
+});
+
+describe("pillars in the Applications tab (same tab)", () => {
+  const SAME = (): Settings => makeDefaultSettings();
+  const inventory = (): TabsInput => ({ apps: { headers: APPS_H, rows: [appRow("a1", "Alpha", { Tiering: 1 }), appRow("a2", "Beta"), appRow("a1", "Alpha again")] } });
+  const withPillars = (): TabsInput => ({
+    apps: {
+      headers: [...APPS_H, "Integrity Level", "Last Pentest", "Last DRP Test", "Hosting Type"],
+      rows: [
+        [...appRow("a1", "Alpha"), 3, "2025-06-01", "2025-01-02", "Cloud"],
+        [...appRow("a2", "Beta"), "", "", "", ""],
+        [...appRow("a1", "Alpha again"), 1, "2020-01-01", "", "Onsite"],
+      ],
+    },
+  });
+
+  it("is the default for every pillar, and apps is never same-tab", () => {
+    const t = SAME().source.tabs;
+    expect([t.ciat.sameTab, t.aud.sameTab, t.drp.sameTab, t.plat.sameTab, t.apps.sameTab]).toEqual([true, true, true, true, false]);
+  });
+
+  it("leaves every pillar field null and reports nothing but not-provided-yet", () => {
+    const { apps, issues } = assemble(inventory(), SAME());
+    expect(apps.map((a) => a.id)).toEqual(["a1", "a2"]);
+    for (const a of apps) {
+      expect(a.ciat).toEqual({ c: null, i: null, a: null, t: null });
+      expect([a.lastPentest, a.lastAudit, a.mtd, a.lastDrpTest, a.drpResult, a.hosting, a.sso, a.exposed]).toEqual([null, null, null, null, null, null, null, null]);
+    }
+    expect(issues.missingHeaders).toEqual([]);
+    expect(issues.missingTabs).toEqual([]);
+    expect(issues.unmatched).toEqual([]);
+    expect(issues.unparseable).toEqual([]);
+    // The one repeated id is the inventory's own, reported once for the Applications tab only.
+    expect(issues.duplicateIds).toEqual([{ tab: "apps", id: "a1", rows: [2, 4] }]);
+    const pending = issues.unmapped.filter((u) => u.reason === "not provided yet").map((u) => u.field);
+    expect(pending).toEqual(expect.arrayContaining(["ciatC", "lastPentest", "mtd", "hosting", "exposed"]));
+    expect(issues.unmapped.filter((u) => u.reason !== "not provided yet")).toEqual([]);
+  });
+
+  it("joins each row to itself and fills the pillar columns that are present", () => {
+    const { apps, issues } = assemble(withPillars(), SAME());
+    expect(apps[0]).toMatchObject({ id: "a1", lastPentest: "2025-06-01", lastDrpTest: "2025-01-02", hosting: "Cloud" });
+    expect(apps[0]!.ciat.i).toBe(3);
+    expect(apps[0]!.ciat.c).toBeNull();
+    expect(apps[1]).toMatchObject({ id: "a2", lastPentest: null, hosting: null });
+    expect(apps[0]!._row).toMatchObject({ apps: 2, ciat: 2, aud: 2, drp: 2, plat: 2 });
+    expect(issues.unmatched).toEqual([]);
+    expect(issues.missingHeaders).toEqual([]);
+    const pending = issues.unmapped.filter((u) => u.reason === "not provided yet").map((u) => u.field);
+    expect(pending).toContain("ciatC");
+    expect(pending).not.toContain("ciatI");
+    expect(pending).not.toContain("lastPentest");
+  });
+
+  it("a separate tab keeps the missing-header report", () => {
+    const s = SAME();
+    s.source.tabs.plat = { ...s.source.tabs.plat, name: "Platform", sameTab: false };
+    const t: TabsInput = { ...inventory(), plat: { headers: ["UUID", "Hosting Type"], rows: [["a1", "Cloud"]] } };
+    const { issues } = assemble(t, s);
+    expect(issues.missingHeaders.some((m) => m.tab === "plat" && m.header === "Single Sign-On - Availability")).toBe(true);
+    expect(issues.unmapped.some((u) => u.reason === "column missing")).toBe(true);
+  });
+
+  it("when the Applications tab itself is missing, a same-tab pillar says tab not found", () => {
+    const { issues } = assemble({}, SAME());
+    expect(issues.missingTabs).toEqual(["apps"]);
+    expect(issues.unmapped.find((u) => u.field === "hosting")!.reason).toBe("tab not found");
   });
 });

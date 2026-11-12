@@ -29,8 +29,8 @@ export const SETTINGS_TABS = [
 export const TAB_LABEL = {
   apps: "Applications", ciat: "CIAT classification", aud: "Audits & pentests", drp: "Disaster recovery", plat: "Platform",
 };
-const ATTR_LABEL = { name: "tab", joinColumn: "id column", joinOn: "join", pick: "row pick" };
-const ATTRS = ["name", "joinColumn", "joinOn", "pick"];
+const ATTR_LABEL = { name: "tab", sameTab: "same tab as Applications", joinColumn: "id column", joinOn: "join", pick: "row pick" };
+const ATTRS = ["name", "sameTab", "joinColumn", "joinOn", "pick"];
 
 const PATH = {};
 const REGISTRY = {};
@@ -145,6 +145,7 @@ export function newSession(resp, sourceUrl) {
     baseGen: resp.cfgGen,
     headers: resp.headers || {},
     examples: resp.examples || {},
+    tabNames: resp.tabNames || [],
   };
 }
 
@@ -210,6 +211,19 @@ export function errorsOf(session) {
 }
 
 /** The fields of the draft with no column chosen, as catalogue entries. */
+/** The draft's choice for a pillar's tab picker: '@same', '' (not used) or a tab name. */
+export const SAME_TAB = "@same";
+export function tabChoice(draft, k) {
+  if (k !== "apps" && draft["source.tabs." + k + ".sameTab"]) return SAME_TAB;
+  return draft["source.tabs." + k + ".name"];
+}
+
+/** Choose a pillar's tab: the Applications tab itself, no tab, or a named tab. */
+export function chooseTab(session, k, value) {
+  const base = k === "apps" ? session : edit(session, "source.tabs." + k + ".sameTab", value === SAME_TAB);
+  return value === SAME_TAB ? base : edit(base, "source.tabs." + k + ".name", value);
+}
+
 export const unmappedFields = (draft) => FIELDS.filter((d) => draft["fields." + d.key] === "");
 
 /** Per tab: {dirty, invalid, warn}. Access owns no batched field, so it is never dirty here. */

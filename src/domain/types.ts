@@ -70,8 +70,17 @@ export type JoinOn = "id" | "name";
 export type PickMode = "first" | "latest";
 
 export interface TabBinding {
-  /** '' means the tab is unused and its fields are null. */
+  /**
+   * The Sheet tab this binding reads. '' means the tab is unused and its fields are null. Not read
+   * while `sameTab` is true (kept so switching back remembers the last separate tab).
+   */
   name: string;
+  /**
+   * Pillar bindings only (ciat, aud, drp, plat): the data is columns of the Applications tab, so
+   * each application row joins to itself. Always false on the Applications binding. A missing
+   * column is then "not provided yet", not an error.
+   */
+  sameTab: boolean;
   joinColumn: string;
   joinOn: JoinOn;
   pick: PickMode;
@@ -126,7 +135,7 @@ export interface MissingHeader { tab: TabKey; header: string; fields: FieldKey[]
 export interface UnmatchedRows { tab: TabKey; count: number; examples: string[] }
 export interface DuplicateId { tab: TabKey; id: string; rows: number[] }
 export interface Unparseable { tab: TabKey; field: FieldKey; count: number; examples: string[] }
-export interface UnmappedField { field: FieldKey; reason: "no column chosen" | "tab not used" | "tab not found" | "column missing" }
+export interface UnmappedField { field: FieldKey; reason: "no column chosen" | "tab not used" | "tab not found" | "column missing" | "not provided yet" }
 
 /** What assemble found wrong with the source. Shown in Data source, Field mapping and diagnostics. */
 export interface Issues {

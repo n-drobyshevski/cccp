@@ -23,6 +23,13 @@ export interface SourceTabMeta {
   missingHeaders: string[];
   /** Rows whose key matches no application. */
   unmatched: number;
+  /** Applications tab only: the configured tab was not in the workbook, so this one was chosen. */
+  detected?: boolean;
+  /** Pillar tabs only: the data is columns of the Applications tab (name is that tab's name). */
+  sameTab?: boolean;
+  /** Pillar tabs only: how many of the mapped columns exist / are mapped (same-tab progress). */
+  columnsFound?: number;
+  columnsMapped?: number;
 }
 
 export interface SourceMeta {
@@ -93,6 +100,8 @@ export interface SettingsResponse {
   settings: Settings;
   headers: Partial<Record<TabKey, string[]>>;
   examples: Partial<Record<TabKey, Record<string, string>>>;
+  /** Every tab of the workbook, in order, for the tab pickers (absent when it could not be read). */
+  tabNames?: string[];
   cfgGen: number;
 }
 

@@ -14,7 +14,7 @@ import { readFileSync } from "node:fs";
 import { createServer } from "node:http";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
-import { genWorkbook } from "./genTabs.mjs";
+import { genOneTabWorkbook, genWorkbook } from "./genTabs.mjs";
 
 const root = join(dirname(fileURLToPath(import.meta.url)), "..");
 const PORT = Number(process.env.PORT || 8791);
@@ -22,8 +22,8 @@ const dist = (f) => readFileSync(join(root, "dist", f), "utf8");
 
 function workbookScript() {
   // "</" is escaped so the JSON can never close its own script element.
-  const json = JSON.stringify(genWorkbook()).replace(/</g, "\\u003c");
-  return "window.__CCCP_WORKBOOK__ = " + json + ";\n";
+  const esc = (w) => JSON.stringify(w).replace(/</g, "\\u003c");
+  return "window.__CCCP_WORKBOOK__ = " + esc(genWorkbook()) + ";\nwindow.__CCCP_WORKBOOK_ONETAB__ = " + esc(genOneTabWorkbook()) + ";\n";
 }
 
 const SCRIPTS = {

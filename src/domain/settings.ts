@@ -51,8 +51,10 @@ export const RULE_PARAMS: Readonly<Record<string, RuleParams>> = {
 };
 
 function defaultTabs(): Record<TabKey, TabBinding> {
-  const t = (name: string, pick: PickMode): TabBinding => ({ name, joinColumn: "UUID", joinOn: "id", pick });
-  return { apps: t("Apps", "first"), ciat: t("CIAT", "first"), aud: t("Audits", "latest"), drp: t("DRP", "latest"), plat: t("Platform", "first") };
+  const apps: TabBinding = { name: "Apps", sameTab: false, joinColumn: "UUID", joinOn: "id", pick: "first" };
+  // A fresh install reads the pillar columns from the Applications tab; a separate tab is a choice.
+  const side = (pick: PickMode): TabBinding => ({ name: "", sameTab: true, joinColumn: "UUID", joinOn: "id", pick });
+  return { apps, ciat: side("first"), aud: side("latest"), drp: side("latest"), plat: side("first") };
 }
 
 function defaultFields(): FieldsSettings {
@@ -123,8 +125,12 @@ function cleanSource(raw: unknown, base: SourceSettings): SourceSettings {
   for (const k of TAB_KEYS) {
     const t = isObj(own(tabsRaw, k)) ? (own(tabsRaw, k) as Record<string, unknown>) : {};
     const b = base.tabs[k];
+    // Stored settings from before `sameTab` existed name their tab (or '' for unused): they keep
+    // meaning exactly that. Only a binding with no stored entry at all takes the default.
+    const stored = Object.keys(t).length > 0;
     tabs[k] = {
       name: str(own(t, "name"), NAME_MAX, b.name),
+      sameTab: k === "apps" ? false : typeof own(t, "sameTab") === "boolean" ? (own(t, "sameTab") as boolean) : stored ? false : b.sameTab,
       joinColumn: str(own(t, "joinColumn"), HEADER_MAX, b.joinColumn),
       joinOn: oneOf<JoinOn>(own(t, "joinOn"), ["id", "name"], b.joinOn),
       pick: oneOf<PickMode>(own(t, "pick"), ["first", "latest"], b.pick),
@@ -229,6 +235,11 @@ export function sectionBytes(section: unknown): number {
 // ------------------------------------------------------------------------------------ validate
 
 /** The tab names used in validation sentences (the client maps them back to a key). */
+/** True when the binding reads something: a named tab, or (pillars) the Applications tab. */
+export function tabInUse(tabs: Record<TabKey, TabBinding>, k: TabKey): boolean {
+  return k === "apps" ? tabs.apps.name !== "" : tabs[k].sameTab || tabs[k].name !== "";
+}
+
 export const TAB_NAMES: Readonly<Record<TabKey, string>> = { apps: "Applications", ciat: "CIAT", aud: "Audits", drp: "DRP", plat: "Platform" };
 
 /** Sentences for what is wrong. Empty means the settings can be saved. */
@@ -237,14 +248,14 @@ export function validateSettings(s: Settings): string[] {
   const tabs = s.source.tabs;
   if (tabs.apps.name === "") errors.push("The Applications tab needs a name: it holds the list of applications.");
   for (const k of TAB_KEYS) {
-    if (tabs[k].name !== "" && tabs[k].joinOn === "id" && k !== "apps" && tabs[k].joinColumn === "")
+    if (k !== "apps" && !tabs[k].sameTab && tabs[k].name !== "" && tabs[k].joinOn === "id" && tabs[k].joinColumn === "")
       errors.push("The " + TAB_NAMES[k] + " tab joins on the application id, so it needs the name of its id column.");
   }
   if (s.fields.id.header === "" && tabs.apps.name !== "") errors.push("The Application id field needs a column: applications are identified by it.");
   if (s.fields.name.header === "" && tabs.apps.name !== "") errors.push("The Name field needs a column: every application is shown by its name.");
   for (const k of FIELD_KEYS) {
     const m = s.fields[k];
-    if (m.header !== "" && tabs[m.binding].name === "")
+    if (m.header !== "" && !tabInUse(tabs, m.binding))
       errors.push("“" + FIELD_BY_KEY[k].label + "” is mapped to a column of a tab that is not used. Choose a tab for it or clear the column.");
   }
   if (s.source.sheetId !== "" && !/^[A-Za-z0-9_-]{10,}$/.test(s.source.sheetId)) errors.push("The Google Sheet link is not valid: it should contain the sheet id.");

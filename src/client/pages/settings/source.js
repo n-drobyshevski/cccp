@@ -5,7 +5,7 @@
 import { html } from "../../lib/html.js";
 import { count, num, stamp } from "../../lib/format.js";
 import { dot } from "../../components/dots.js";
-import { TAB_LABEL } from "./draft.js";
+import { SAME_TAB, TAB_LABEL, tabChoice } from "./draft.js";
 import { TAB_KEYS } from "../../../domain/types";
 
 const JOIN_ON = [["id", "Application id"], ["name", "Application name"]];
@@ -16,23 +16,45 @@ function readOnlyLink(meta, draft) {
   return meta.url || draft["source.sheetId"] || "No Sheet connected yet";
 }
 
+/** The detected Applications tab, while the draft still names the saved (absent) tab. */
+function detectedApps(ctx) {
+  const t = ctx.meta.tabs.find((x) => x.key === "apps");
+  const key = "source.tabs.apps.name";
+  return t && t.detected && ctx.session.draft[key] === ctx.session.savedDraft[key] ? t : null;
+}
+
 function tabNames(ctx) {
   const names = [];
   const add = (n) => { if (n && names.indexOf(n) < 0) names.push(n); };
+  (ctx.session.tabNames || []).forEach(add);
   const probe = ctx.ui.probe;
   if (probe && probe.result) probe.result.tabs.forEach((t) => add(t.name));
-  for (const k of TAB_KEYS) { add(ctx.session.savedDraft["source.tabs." + k + ".name"]); add(ctx.session.draft["source.tabs." + k + ".name"]); }
+  const det = detectedApps(ctx);
+  for (const k of TAB_KEYS) {
+    if (k === "apps" && det) continue;
+    add(ctx.session.savedDraft["source.tabs." + k + ".name"]);
+    add(ctx.session.draft["source.tabs." + k + ".name"]);
+  }
   return names;
 }
 
 function statusOf(ctx, k) {
   const { session, meta } = ctx;
-  const name = session.draft["source.tabs." + k + ".name"];
+  const d = session.draft;
+  const sd = session.savedDraft;
+  const t = meta.tabs.find((x) => x.key === k);
+  if (k !== "apps" && d["source.tabs." + k + ".sameTab"]) {
+    if (!sd["source.tabs." + k + ".sameTab"]) return { word: "Save to check", cls: "", tip: "The change is read after you save." };
+    if (!t || t.columnsMapped === undefined) return { word: "Same tab", cls: "", tip: "" };
+    const all = t.columnsMapped > 0 && t.columnsFound === t.columnsMapped;
+    const word = t.columnsMapped === 0 ? "No columns mapped" : all ? "All " + t.columnsMapped + " columns found" : t.columnsFound + " of " + t.columnsMapped + " columns yet";
+    return { word, cls: "", tip: all ? "" : "These columns are not in the Applications tab yet. Until they are, the fields stay empty and the pillars show no data. Nothing is wrong." };
+  }
+  const name = d["source.tabs." + k + ".name"];
   if (name === "") return { word: "Not used", cls: "", tip: "No Sheet tab is bound, so these fields stay empty." };
-  if (name !== session.savedDraft["source.tabs." + k + ".name"]) return { word: "Save to check", cls: "", tip: "The new tab is read after you save." };
+  if (name !== sd["source.tabs." + k + ".name"] || (k !== "apps" && sd["source.tabs." + k + ".sameTab"])) return { word: "Save to check", cls: "", tip: "The new tab is read after you save." };
   const missingTab = meta.issues && meta.issues.missingTabs && meta.issues.missingTabs.indexOf(k) >= 0;
   if (missingTab) return { word: "Tab not found", cls: "bad", tip: "The workbook has no tab called " + name + "." };
-  const t = meta.tabs.find((x) => x.key === k);
   if (t && t.missingHeaders && t.missingHeaders.length) return { word: "Columns missing", cls: "warn", tip: "Not found in this tab: " + t.missingHeaders.join(", ") };
   return { word: "OK", cls: "ok", tip: "" };
 }
@@ -76,15 +98,21 @@ function tabsTable(ctx) {
   return html`<div class="sgrp"><h3>Sheet tabs</h3><div class="mt"><table><thead><tr><th>Data</th><th>Tab</th><th class="num">Rows</th><th>Status</th></tr></thead><tbody>
     ${TAB_KEYS.map((k) => {
       const key = "source.tabs." + k + ".name";
-      const cur = session.draft[key];
+      const choice = tabChoice(session.draft, k);
       const st = statusOf(ctx, k);
       const t = meta.tabs.find((x) => x.key === k);
-      const same = cur === saved[key];
+      const sep = choice !== SAME_TAB;
+      const same = sep && choice === saved[key] && !(k !== "apps" && saved["source.tabs." + k + ".sameTab"]);
       const unmatched = same && t && t.unmatched ? html`<small class="mut"> · ${count(t.unmatched, "row")} ${t.unmatched === 1 ? "matches" : "match"} no application</small>` : "";
+      const det = k === "apps" ? detectedApps(ctx) : null;
+      const opts = names.filter((n) => !det || n !== det.name).map((n) => html`<option value="${n}"${n === choice ? html` selected` : ""}>${n}</option>`);
+      const picker = k === "apps"
+        ? html`<select class="sel" data-key="${key}" data-type="text" data-k="tab-${k}" aria-label="${TAB_LABEL[k]} tab">${det ? html`<option value="${choice}" selected>${det.name} · detected</option>` : ""}${opts}</select>`
+        : html`<select class="sel" data-tabpick="${k}" data-k="tab-${k}" aria-label="${TAB_LABEL[k]} tab"><option value="${SAME_TAB}"${choice === SAME_TAB ? html` selected` : ""}>Same tab as Applications</option><option value=""${choice === "" ? html` selected` : ""}>Not used</option>${opts}</select>`;
       return html`<tr data-tab-row="${k}"><td>${TAB_LABEL[k]}</td>
-        <td><select class="sel" data-key="${key}" data-type="text" data-k="tab-${k}" aria-label="${TAB_LABEL[k]} tab">${k === "apps" ? "" : html`<option value=""${cur === "" ? html` selected` : ""}>Not used</option>`}${names.map((n) => html`<option value="${n}"${n === cur ? html` selected` : ""}>${n}</option>`)}</select></td>
-        <td class="num" data-rows>${same && t && cur !== "" ? num(t.rows) : "—"}</td>
-        <td>${st.cls ? html`<span class="res ${st.cls}"${st.tip ? html` tabindex="0" data-tip="${st.tip}" aria-label="${st.word + ": " + st.tip}"` : ""}>${st.word}</span>` : html`<span class="mut">${st.word}</span>`}${unmatched}</td></tr>`;
+        <td>${picker}</td>
+        <td class="num" data-rows>${(k === "apps" || same) && t && choice !== "" ? num(t.rows) : "—"}</td>
+        <td>${st.cls ? html`<span class="res ${st.cls}"${st.tip ? html` tabindex="0" data-tip="${st.tip}" aria-label="${st.word + ": " + st.tip}"` : ""}>${st.word}</span>` : st.tip ? html`<span class="mut" data-neutral tabindex="0" data-tip="${st.tip}" aria-label="${st.word + ": " + st.tip}">${st.word}</span>` : html`<span class="mut" data-neutral>${st.word}</span>`}${unmatched}</td></tr>`;
     })}
   </tbody></table></div></div>`;
 }
@@ -103,7 +131,7 @@ function issues(ctx) {
 function advanced(ctx) {
   const { session, ui } = ctx;
   const open = !!ui.adv;
-  const rowsFor = TAB_KEYS.filter((k) => k !== "apps" && session.draft["source.tabs." + k + ".name"] !== "");
+  const rowsFor = TAB_KEYS.filter((k) => k !== "apps" && !session.draft["source.tabs." + k + ".sameTab"] && session.draft["source.tabs." + k + ".name"] !== "");
   return html`<div class="sgrp"><button type="button" class="disc" data-act="s-adv" data-k="adv" aria-expanded="${open ? "true" : "false"}" aria-controls="st-adv">Advanced: how the tabs are joined</button>
     ${open ? html`<div id="st-adv" class="mt"><table><thead><tr><th>Tab</th><th>Id column</th><th>Join on</th><th>When several rows</th></tr></thead><tbody>
       ${rowsFor.length ? rowsFor.map((k) => {
@@ -112,7 +140,7 @@ function advanced(ctx) {
           <td><input class="inp" data-key="${p}joinColumn" data-type="text" data-k="jc-${k}" value="${session.draft[p + "joinColumn"]}" aria-label="${TAB_LABEL[k]} id column"></td>
           <td><select class="sel" data-key="${p}joinOn" data-type="text" data-k="jo-${k}" aria-label="${TAB_LABEL[k]} join on">${JOIN_ON.map(([v, l]) => html`<option value="${v}"${session.draft[p + "joinOn"] === v ? html` selected` : ""}>${l}</option>`)}</select></td>
           <td><select class="sel" data-key="${p}pick" data-type="text" data-k="pk-${k}" aria-label="${TAB_LABEL[k]} row pick">${PICK.map(([v, l]) => html`<option value="${v}"${session.draft[p + "pick"] === v ? html` selected` : ""}>${l}</option>`)}</select></td></tr>`;
-      }) : html`<tr><td colspan="4" class="mut">No side tabs are in use.</td></tr>`}
+      }) : html`<tr><td colspan="4" class="mut">No pillar reads from a separate tab.</td></tr>`}
     </tbody></table></div>` : ""}</div>`;
 }
 

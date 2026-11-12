@@ -1,4 +1,4 @@
-import type { AppRecord } from "../../src/domain/types";
+import type { AppRecord, Settings } from "../../src/domain/types";
 
 export function mk(over: Partial<AppRecord> = {}): AppRecord {
   return {
@@ -9,4 +9,11 @@ export function mk(over: Partial<AppRecord> = {}): AppRecord {
     auditResult: null, auditMajor: null, mtd: null, rto: null, rpo: null, lastDrpTest: null, drpResult: null,
     hosting: null, sso: null, internalUsers: null, externalUsers: null, _row: {}, ...over,
   };
+}
+
+/** The pre-same-tab defaults: every pillar reads from its own tab (CIAT, Audits, DRP, Platform). */
+export function separateTabs(s: Settings): Settings {
+  const names = { ciat: "CIAT", aud: "Audits", drp: "DRP", plat: "Platform" } as const;
+  for (const k of ["ciat", "aud", "drp", "plat"] as const) s.source.tabs[k] = { ...s.source.tabs[k], name: names[k], sameTab: false };
+  return s;
 }

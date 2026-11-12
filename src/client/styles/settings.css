@@ -71,6 +71,7 @@
 .callout { display: flex; gap: 10px; align-items: flex-start; border-radius: var(--r); padding: 10px 12px; background: color-mix(in srgb, var(--warn) 10%, var(--surface)); border: 1px solid color-mix(in srgb, var(--warn) 35%, var(--line)); font-size: 13px; }
 .callout > span { flex: 1; }
 .callout .dot { margin-top: 4px; flex: none; }
+.callout.note { background: var(--surface2); border-color: var(--line); }
 .callout.error { background: color-mix(in srgb, var(--bad) 8%, var(--surface)); border-color: color-mix(in srgb, var(--bad) 35%, var(--line)); }
 .btn.pri { background: var(--accent); color: var(--on-accent); border-color: var(--accent); }
 .btn.pri:hover { color: var(--on-accent); filter: brightness(1.08); }

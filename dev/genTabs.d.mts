@@ -19,3 +19,5 @@ export function sampleCsvPath(env?: Record<string, string | undefined>): string;
 export function parseCsv(text: string): string[][];
 export function genWorkbook(opts?: { csvText?: string; csvPath?: string }): Workbook;
 export function workbookJson(opts?: { csvText?: string; csvPath?: string }): string;
+export const ONETAB_NAME: string;
+export function genOneTabWorkbook(): Workbook;

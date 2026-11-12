@@ -23,7 +23,7 @@ export interface GasFakes {
   calls(): Array<{ svc: string; args: Record<string, unknown> }>;
   exports(): Array<{ spreadsheet: Record<string, unknown>; values: Record<string, unknown[][]>; batches: unknown[]; permissions: unknown[] }>;
   loadWorkbook(wb: Workbook, o?: { empty?: boolean; tz?: string }): string;
-  seedDefaults(o?: { sheetId?: string; mode?: string | null; admins?: string | null; nosource?: boolean }): void;
+  seedDefaults(o?: { sheetId?: string; mode?: string | null; admins?: string | null; nosource?: boolean; oneTab?: boolean }): void;
   setActiveUser(email: string): void;
   setEffectiveUser(email: string): void;
   setSourceAccess(ok: boolean): void;

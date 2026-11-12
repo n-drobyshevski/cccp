@@ -22,7 +22,8 @@ npm run e2e         # Playwright against the dev server; Chrome locally, Playwri
 ```
 
 Dev flags (query string): `as=<email>`, `mode=org`, `admins=<list>`, `nosource`, `empty`,
-`coldcache`, `slow=<ms>`, `tz`, `inline`. Seeds: `owner@example.com` (owner), `admin@example.com`,
+`coldcache`, `slow=<ms>`, `tz`, `inline`, `onetab` (a workbook with only the synthetic inventory,
+named `Inventory`, and untouched default settings: the single-tab owner's setup). Seeds: `owner@example.com` (owner), `admin@example.com`,
 `viewer@example.com`. The dev fakes reset on every page load.
 
 ## End-to-end tests

@@ -3,10 +3,11 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import { decodeRegister, payloadBytes, REGISTER_INLINE_MAX_BYTES } from "../../src/domain/payload";
 import * as access from "../../src/server/access";
 import * as api from "../../src/server/api";
+import { diagnosticsReport, diagnosticsText } from "../../src/server/diagnostics";
 import { getRegisterPayload, registerEntry, reloadRegister, UNREACHABLE } from "../../src/server/registerStore";
 import { cfgGen, dataVersion } from "../../src/server/serverCache";
 import { recentErrors } from "../../src/server/errors";
-import { genWorkbook } from "../../dev/genTabs.mjs";
+import { genOneTabWorkbook, genWorkbook } from "../../dev/genTabs.mjs";
 import { useGasEnv } from "../gasEnv";
 
 const fakes = useGasEnv({ workbook: true, seed: true });
@@ -143,5 +144,35 @@ describe("version counters", () => {
     fakes().holdLock(true);
     expect(() => reloadRegister()).toThrow(/Try again/);
     expect(api.reloadData()).toMatchObject({ ok: false, errorKind: "busy" });
+  });
+});
+
+describe("a one-tab workbook with the untouched default settings", () => {
+  it("detects the inventory tab and reports the pillars as not provided yet, not as errors", () => {
+    const one = genOneTabWorkbook();
+    fakes().loadWorkbook(one);
+    PropertiesService.getScriptProperties().setProperty("CFG_SOURCE", JSON.stringify({ sheetId: one.id }));
+    as("viewer@example.com");
+    const { meta, register } = registerEntry();
+    expect(decodeRegister(register)).toHaveLength(1125);
+    expect(meta.tabs.map((t) => t.key)).toEqual(["apps", "ciat", "aud", "drp", "plat"]);
+    expect(meta.tabs[0]).toMatchObject({ name: "Inventory", detected: true, rows: 1125 });
+    for (const t of meta.tabs.slice(1)) {
+      expect(t).toMatchObject({ name: "Inventory", sameTab: true, columnsFound: 0, missingHeaders: [], unmatched: 0 });
+      expect(t.columnsMapped).toBeGreaterThan(0);
+    }
+    expect(meta.issues.missingHeaders).toEqual([]);
+    expect(meta.issues.missingTabs).toEqual([]);
+    expect(meta.issues.unmatched).toEqual([]);
+    expect(meta.issues.duplicateIds).toEqual([]);
+    expect(meta.issues.unmapped.every((u) => u.reason === "not provided yet")).toBe(true);
+    expect(meta.issues.unmapped.length).toBeGreaterThan(0);
+    const report = diagnosticsReport();
+    expect(report.issues).toMatchObject({ missingHeaders: 0, missingTabs: 0, unmapped: 0 });
+    expect(report.issues!.notProvidedYet).toBeGreaterThan(0);
+    const text = diagnosticsText();
+    expect(text).toContain("Inventory");
+    expect(text).toContain("same tab, 0 of");
+    expect(text).not.toMatch(/missing|NOT FOUND/);
   });
 });

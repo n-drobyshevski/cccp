@@ -4,6 +4,8 @@ import * as access from "../../src/server/access";
 import * as api from "../../src/server/api";
 import { cfgGen, dataVersion } from "../../src/server/serverCache";
 import { loadSettings } from "../../src/server/settingsStore";
+import { genOneTabWorkbook } from "../../dev/genTabs.mjs";
+import { getSettingsView } from "../../src/server/settingsStore";
 import { useGasEnv } from "../gasEnv";
 
 const fakes = useGasEnv({ workbook: true, seed: true });
@@ -193,5 +195,19 @@ describe("getSettings", () => {
   it("is refused for a viewer", () => {
     as("viewer@example.com");
     expect(api.getSettings()).toMatchObject({ ok: false, errorKind: "forbidden" });
+  });
+});
+
+describe("getSettingsView on a one-tab workbook", () => {
+  it("offers the workbook tabs and the inventory headers for every same-tab pillar", () => {
+    const one = genOneTabWorkbook();
+    fakes().loadWorkbook(one);
+    PropertiesService.getScriptProperties().setProperty("CFG_SOURCE", JSON.stringify({ sheetId: one.id }));
+    const v = getSettingsView();
+    expect(v.tabNames).toEqual(["Inventory"]);
+    expect(v.headers.apps).toContain("UUID");
+    expect(v.headers.ciat).toEqual(v.headers.apps);
+    expect(v.headers.plat).toEqual(v.headers.apps);
+    expect(v.settings.source.tabs.aud.sameTab).toBe(true);
   });
 });

@@ -4,7 +4,7 @@ import { afterEach, describe, expect, it } from "vitest";
 import { applyPatch, makeDefaultSettings } from "../../src/domain/settings";
 import {
   barModel, changedKeys, clampedText, committed, discard, edit, effective, errorsOf, guardSettings, isDirty,
-  keyForSentence, newSession, resetGuardForTest, tabMarks, toPatch, unmappedFields,
+  SAME_TAB, chooseTab, keyForSentence, newSession, resetGuardForTest, tabMarks, toPatch, unmappedFields,
 } from "../../src/client/pages/settings/draft.js";
 import { sourceView } from "../../src/client/pages/settings/source.js";
 import { fieldsView } from "../../src/client/pages/settings/fields.js";
@@ -14,6 +14,7 @@ import { savebar } from "../../src/client/components/savebar.js";
 const ID = "1AbCdEfGhIjKlMnOpQrStUvWxYz";
 const URL_OF = ["https:", "", "docs.google.com", "spreadsheets", "d", ID, "edit"].join("/");
 const settings = () => { const s = makeDefaultSettings(); s.source.sheetId = ID; return s; };
+const INV = ["UUID", "Name", "Domain", "Subdomain", "Support Group", "Owner Name", "Backup Owner Name", "Lifecycle", "Typology", "Tiering", "Security Officer Name"];
 const session = () => newSession({ settings: settings(), cfgGen: 4, headers: { apps: ["UUID", "Name", "Domain"] }, examples: { apps: { Name: "Billing" } } }, URL_OF);
 
 describe("draft and patch", () => {
@@ -164,8 +165,14 @@ describe("guard", () => {
 });
 
 describe("the tab views", () => {
+  // Audits reads from its own tab here (the legacy shape); the pillars default to the same tab.
+  const sepSession = () => {
+    const st = settings();
+    st.source.tabs.aud = { ...st.source.tabs.aud, name: "Audits", sameTab: false };
+    return newSession({ settings: st, cfgGen: 4, headers: { apps: ["UUID", "Name", "Domain"] }, examples: { apps: { Name: "Billing" } }, tabNames: ["Apps", "Audits"] }, URL_OF);
+  };
   const ctx = (over) => {
-    const s = session();
+    const s = sepSession();
     return {
       session: s,
       meta: { title: "CCCP data", url: URL_OF, tz: "UTC", loadedAt: "2026-11-11T09:42:00.000Z", dataVersion: 1, tabs: [{ key: "apps", name: "Apps", gid: 1, rows: 1125, missingHeaders: [], unmatched: 0 }, { key: "aud", name: "Audits", gid: 2, rows: 10, missingHeaders: ["Last Audit"], unmatched: 3 }], issues: { missingTabs: [], duplicateIds: [], unparseable: [] } },
@@ -190,12 +197,45 @@ describe("the tab views", () => {
     expect(admin).toContain("Only the owner");
   });
 
+  it("a one-tab workbook: the detected tab, pillars on the same tab, no warning styling", () => {
+    const st = settings();
+    const sess = newSession({ settings: st, cfgGen: 4, headers: { apps: ["UUID", "Name"], ciat: ["UUID", "Name"] }, examples: {}, tabNames: ["Inventory"] }, URL_OF);
+    const tabs = [{ key: "apps", name: "Inventory", gid: 1, rows: 1125, missingHeaders: [], unmatched: 0, detected: true }];
+    for (const [k, found, n] of [["ciat", 0, 8], ["aud", 0, 4], ["drp", 0, 5], ["plat", 0, 5]]) tabs.push({ key: k, name: "Inventory", gid: 1, rows: 1125, missingHeaders: [], unmatched: 0, sameTab: true, columnsFound: found, columnsMapped: n });
+    const out = String(sourceView({ ...ctx({ session: sess }), session: sess, meta: { title: "CCCP data", url: URL_OF, tz: "UTC", loadedAt: "", dataVersion: 1, tabs, issues: { missingTabs: [], duplicateIds: [], unparseable: [], unmapped: [] } } }));
+    expect(out).toContain("Inventory · detected");
+    expect(out).toContain("Same tab as Applications");
+    expect(out).toContain("0 of 8 columns yet");
+    expect(out).not.toContain("Columns missing");
+    expect(out).not.toContain("res warn");
+    expect(out).not.toContain("Tab not found");
+    expect(out).not.toContain('data-key="source.tabs.ciat.name"');
+  });
+
+  it("choosing a pillar tab sets sameTab and name together", () => {
+    let s = chooseTab(session(), "ciat", "CIAT");
+    expect(toPatch(s.savedDraft, s.draft)).toEqual({ source: { tabs: { ciat: { name: "CIAT", sameTab: false } } } });
+    s = chooseTab(s, "ciat", SAME_TAB);
+    expect(isDirty(s)).toBe(true);
+    expect(toPatch(s.savedDraft, s.draft)).toEqual({ source: { tabs: { ciat: { name: "CIAT" } } } });
+    s = chooseTab(session(), "plat", "");
+    expect(applyPatch(s.saved, toPatch(s.savedDraft, s.draft)).source.tabs.plat).toMatchObject({ sameTab: false, name: "" });
+  });
+
   it("Last loaded reads just now after a reload", () => {
     expect(String(sourceView(ctx({ ui: { adv: false, probe: { state: "idle" }, reloadedAt: true } })))).toContain("Last loaded just now");
   });
 
+  it("same-tab pillar columns that are absent are a neutral note, not a warning", () => {
+    const out = String(fieldsView({ session: newSession({ settings: settings(), cfgGen: 4, headers: { apps: INV, ciat: INV, aud: INV, drp: INV, plat: INV }, examples: {} }, URL_OF) }));
+    expect(out).toContain("data-callout-note");
+    expect(out).toContain("not provided yet");
+    expect(out).not.toContain("not found in the Sheet");
+    expect(out).not.toContain("data-callout>");
+  });
+
   it("the mapping view shows real headers, examples and the callout", () => {
-    const out = String(fieldsView({ session: session() }));
+    const out = String(fieldsView({ session: sepSession() }));
     expect(out).toContain('<option value="Domain">Domain</option>');
     expect(out).toContain("Billing");
     expect(out).toContain("not found in the Sheet");

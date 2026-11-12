@@ -117,6 +117,7 @@ describe("validateSettings", () => {
 
   it("flags a field mapped into an unused tab", () => {
     const s = D();
+    s.source.tabs.plat.sameTab = false;
     s.source.tabs.plat.name = "";
     expect(validateSettings(s).some((e) => e.includes("Hosting type"))).toBe(true);
     s.fields.hosting.header = "";
@@ -216,5 +217,49 @@ describe("review fixes", () => {
     const errs = validateSettings(s);
     expect(errs.some((e) => e.startsWith("The Audits tab joins on"))).toBe(true);
     expect(errs.join(" ")).not.toMatch(/The aud tab/);
+  });
+});
+
+describe("the same-tab binding", () => {
+  it("is the fresh default for the pillars; apps is never same-tab even when asked", () => {
+    const t = cleanSettings({ source: { tabs: { apps: { sameTab: true } } } }).source.tabs;
+    expect(t.apps.sameTab).toBe(false);
+    expect([t.ciat, t.aud, t.drp, t.plat].every((b) => b.sameTab && b.name === "")).toBe(true);
+  });
+
+  it("stored settings that name a tab, or no tab, keep meaning exactly that", () => {
+    const t = cleanSettings({ source: { tabs: { ciat: { name: "CIAT", joinColumn: "UUID" }, aud: { name: "" } } } }).source.tabs;
+    expect(t.ciat).toMatchObject({ name: "CIAT", sameTab: false });
+    expect(t.aud).toMatchObject({ name: "", sameTab: false });
+    expect(t.drp.sameTab).toBe(true);
+  });
+
+  it("accepts the explicit flag, rejects junk and survives a round trip", () => {
+    const t = cleanSettings({ source: { tabs: { ciat: { name: "CIAT", sameTab: true }, drp: { sameTab: "yes" }, plat: { name: "P", sameTab: false } } } }).source.tabs;
+    expect(t.ciat).toMatchObject({ name: "CIAT", sameTab: true });
+    expect(t.drp.sameTab).toBe(false);
+    expect(t.plat).toMatchObject({ name: "P", sameTab: false });
+    const s = cleanSettings({ source: { tabs: { ciat: { name: "CIAT", sameTab: false } } } });
+    expect(cleanSettings(s)).toEqual(s);
+    expect(cleanSettings(JSON.parse(JSON.stringify(s)))).toEqual(s);
+  });
+
+  it("a patch switches a pillar to a named tab and back", () => {
+    const sep = applyPatch(D(), { source: { tabs: { ciat: { name: "CIAT", sameTab: false } } } });
+    expect(sep.source.tabs.ciat).toMatchObject({ name: "CIAT", sameTab: false });
+    const back = applyPatch(sep, { source: { tabs: { ciat: { sameTab: true } } } });
+    expect(back.source.tabs.ciat).toMatchObject({ name: "CIAT", sameTab: true });
+  });
+
+  it("validates: same-tab needs no tab name or id column; a mapped field on a used same tab is fine", () => {
+    expect(validateSettings(D())).toEqual([]);
+    const s = D();
+    s.source.tabs.ciat.joinColumn = "";
+    expect(validateSettings(s)).toEqual([]);
+    s.source.tabs.ciat.sameTab = false;
+    s.source.tabs.ciat.name = "CIAT";
+    expect(validateSettings(s).some((e) => e.includes("CIAT") && e.includes("id column"))).toBe(true);
+    s.source.tabs.ciat.name = "";
+    expect(validateSettings(s).some((e) => e.includes("Confidentiality"))).toBe(true);
   });
 });

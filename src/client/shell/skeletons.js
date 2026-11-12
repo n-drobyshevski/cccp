@@ -9,7 +9,7 @@ import { SEARCH_PLACEHOLDER } from "../components/toolbar.js";
 import { ALL_VIEW } from "../state/views.js";
 import { DEFAULT_COLUMN_KEYS, COLUMN_BY_KEY } from "../../domain/columns";
 import { DQ_TITLE, factsheetOutline } from "../../domain/factsheet";
-import { FACET_BY_KEY, PILLAR_LABEL, TIER_ORDER } from "../../domain/facets";
+import { FACET_BY_KEY, PILLAR_LABEL } from "../../domain/facets";
 import { HEATMAP_LEAD_HEADS } from "../../domain/heatmap";
 import { LANDSCAPE_METRICS } from "../../domain/landscape";
 import { OVERVIEW_TITLES, overviewModel } from "../../domain/overview";
@@ -28,18 +28,15 @@ const bar = (width, cls) => html`<i class="sk${cls ? " " + cls : ""}" style="--w
 const dots = () => html`<span class="sk-dots"><i></i><i></i><i></i><i></i></span>`;
 const rows = (n, fn) => Array.from({ length: n }, (_, i) => fn(i));
 
-const tierLabel = (v) => (v === "No tier" ? "–" : v);
-
 // The filter toolbar the three filtered pages share.
 function toolbar() {
-  const pills = ["dom", "lc", "so", "gap"].map((k) => html`<span class="pill ld-hide-s"><span>${FACET_BY_KEY[k].label}</span>${icon("chevron")}</span>`);
+  const pills = ["tier", "dom", "lc", "so", "gap"].map((k) => html`<span class="pill ld-hide-s"><span>${FACET_BY_KEY[k].label}</span>${icon("chevron")}</span>`);
   return html`<section class="panel ld-bar">
     <div class="ld-tab"><span>${ALL_VIEW.name}</span></div>
     <div class="ld-bar-row">
       <span class="ld-search">${icon("search")}<span>${SEARCH_PLACEHOLDER}</span></span>
-      <span class="ld-tiers">${TIER_ORDER.map((t) => html`<span>${tierLabel(t)}</span>`)}</span>
       ${pills}
-      <span class="pill">${icon("filter", 14)}<span>Filter panel</span></span>
+      <span class="pill">${icon("filter", 14)}</span>
     </div>
   </section>`;
 }

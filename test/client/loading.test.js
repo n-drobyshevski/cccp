@@ -88,7 +88,7 @@ describe("route skeletons", () => {
   it("list: toolbar words and every default column head are real text", () => {
     const h = s(skeleton("list"));
     expect(h).toContain(SEARCH_PLACEHOLDER);
-    for (const l of ["All applications", "Domain", "Lifecycle", "Security officer", "Gap in", "Filter panel", "Columns", "Export"]) expect(h).toContain(l);
+    for (const l of ["All applications", "Tier", "Domain", "Lifecycle", "Security officer", "Gap in", "Columns", "Export"]) expect(h).toContain(l);
     for (const k of DEFAULT_COLUMN_KEYS) expect(h).toContain(">" + COLUMN_BY_KEY[k].label + "<");
   });
 

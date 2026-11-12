@@ -1,4 +1,4 @@
-// The toolbar, facet checklists, filter panel, tier toggles and dots as pure views: pill
+// The toolbar, facet checklists, filter panel, tier pill and dots as pure views: pill
 // labels, skip-semantics counts, muted zero rows, find, chips, the saved panel state and the
 // escaping of hostile values. The DOM behaviour (popover focus, outside click, sync) is in
 // e2e/filters.spec.ts.
@@ -6,8 +6,7 @@ import { afterEach, beforeEach, describe, expect, it } from "vitest";
 import { dots, dotsHead } from "../../src/client/components/dots.js";
 import { checklist, facetPopover, findOptions } from "../../src/client/components/facetList.js";
 import { panelView, readSide, writeSide } from "../../src/client/components/filterPanel.js";
-import { segmented } from "../../src/client/components/segmented.js";
-import { PILL_FACETS, chipKeys, filtersShell, frameView, pillLabel, rowView, toggled, withFacet } from "../../src/client/components/toolbar.js";
+import { PILL_FACETS, chipKeys, filtersShell, frameView, pillLabel, pillTip, rowView, toggled, withFacet } from "../../src/client/components/toolbar.js";
 import * as register from "../../src/client/state/register.js";
 import { initialState } from "../../src/client/state/store.js";
 import { facetOptions } from "../../src/domain/query";
@@ -46,13 +45,14 @@ describe("pill labels", () => {
     expect(pillLabel("dom", undefined)).toBe("Domain");
     expect(pillLabel("dom", ["NORTH"])).toBe("Domain: NORTH");
     expect(pillLabel("dom", ["NORTH", "SOUTH", "EAST"])).toBe("Domain: NORTH +2");
-    expect(pillLabel("so", ["Zoé Martin"])).toBe("Security officer: Zoé Martin");
+    expect(pillLabel("so", [])).toBe("Security officer");
+    expect(pillLabel("so", ["Zoé Martin"])).toBe("Officer: Zoé Martin");
     expect(pillLabel("gap", ["Cyber", "Platform"])).toBe("Gap in: Cyber +1");
   });
-  it("the four pills are Domain, Lifecycle, Security officer and Gap in", () => {
+  it("the five pills are Tier, Domain, Lifecycle, Security officer and Gap in", () => {
     const out = s(rowView(state(), null));
     const labels = [...out.matchAll(/data-act="open"[^>]*><span>([^<]*)<\/span>/g)].map((m) => m[1]);
-    expect(labels).toEqual(["Domain", "Lifecycle", "Security officer", "Gap in"]);
+    expect(labels).toEqual(["Tier", "Domain", "Lifecycle", "Security officer", "Gap in"]);
     expect(PILL_FACETS).toEqual(["dom", "lc", "so", "gap"]);
   });
   it("marks a pill with a selection as on", () => {
@@ -153,18 +153,51 @@ describe("checkbox focus keys", () => {
   });
 });
 
-describe("tier toggles", () => {
-  const out = s(rowView(state({ f: { tier: ["T1", "No tier"] } }), null));
-  it("T1 to T4 and No tier, pressed state from the selection", () => {
-    expect(out).toMatch(/data-v="T1"[^>]*aria-pressed="true"/);
-    expect(out).toMatch(/data-v="T2"[^>]*aria-pressed="false"/);
-    expect(out).toMatch(/data-v="No tier"[^>]*aria-pressed="true"/);
+describe("the tier pill", () => {
+  it("is labelled Tier with nothing selected and lists the selected tiers", () => {
+    expect(pillLabel("tier", [])).toBe("Tier");
+    expect(pillLabel("tier", ["T1", "T2"])).toBe("Tier: 1, 2");
+    expect(pillLabel("tier", ["T1", "No tier"])).toBe("Tier: 1, No tier");
   });
-  it("No tier shows a dash with a name and a tip, so it is not mute", () => {
-    expect(out).toMatch(/aria-label="No tier" data-tip="No tier">–<\/button>/);
+  it("is the first pill, opens the same popover as the others and marks a selection as on", () => {
+    const out = s(rowView(state({ f: { tier: ["T1", "T2"] } }), null));
+    expect(out).toMatch(/class="pill on"[^>]*data-act="open" data-facet="tier" data-k="pill-tier" aria-haspopup="dialog" aria-expanded="false"/);
+    expect(out.indexOf('data-facet="tier"')).toBeLessThan(out.indexOf('data-facet="dom"'));
+    expect(out).not.toContain('role="group" aria-label="Tier"');
+    expect(out).not.toContain('data-act="tier"');
   });
-  it("segmented labels the group", () => {
-    expect(s(segmented({ label: "Tier", act: "tier", k: "t", options: [{ value: "T1" }], selected: [] }))).toContain('role="group" aria-label="Tier"');
+  it("stays in the row while the panel is open, ahead of the chips", () => {
+    const out = s(rowView(state({ f: { tier: ["T1"], dom: ["A"] }, side: true }), null));
+    expect(out).toContain('data-facet="tier" data-k="pill-tier"');
+    expect(out.indexOf("pill-tier")).toBeLessThan(out.indexOf('class="chip"'));
+    expect(out).not.toContain('data-facet="dom" data-k="pill-dom"');
+  });
+  it("its checklist counts like the others and shows No tier with a dashed none dot", () => {
+    const options = facetOptions(rows, { q: "", f: {} }, "tier");
+    const out = s(checklist({ key: "tier", options, find: "", scope: "pop" }));
+    expect([...out.matchAll(/data-v="([^"]*)"/g)].map((m) => m[1])).toEqual(["T1", "T2", "No tier"]);
+    expect(out).toMatch(/data-v="T1"[^>]*>.*?<small>2<\/small>/);
+    expect(out).toMatch(/class="dot none".*<span>No tier<\/span><small>1<\/small>/);
+    expect((out.match(/class="dot none"/g) || []).length).toBe(1);
+  });
+});
+
+describe("active pill values", () => {
+  const long = ["Security officer person with a very long name", "Second"];
+  it("carry the full list in the tip and the accessible name, from the same text", () => {
+    expect(pillTip("so", long)).toBe("Security officer: Security officer person with a very long name, Second");
+    const out = s(rowView(state({ f: { so: long, dom: ["A", "B", "C"] } }), null));
+    expect(out).toMatch(/data-facet="so"[^>]*aria-label="Security officer: Security officer person with a very long name, Second" data-tip="Security officer: Security officer person with a very long name, Second"/);
+    expect(out).toContain('aria-label="Domain: A, B, C" data-tip="Domain: A, B, C"');
+    expect(out).toContain("<span>Domain: A +2</span>");
+  });
+  it("an inactive pill has no tip: its visible name is the name", () => {
+    expect(pillTip("dom", [])).toBe("");
+    const out = s(rowView(state(), null));
+    expect(out).not.toMatch(/data-facet="dom"[^>]*data-tip/);
+  });
+  it("a tier tip names the stored values", () => {
+    expect(s(rowView(state({ f: { tier: ["T1", "No tier"] } }), null))).toContain('aria-label="Tier: T1, No tier" data-tip="Tier: T1, No tier"');
   });
 });
 
@@ -174,17 +207,24 @@ describe("clear all, count badge, filter panel button", () => {
     expect(s(rowView(state({ q: "x" }), null))).toContain('data-act="clear-all"');
     expect(s(rowView(state({ f: { dom: ["A"] } }), null))).toContain('data-act="clear-all"');
   });
-  it("the Filter panel button carries the number of selected values and its pressed state", () => {
+  it("the Filter panel button is an icon with the number of selected values and its pressed state", () => {
     const out = s(rowView(state({ f: { dom: ["A", "B"], tier: ["T1"] }, side: true }), null));
     expect(out).toContain('<span class="badge">3</span>');
     expect(out).toMatch(/data-act="side"[^>]*aria-pressed="true"/);
+    expect(out).toContain('aria-label="Filter panel, 3 filters" data-tip="Filter panel, 3 filters"');
+    expect(out).not.toContain("<span>Filter panel</span>");
+  });
+  it("the Filter panel button is named plainly with no filter and singular with one", () => {
+    expect(s(rowView(state(), null))).toContain('aria-label="Filter panel" data-tip="Filter panel"');
+    expect(s(rowView(state({ f: { dom: ["A"] } }), null))).toContain('aria-label="Filter panel, 1 filter"');
+    expect(s(rowView(state(), null))).not.toContain("badge");
   });
   it("chips replace the pills while the panel is open", () => {
     const closed = s(rowView(state({ f: { dom: ["A"] } }), null));
     const open = s(rowView(state({ f: { dom: ["A"] }, side: true }), null));
     expect(closed).toContain('data-act="open"');
     expect(closed).not.toContain('class="chip"');
-    expect(open).not.toContain('data-act="open"');
+    expect(open).not.toContain('data-facet="dom" data-k="pill-dom"');
     expect(open).toContain('class="chip"');
     expect(open).toContain('aria-label="Remove Domain: A"');
   });

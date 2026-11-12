@@ -135,7 +135,9 @@ test.describe("count, Show more and the empty state", () => {
     await expect(page.getByRole("button", { name: /^Show 50 more/ })).toContainText((n - 50).toLocaleString("en-US") + " left");
     await page.getByRole("button", { name: /^Show 50 more/ }).click();
     await expect(rowsOf(page)).toHaveCount(100);
-    await page.getByRole("button", { name: "T1", exact: true }).click();
+    await page.locator('[data-k="pill-tier"]').click();
+    await page.locator('[data-k="pop-tier-T1"]').check();
+    await page.keyboard.press("Escape");
     const t1 = await visible(page);
     expect(t1).toBeLessThan(n);
     await expect(page.locator("[data-count=of]")).toContainText("of " + n.toLocaleString("en-US"));

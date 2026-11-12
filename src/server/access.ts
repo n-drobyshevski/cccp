@@ -18,6 +18,7 @@
 // The guards live in src/gas/entry.js and in api.ts run(): google.script.run reaches top-level
 // globals directly, and the client is never the authority.
 
+import { ApiError } from "./errors";
 import { cardPage, escapeHtml, secondaryAction } from "./pageShell";
 import { getProp, PROP_KEYS } from "./props";
 
@@ -96,13 +97,13 @@ export const ACCESS_MAX_ENTRIES = 500;
 export function validateAddresses(raw: unknown): string[] {
   const list = parseAllowlist(Array.isArray(raw) ? raw.join("\n") : String(raw ?? ""));
   const bad = list.filter((e) => e.indexOf("@") < 0);
-  if (bad.length) throw new Error(`Not an email address: ${bad.join(", ")}`);
+  if (bad.length) throw new ApiError("error", `Not an email address: ${bad.join(", ")}`);
   if (list.length > ACCESS_MAX_ENTRIES) {
-    throw new Error(`Too many people (${list.length}); the limit is ${ACCESS_MAX_ENTRIES}.`);
+    throw new ApiError("error", `Too many people (${list.length}); the limit is ${ACCESS_MAX_ENTRIES}.`);
   }
   const bytes = list.join(",").length;
   if (bytes > ACCESS_MAX_BYTES) {
-    throw new Error(`That list is too long to store (${bytes} of ${ACCESS_MAX_BYTES} bytes).`);
+    throw new ApiError("error", `That list is too long to store (${bytes} of ${ACCESS_MAX_BYTES} bytes).`);
   }
   return list;
 }

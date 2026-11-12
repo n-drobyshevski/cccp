@@ -120,7 +120,7 @@ export function saveAccessMode(p?: { mode?: unknown }): ApiResult<{ mode: access
   return run("saveAccessMode", () => {
     if (!access.canEditMode()) throw new Error("Only the owner can change the access mode.");
     const mode = p?.mode;
-    if (mode !== "org" && mode !== "list") throw new Error("The access mode must be 'org' or 'list'.");
+    if (mode !== "org" && mode !== "list") throw new ApiError("error", "The access mode must be 'org' or 'list'.");
     const before = access.accessMode();
     setProp(PROP_KEYS.accessMode, mode);
     console.log(JSON.stringify({
@@ -146,7 +146,7 @@ export function probeSource(p?: { url?: unknown }): ApiResult<ProbeResult> {
   return run("probeSource", () => {
     const given = typeof p?.url === "string" ? p.url.trim() : "";
     const id = given === "" ? loadSettings().source.sheetId : sheetIdFrom(given);
-    if (id === "") throw new Error(given === "" ? "No data source is configured yet. Paste the Google Sheet link." : "That does not look like a Google Sheet link.");
+    if (id === "") throw new ApiError("error", given === "" ? "No data source is configured yet. Paste the Google Sheet link." : "That does not look like a Google Sheet link.");
     return probeWorkbook(id);
   });
 }

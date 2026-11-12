@@ -5,6 +5,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import * as access from "../../src/server/access";
 import * as api from "../../src/server/api";
 import { EXPORT_LIMIT, SHEET_TAB } from "../../src/server/exportSheet";
+import { recentErrors } from "../../src/server/errors";
 import { registerEntry } from "../../src/server/registerStore";
 import { decodeRegister } from "../../src/domain/payload";
 import { genWorkbook } from "../../dev/genTabs.mjs";
@@ -148,5 +149,14 @@ describe("exportToSheet", () => {
   it("is a public delegator in entry.js and the only user of the advanced services", () => {
     const entry = readFileSync(new URL("../../src/gas/entry.js", import.meta.url), "utf8");
     expect(entry).toContain('function api_exportToSheet(p) { return timedApi_("exportToSheet", p); }');
+  });
+
+  it("refuses bad input without writing to the recent-errors log", () => {
+    const before = recentErrors().length;
+    for (let i = 0; i < 5; i++) {
+      expect(api.exportToSheet({ ids: [] })).toMatchObject({ ok: false, error: "Nothing to export.", errorKind: "error" });
+      expect(api.exportToSheet({ ids: "x" } as never)).toMatchObject({ ok: false });
+    }
+    expect(recentErrors().length).toBe(before);
   });
 });

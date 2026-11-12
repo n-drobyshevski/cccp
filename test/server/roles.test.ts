@@ -81,15 +81,15 @@ describe("the gate in run()", () => {
     as("viewer@example.com");
     expect(api.bootstrap().ok).toBe(true);
   });
-  it("records a thrown fault in the error log, but not a refusal", async () => {
+  it("records no refusal or input-validation error in the error log", async () => {
     const { recentErrors } = await import("../../src/server/errors");
     as("viewer@example.com");
     api.saveAccess({ users: "x@example.com" });
     expect(recentErrors()).toEqual([]);
     as("owner@example.com");
     api.saveAccess({ users: "notanemail" });
-    expect(recentErrors()).toHaveLength(1);
-    expect(recentErrors()[0]).toMatchObject({ op: "saveAccess", kind: "error" });
+    expect(api.saveAccess({ users: "notanemail" })).toMatchObject({ ok: false, errorKind: "error" });
+    expect(recentErrors()).toEqual([]);
   });
   it("keeps an ApiError's kind (busy, conflict) and does not log it", async () => {
     const { ApiError, recentErrors } = await import("../../src/server/errors");

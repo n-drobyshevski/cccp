@@ -3,6 +3,7 @@
 // Each write is under the script lock and bumps CFG_GEN, because the bootstrap core carries
 // the list. Personal views never come here: they live in the viewer's own localStorage.
 
+import { ApiError } from "./errors";
 import { sha1Hex } from "../vendor/gas_shared/domain/sha1";
 import { cleanView, validateSharedViews, validateView } from "../domain/viewState";
 import type { SavedView } from "../domain/types";
@@ -35,17 +36,17 @@ export function saveSharedView(input: unknown, actor: string): { views: SavedVie
   const raw = (input && typeof input === "object" && !Array.isArray(input) ? input : {}) as Record<string, unknown>;
   const candidate = { ...raw, scope: "shared" };
   const errors = validateView(candidate);
-  if (errors.length) throw new Error(errors.join(" "));
+  if (errors.length) throw new ApiError("error", errors.join(" "));
   return withScriptLock(() => {
     const list = listSharedViews();
     const clean = cleanView(candidate);
     const at = list.findIndex((v) => v.id === clean.id && clean.id !== "");
-    if (at < 0 && list.length >= MAX_VIEWS) throw new Error("At most " + MAX_VIEWS + " shared views can be kept. Delete one first.");
+    if (at < 0 && list.length >= MAX_VIEWS) throw new ApiError("error", "At most " + MAX_VIEWS + " shared views can be kept. Delete one first.");
     const { by: _by, ...rest } = clean;
     const view: SavedView = { ...rest, scope: "shared", id: at >= 0 ? clean.id : newId(clean.name, new Set(list.map((v) => v.id))), at: new Date().toISOString().slice(0, 10) };
     const next = at >= 0 ? list.map((v, i) => (i === at ? view : v)) : list.concat(view);
     const problems = validateSharedViews(next);
-    if (problems.length) throw new Error(problems.join(" "));
+    if (problems.length) throw new ApiError("error", problems.join(" "));
     putJsonProp(PROP_KEYS.sharedViews, next);
     bumpCfgGen();
     console.log(JSON.stringify({ sharedView: "saved", actor, id: view.id, name: view.name }));
@@ -54,11 +55,11 @@ export function saveSharedView(input: unknown, actor: string): { views: SavedVie
 }
 
 export function deleteSharedView(id: unknown, actor: string): { views: SavedView[] } {
-  if (typeof id !== "string" || id === "") throw new Error("Choose a shared view to delete.");
+  if (typeof id !== "string" || id === "") throw new ApiError("error", "Choose a shared view to delete.");
   return withScriptLock(() => {
     const list = listSharedViews();
     const next = list.filter((v) => v.id !== id);
-    if (next.length === list.length) throw new Error("That shared view no longer exists.");
+    if (next.length === list.length) throw new ApiError("error", "That shared view no longer exists.");
     putJsonProp(PROP_KEYS.sharedViews, next);
     bumpCfgGen();
     console.log(JSON.stringify({ sharedView: "deleted", actor, id }));

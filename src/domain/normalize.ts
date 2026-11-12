@@ -59,8 +59,8 @@ export function level(v: unknown): Level | null {
   if (typeof v !== "number") {
     const t = text(v);
     if (t === null) return null;
-    const w = LEVEL_WORDS[t.toLowerCase()];
-    if (w) return w;
+    const k = t.toLowerCase();
+    if (Object.prototype.hasOwnProperty.call(LEVEL_WORDS, k)) return LEVEL_WORDS[k]!;
     const m = /^(?:level|lvl|l)?\s*(\d)(?:\.0+)?$/i.exec(t);
     return m ? tier(Number(m[1])) : null;
   }
@@ -83,7 +83,7 @@ export function hours(v: unknown): number | null {
   if (!m) return null;
   const n = Number(m[1]!.replace(",", "."));
   const unit = m[2]!.toLowerCase();
-  const k = unit === "" ? 1 : UNIT_HOURS[unit];
+  const k = unit === "" ? 1 : Object.prototype.hasOwnProperty.call(UNIT_HOURS, unit) ? UNIT_HOURS[unit] : undefined;
   if (k === undefined) return null;
   return Math.round(n * k * 1e6) / 1e6;
 }

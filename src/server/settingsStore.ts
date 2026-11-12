@@ -53,10 +53,10 @@ export interface SaveContext {
 
 /** Save a partial settings update. See the header for the order of checks. */
 export function saveSettings(patch: unknown, baseGen: unknown, who: SaveContext): SaveSettingsResponse {
-  if (!isObj(patch)) throw new Error("There is nothing to save.");
-  if (JSON.stringify(patch).length > PATCH_MAX_BYTES) throw new Error("That change is too large to save.");
+  if (!isObj(patch)) throw new ApiError("error", "There is nothing to save.");
+  if (JSON.stringify(patch).length > PATCH_MAX_BYTES) throw new ApiError("error", "That change is too large to save.");
   const base = typeof baseGen === "number" ? baseGen : typeof baseGen === "string" && baseGen.trim() !== "" ? Number(baseGen) : NaN;
-  if (!Number.isInteger(base)) throw new Error("Reload the settings before saving: the change has no starting point.");
+  if (!Number.isInteger(base)) throw new ApiError("error", "Reload the settings before saving: the change has no starting point.");
 
   return withScriptLock(() => {
     if (base !== cfgGen()) {
@@ -67,7 +67,7 @@ export function saveSettings(patch: unknown, baseGen: unknown, who: SaveContext)
     const clamped = clampedPaths(patch, after);
 
     const errors = validateSettings(after);
-    if (errors.length) throw new Error(errors.join(" "));
+    if (errors.length) throw new ApiError("error", errors.join(" "));
 
     if (after.source.sheetId !== before.source.sheetId && !who.isOwner) {
       throw new Error("Only the owner can change the source Sheet.");

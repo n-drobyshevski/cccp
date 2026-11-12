@@ -5,6 +5,15 @@ import { ZONES, useZone } from "./tz";
 describe.each(ZONES)("normalize under %s", (tz) => {
   useZone(tz);
 
+  it("never reads inherited Object keys as words or units", () => {
+    for (const w of ["constructor", "Constructor", "__proto__", "toString", "hasOwnProperty", "valueOf"]) {
+      expect(N.level(w)).toBeNull();
+      expect(N.hours("4 " + w)).toBeNull();
+    }
+    expect(N.level("High")).toBe(3);
+    expect(N.hours("2 days")).toBe(48);
+  });
+
   it("reads days in both formats", () => {
     expect(N.day("2026-03-04")).toBe("2026-03-04");
     expect(N.day("04/03/2026")).toBe("2026-03-04");

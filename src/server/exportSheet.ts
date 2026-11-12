@@ -36,15 +36,15 @@ const clean = (v: unknown): string => String(v == null ? "" : v).replace(/[\u000
 
 /** Ids in the order given, as strings, without repeats. Anything else is refused. */
 function cleanIds(raw: unknown): string[] {
-  if (!Array.isArray(raw)) throw new Error("Nothing to export.");
+  if (!Array.isArray(raw)) throw new ApiError("error", "Nothing to export.");
   const seen = new Set<string>();
   const out: string[] = [];
   for (const v of raw) {
     if (typeof v !== "string" || v === "" || v.length > 200) continue;
     if (!seen.has(v)) { seen.add(v); out.push(v); }
   }
-  if (out.length === 0) throw new Error("Nothing to export.");
-  if (out.length > EXPORT_MAX_ROWS) throw new Error("Too many applications to export at once (the limit is " + EXPORT_MAX_ROWS + ").");
+  if (out.length === 0) throw new ApiError("error", "Nothing to export.");
+  if (out.length > EXPORT_MAX_ROWS) throw new ApiError("error", "Too many applications to export at once (the limit is " + EXPORT_MAX_ROWS + ").");
   return out;
 }
 

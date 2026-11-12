@@ -133,24 +133,24 @@ test.describe("theme", () => {
 });
 
 test.describe("url bridge", () => {
-  test("?app=<UUID> opens the fact sheet placeholder and Back works", async ({ page }) => {
+  test("?app=<UUID> opens the fact sheet and Back works", async ({ page }) => {
     await page.goto("/");
     const id = await firstId(page);
     await page.goto("/?app=" + id);
     await expect(page.locator("[data-page=app]")).toBeVisible();
-    await expect(page.locator("[data-app-id]")).toHaveText(id);
+    await expect(page.locator("[data-app-id]")).toHaveAttribute("data-app-id", id);
     await page.getByRole("button", { name: "Overview" }).click();
     await expect(page.locator("[data-page=overview]")).toBeVisible();
     await page.goBack();
     await expect(page.locator("[data-page=app]")).toBeVisible();
-    await expect(page.locator("[data-app-id]")).toHaveText(id);
+    await expect(page.locator("[data-app-id]")).toHaveAttribute("data-app-id", id);
     await page.goForward();
     await expect(page.locator("[data-page=overview]")).toBeVisible();
   });
 
   test("an unknown application id shows not found", async ({ page }) => {
     await page.goto("/?app=does-not-exist");
-    await expect(page.getByRole("heading", { name: /was not found/ })).toBeVisible();
+    await expect(page.getByRole("heading", { name: /not found/ })).toBeVisible();
   });
 
   test("a bare address opens the Display default view", async ({ page }) => {

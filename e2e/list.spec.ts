@@ -171,7 +171,7 @@ test.describe("rows open the application", () => {
     expect(before).toBeGreaterThan(300);
     await page.keyboard.press("Enter");
     await expect(page.locator("[data-page=app]")).toBeVisible();
-    await expect(page.locator("[data-app-id]")).toHaveText(id!);
+    await expect(page.locator("[data-app-id]")).toHaveAttribute("data-app-id", id!);
     expect(await page.evaluate(() => window.scrollY)).toBe(0);
     await page.goBack();
     await expect(page.locator("table[data-table=list]")).toBeVisible();
@@ -189,6 +189,6 @@ test.describe("rows open the application", () => {
     const name = (await first.locator("button.nm").innerText()).trim();
     await expect(page.getByRole("button", { name, exact: true }).first()).toBeVisible();
     await first.locator("td[data-col=d]").click();
-    await expect(page.locator("[data-app-id]")).toHaveText(id!);
+    await expect(page.locator("[data-app-id]")).toHaveAttribute("data-app-id", id!);
   });
 });

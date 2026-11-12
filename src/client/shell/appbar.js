@@ -22,7 +22,10 @@ function current(route, appRoute, v) {
 
 /** The bar as SafeHtml, for a store state. */
 export function appbarView(s, mode) {
-  const ready = s.boot.status === "ready" || s.boot.status === "nosource";
+  // A reload (Retry) keeps the bar usable when the core from the last bootstrap is known; the
+  // first boot and the denied and error cards still show no nav.
+  const st = s.boot.status;
+  const ready = st === "ready" || st === "nosource" || (st === "loading" && !!s.core && !!s.live && !!s.booted);
   const canSettings = !!(s.live && s.live.viewer && s.live.viewer.canEditSettings);
   const dark = mode === "dark";
   const next = dark ? "light" : "dark";

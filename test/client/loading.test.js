@@ -185,3 +185,20 @@ describe("the refresh bar", () => {
     expect(seen).toEqual([true, false, true, false]);
   });
 });
+
+describe("the app bar during a wait", () => {
+  const live = { viewer: { canEditSettings: true } };
+  const at = (o) => s(appbarView({ ...initialState(), route: "list", ...o }, "light"));
+
+  it("keeps the nav and gear on a reload once the core is known", () => {
+    const h = at({ booted: true, core: {}, live, boot: { status: "loading", message: "" } });
+    expect(h).toContain('class="navb"');
+    expect(h).toContain('data-act="settings"');
+  });
+
+  it("shows no nav on the first boot, or when the bootstrap itself has to rerun", () => {
+    expect(at({ booted: false, core: {}, live, boot: { status: "loading", message: "" } })).not.toContain('class="navb"');
+    expect(at({ booted: true, core: null, live: null, boot: { status: "loading", message: "" } })).not.toContain('class="navb"');
+    expect(at({ booted: true, core: {}, live, boot: { status: "error", message: "x" } })).not.toContain('class="navb"');
+  });
+});

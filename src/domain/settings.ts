@@ -240,6 +240,27 @@ export function tabInUse(tabs: Record<TabKey, TabBinding>, k: TabKey): boolean {
   return k === "apps" ? tabs.apps.name !== "" : tabs[k].sameTab || tabs[k].name !== "";
 }
 
+/** The separate tab each pillar was bound to before the same-tab default existed. */
+export const LEGACY_TAB_NAMES: Readonly<Record<Exclude<TabKey, "apps">, string>> = { ciat: "CIAT", aud: "Audits", drp: "DRP", plat: "Platform" };
+
+/**
+ * Settings saved before the same-tab default still bind each pillar to its old default tab name.
+ * When that tab does not exist in the workbook, read the pillar from the Applications tab instead;
+ * a tab with that name that does exist is used as before. Returns the same object when nothing
+ * falls back, else a copy with those pillars marked sameTab.
+ */
+export function withLegacyFallback(s: Settings, sheetNames: readonly string[]): Settings {
+  const have = new Set(sheetNames);
+  let tabs: Settings["source"]["tabs"] | null = null;
+  for (const k of Object.keys(LEGACY_TAB_NAMES) as Array<Exclude<TabKey, "apps">>) {
+    const b = s.source.tabs[k];
+    if (b.sameTab || b.name !== LEGACY_TAB_NAMES[k] || have.has(b.name)) continue;
+    tabs = tabs || { ...s.source.tabs };
+    tabs[k] = { ...b, sameTab: true };
+  }
+  return tabs ? { ...s, source: { ...s.source, tabs } } : s;
+}
+
 export const TAB_NAMES: Readonly<Record<TabKey, string>> = { apps: "Applications", ciat: "CIAT", aud: "Audits", drp: "DRP", plat: "Platform" };
 
 /** Sentences for what is wrong. Empty means the settings can be saved. */

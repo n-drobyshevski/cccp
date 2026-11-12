@@ -8,6 +8,7 @@
 import { assemble, type TabData, type TabsInput } from "../domain/assemble";
 import { REGISTER_FORMAT, encodeRegister, type RegisterPayload, type SourceMeta, type SourceTabMeta } from "../domain/payload";
 import { FIELDS } from "../domain/fields";
+import { withLegacyFallback } from "../domain/settings";
 import type { Issues } from "../domain/types";
 import { TAB_KEYS } from "../domain/types";
 import { markRecorded, recordError } from "./errors";
@@ -31,7 +32,7 @@ function nowIso(): string {
 }
 
 function build(): { entry: RegisterEntry; ttlSec: number } {
-  const settings = loadSettings();
+  let settings = loadSettings();
   const ttlSec = settings.source.cacheMinutes * 60;
   const loadedAt = nowIso();
   const dv = dataVersion();
@@ -48,6 +49,10 @@ function build(): { entry: RegisterEntry; ttlSec: number } {
     markRecorded(err);
     throw err;
   }
+  // Settings saved before the same-tab default name tabs that this workbook may not have.
+  const stored = settings;
+  settings = withLegacyFallback(stored, read.sheetNames);
+  for (const k of TAB_KEYS) if (k !== "apps" && settings.source.tabs[k].sameTab && !stored.source.tabs[k].sameTab) delete read.tabs[k];
   const input: TabsInput = {};
   const tabs: SourceTabMeta[] = [];
   const result = (() => {

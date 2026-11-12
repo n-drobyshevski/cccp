@@ -176,3 +176,39 @@ describe("a one-tab workbook with the untouched default settings", () => {
     expect(text).not.toMatch(/missing|NOT FOUND/);
   });
 });
+
+describe("settings saved before the same-tab default", () => {
+  const legacy = (sheetId: string, apps: string) => JSON.stringify({
+    sheetId,
+    tabs: {
+      apps: { name: apps, joinColumn: "UUID", joinOn: "id", pick: "first" },
+      ciat: { name: "CIAT", joinColumn: "UUID", joinOn: "id", pick: "first" },
+      aud: { name: "Audits", joinColumn: "UUID", joinOn: "id", pick: "latest" },
+      drp: { name: "DRP", joinColumn: "UUID", joinOn: "id", pick: "latest" },
+      plat: { name: "Platform", joinColumn: "UUID", joinOn: "id", pick: "first" },
+    },
+  });
+
+  it("reads a pillar from the Applications tab when its old default tab is absent", () => {
+    const one = genOneTabWorkbook();
+    fakes().loadWorkbook(one);
+    PropertiesService.getScriptProperties().setProperty("CFG_SOURCE", legacy(one.id, "Inventory"));
+    as("viewer@example.com");
+    const { meta, register } = registerEntry();
+    expect(decodeRegister(register)).toHaveLength(1125);
+    for (const t of meta.tabs.slice(1)) expect(t).toMatchObject({ name: "Inventory", sameTab: true, missingHeaders: [] });
+    expect(meta.issues.missingTabs).toEqual([]);
+    expect(meta.issues.missingHeaders).toEqual([]);
+  });
+
+  it("keeps reading an old default tab that does exist", () => {
+    fakes().loadWorkbook(wb);
+    PropertiesService.getScriptProperties().setProperty("CFG_SOURCE", legacy(wb.id, "Apps"));
+    as("viewer@example.com");
+    const { meta } = registerEntry();
+    const ciat = meta.tabs.find((t) => t.key === "ciat")!;
+    expect(ciat.name).toBe("CIAT");
+    expect(ciat.sameTab).toBeUndefined();
+    expect(ciat.rows).toBeGreaterThan(0);
+  });
+});

@@ -43,8 +43,12 @@ function statusOf(ctx, k) {
   const d = session.draft;
   const sd = session.savedDraft;
   const t = meta.tabs.find((x) => x.key === k);
-  if (k !== "apps" && d["source.tabs." + k + ".sameTab"]) {
-    if (!sd["source.tabs." + k + ".sameTab"]) return { word: "Save to check", cls: "", tip: "The change is read after you save." };
+  // Settings saved before the same-tab default name an old tab the workbook lacks; the server then
+  // reads the pillar from the Applications tab, so show it as same-tab.
+  const legacy = k !== "apps" && !!t && t.sameTab === true && !d["source.tabs." + k + ".sameTab"] && !sd["source.tabs." + k + ".sameTab"]
+    && d["source.tabs." + k + ".name"] === sd["source.tabs." + k + ".name"];
+  if (k !== "apps" && (d["source.tabs." + k + ".sameTab"] || legacy)) {
+    if (!legacy && !sd["source.tabs." + k + ".sameTab"]) return { word: "Save to check", cls: "", tip: "The change is read after you save." };
     if (!t || t.columnsMapped === undefined) return { word: "Same tab", cls: "", tip: "" };
     const all = t.columnsMapped > 0 && t.columnsFound === t.columnsMapped;
     const word = t.columnsMapped === 0 ? "No columns mapped" : all ? "All " + t.columnsMapped + " columns found" : t.columnsFound + " of " + t.columnsMapped + " columns yet";

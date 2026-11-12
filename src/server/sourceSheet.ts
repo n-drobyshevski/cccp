@@ -12,6 +12,7 @@
 
 import type { SourceSettings, TabKey } from "../domain/types";
 import { TAB_KEYS } from "../domain/types";
+import { LEGACY_TAB_NAMES } from "../domain/settings";
 
 /** One bound tab as read: row 1 as headers, the data rows below it. */
 export interface SourceTab {
@@ -153,7 +154,10 @@ export function sampleWorkbook(source: SourceBinding, opts: ReadOptions = {}): {
   const read = readTabs(source, opts);
   const out: Partial<Record<TabKey, TabSample>> = {};
   for (const key of TAB_KEYS) {
-    const t = key !== "apps" && source.tabs[key].sameTab ? read.tabs.apps : read.tabs[key];
+    const b = source.tabs[key];
+    // Settings saved before the same-tab default: an absent old default tab reads as the Applications tab.
+    const legacy = key !== "apps" && !b.sameTab && b.name === LEGACY_TAB_NAMES[key] && !read.sheetNames.includes(b.name);
+    const t = key !== "apps" && (b.sameTab || legacy) ? read.tabs.apps : read.tabs[key];
     if (!t) continue;
     const examples: Record<string, string> = {};
     t.headers.forEach((h, i) => {

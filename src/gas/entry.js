@@ -48,6 +48,7 @@ function api_saveAccess(p) { return timedApi_("saveAccess", p); }
 function api_saveAdmins(p) { return timedApi_("saveAdmins", p); }
 function api_saveAccessMode(p) { return timedApi_("saveAccessMode", p); }
 function api_getSettings(p) { return timedApi_("getSettings", p); }
+function api_probeSource(p) { return timedApi_("probeSource", p); }
 function api_saveSettings(p) { return timedApi_("saveSettings", p); }
 function api_reloadData(p) { return timedApi_("reloadData", p); }
 function api_saveSharedView(p) { return timedApi_("saveSharedView", p); }

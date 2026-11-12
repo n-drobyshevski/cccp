@@ -105,7 +105,8 @@ function render(el) {
   teardown = page.mount(el, ctx) || null;
 }
 
-const keyOf = (s) => [s.route, s.app, s.tab, s.boot.status, s.boot.message].join("|");
+// The settings page switches its own tabs, so a tab change there is not a new page.
+const keyOf = (s) => [s.route, s.app, s.route === "settings" ? "" : s.tab, s.boot.status, s.boot.message].join("|");
 
 /** Mount the router in `el`. hooks: {retry}. Returns a stop function. */
 export function startRouter(el, h) {

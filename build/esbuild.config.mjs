@@ -29,6 +29,9 @@ await build({
 // Template literals are lowered so no backtick reaches the served bundle.
 const clientResult = await build({
   entryPoints: [join(root, "src/client/main.js")],
+  // The vendored settingsForm contract asserts a specifier of the form '<dots>/gas_shared/ui/
+  // settingsForm.js', so the settings draft imports it as 'gas_shared/ui/...'.
+  alias: { gas_shared: join(root, "src/vendor/gas_shared") },
   bundle: true,
   format: "iife",
   target: "es2019",

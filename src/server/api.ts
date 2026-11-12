@@ -16,7 +16,9 @@ import { ApiError, recordError, type ErrorKind } from "./errors";
 import { PROP_KEYS, setProp } from "./props";
 import { getRegisterPayload, reloadRegister } from "./registerStore";
 import { requireRole } from "./roles";
-import { getSettingsView, saveSettings as saveSettingsStore } from "./settingsStore";
+import { sheetIdFrom } from "../domain/settings";
+import { getSettingsView, loadSettings, saveSettings as saveSettingsStore } from "./settingsStore";
+import { probeWorkbook, type ProbeResult } from "./sourceSheet";
 import { deleteSharedView as deleteSharedViewStore, saveSharedView as saveSharedViewStore } from "./sharedViews";
 
 export interface ApiResult<T = unknown> {
@@ -133,6 +135,19 @@ export function getSettings(_p?: unknown): ApiResult<SettingsResponse> {
   return run("getSettings", () => {
     if (!access.canEditSettings()) throw new Error("Only the owner or an admin can open the settings.");
     return getSettingsView();
+  });
+}
+
+/**
+ * What a Sheet holds, so the owner can check a link before saving it: title, time zone and each
+ * tab with its row count and headers. An empty link probes the saved source. Saves nothing. Owner.
+ */
+export function probeSource(p?: { url?: unknown }): ApiResult<ProbeResult> {
+  return run("probeSource", () => {
+    const given = typeof p?.url === "string" ? p.url.trim() : "";
+    const id = given === "" ? loadSettings().source.sheetId : sheetIdFrom(given);
+    if (id === "") throw new Error(given === "" ? "No data source is configured yet. Paste the Google Sheet link." : "That does not look like a Google Sheet link.");
+    return probeWorkbook(id);
   });
 }
 

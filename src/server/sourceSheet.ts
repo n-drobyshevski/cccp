@@ -121,3 +121,29 @@ export function sampleTabs(source: Pick<SourceSettings, "sheetId" | "tabs">): Pa
   }
   return out;
 }
+
+/** One tab of a probed workbook: its name, id, data-row count and header row. */
+export interface ProbedTab {
+  name: string;
+  gid: number;
+  rows: number;
+  headers: string[];
+}
+
+export interface ProbeResult {
+  title: string;
+  tz: string;
+  tabs: ProbedTab[];
+}
+
+/** What the workbook holds, for the owner's Probe button: every tab with its headers. Reads only. */
+export function probeWorkbook(sheetId: string): ProbeResult {
+  const ss = open(sheetId);
+  const tabs = ss.getSheets().map((sh) => {
+    const lastRow = sh.getLastRow();
+    const width = sh.getLastColumn();
+    const headers = lastRow < 1 || width < 1 ? [] : sh.getRange(1, 1, 1, width).getDisplayValues()[0]!.map((h) => String(h ?? ""));
+    return { name: sh.getName(), gid: sh.getSheetId(), rows: Math.max(0, lastRow - 1), headers };
+  });
+  return { title: ss.getName(), tz: ss.getSpreadsheetTimeZone(), tabs };
+}

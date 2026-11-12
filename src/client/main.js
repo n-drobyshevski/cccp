@@ -4,6 +4,7 @@ import { initTip } from "./lib/tip.js";
 import * as rpc from "./lib/rpc.js";
 import { homeRoute, mountAppbar } from "./shell/appbar.js";
 import { startRouter } from "./shell/router.js";
+import "./pages/overview.js";
 import "./pages/list.js";
 import * as theme from "./shell/theme.js";
 import * as register from "./state/register.js";

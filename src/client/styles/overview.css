@@ -1,0 +1,39 @@
+/* Overview (lx3 KPI variant): headline tiles, a status bar per pillar, the domains table.
+   Ported from lx3.ext.html. Tokens only. */
+.ov { display: flex; flex-direction: column; gap: 14px; }
+.ovh { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: flex-end; gap: 8px; }
+.ovh p { color: var(--muted); }
+.kpis { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px; }
+.kpi { display: flex; flex-direction: column; gap: 4px; text-align: left; border: 1px solid var(--line); background: var(--surface); border-radius: var(--rs); padding: 14px 16px; }
+.kpi:hover { border-color: var(--accent); }
+.kpi span { color: var(--muted); font-size: 13px; }
+.kpi b { font: 600 28px var(--sans); letter-spacing: -0.02em; font-variant-numeric: tabular-nums; }
+.kpi small { color: var(--muted); font-size: 12px; }
+.kpi.bad b { color: var(--bad); }
+.kpi.warn b { color: var(--warn); }
+.card2 { padding: 16px 18px; display: flex; flex-direction: column; gap: 12px; min-width: 0; }
+.card2 h2 { font-size: 15px; }
+.pbars { display: flex; flex-direction: column; gap: 10px; }
+.pbar { display: grid; grid-template-columns: 110px minmax(0, 1fr) auto; gap: 12px; align-items: center; border: 0; background: none; padding: 4px; border-radius: 8px; text-align: left; }
+.pbar:hover { background: var(--surface2); }
+.pbar > span:first-child { display: flex; gap: 8px; align-items: center; font-weight: 500; }
+.stk { display: flex; height: 12px; border-radius: 6px; overflow: hidden; gap: 2px; background: var(--line); position: relative; }
+.stk i { background: var(--ok); }
+.stk i.bad { background: var(--bad); }
+.stk i.warn { background: var(--warn); }
+.stk i.none { background: var(--line2); }
+.pbar small { font: 500 12px var(--mono); color: var(--muted); text-align: right; white-space: nowrap; }
+.pbar small b { color: var(--bad); }
+.two { display: grid; grid-template-columns: repeat(auto-fit, minmax(340px, 1fr)); gap: 12px; align-items: start; }
+.tw { overflow-x: auto; }
+.dt { width: 100%; border-collapse: collapse; }
+.dt th { text-align: left; font-weight: 500; font-size: 12px; color: var(--muted); padding: 6px 8px; border-bottom: 1px solid var(--line); }
+.dt td { padding: 10px 8px; border-bottom: 1px solid var(--line); }
+.dt tbody tr:last-child td { border-bottom: 0; }
+.lk { border: 0; background: none; padding: 0; color: inherit; text-align: left; border-radius: 4px; }
+.lk:hover { color: var(--accent); }
+.lk.gapn { color: var(--bad); }
+@media (max-width: 600px) {
+  .pbar { grid-template-columns: minmax(0, 1fr) auto; }
+  .pbar .stk { grid-column: 1 / -1; grid-row: 2; }
+}

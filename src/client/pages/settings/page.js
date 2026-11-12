@@ -75,7 +75,7 @@ function tabsView(tab, marks) {
   return html`<div class="stabs" role="tablist" aria-orientation="vertical" aria-label="Settings sections">${SETTINGS_TABS.map((t) => {
     const m = marks[t.key];
     const on = t.key === tab;
-    return html`<button type="button" role="tab" id="st-tab-${t.key}" aria-selected="${on ? "true" : "false"}" aria-controls="st-panel" tabindex="${on ? "0" : "-1"}" data-act="s-tab" data-tab="${t.key}" data-k="stt-${t.key}"><span class="tl">${t.label}</span>${m.dirty ? html`<span class="edited"><i class="dirtydot" aria-hidden="true"></i>edited<span class="sr-only"> (unsaved changes)</span></span>` : ""}${m.warn ? html`<span class="warnmark" data-tip="Fields not mapped" aria-hidden="true"></span><span class="sr-only"> (fields not mapped)</span>` : ""}${m.invalid ? html`<span class="badmark" data-tip="Needs a fix" aria-hidden="true"></span><span class="sr-only"> (needs a fix)</span>` : ""}</button>`;
+    return html`<button type="button" role="tab" id="st-tab-${t.key}" aria-selected="${on ? "true" : "false"}" aria-controls="st-panel" tabindex="${on ? "0" : "-1"}" data-act="s-tab" data-tab="${t.key}" data-k="stt-${t.key}"><span class="stl">${t.label}</span>${m.dirty ? html`<span class="edited"><i class="dirtydot" aria-hidden="true"></i>edited<span class="sr-only"> (unsaved changes)</span></span>` : ""}${m.warn ? html`<span class="warnmark" data-tip="Fields not mapped" aria-hidden="true"></span><span class="sr-only"> (fields not mapped)</span>` : ""}${m.invalid ? html`<span class="badmark" data-tip="Needs a fix" aria-hidden="true"></span><span class="sr-only"> (needs a fix)</span>` : ""}</button>`;
   })}</div>`;
 }
 

@@ -127,10 +127,14 @@ test("the heatmap lens: a status bar per pillar with a hatched No data segment, 
   // no Group by or Reasons toggles
   await expect(page.getByText("Group by")).toHaveCount(0);
   await expect(page.getByText("Glyphs only")).toHaveCount(0);
-  const heads = await page.locator("table.heat th.ph").evaluateAll((els) => els.map((e) => [e.textContent, getComputedStyle(e).color, getComputedStyle(e).borderBottomWidth, getComputedStyle(e).borderBottomColor]));
+  const heads = await page.locator("table.heat th.hp").evaluateAll((els) => els.map((e) => [e.textContent, getComputedStyle(e).color, getComputedStyle(e).borderBottomWidth, getComputedStyle(e).borderBottomColor]));
   expect(heads.map((h) => h[0])).toEqual(["Cyber", "Compliance", "Continuity", "Platform"]);
   for (const h of heads) { expect(h[2]).toBe("3px"); expect(h[3]).toBe(h[1]); }
   expect(new Set(heads.map((h) => h[1])).size).toBe(4);
+  // the four heads are columns of one header row, left to right
+  const boxes = await page.locator("table.heat th.hp").evaluateAll((els) => els.map((e) => { const r = e.getBoundingClientRect(); return [r.top, r.left]; }));
+  expect(new Set(boxes.map((b) => Math.round(b[0]))).size).toBe(1);
+  expect(boxes.map((b) => b[1])).toEqual([...boxes.map((b) => b[1])].sort((a, b) => a - b));
   const bars = page.locator("tr.grp").first().locator(".sb");
   await expect(bars).toHaveCount(4);
   const order = await bars.first().locator("i").evaluateAll((els) => els.map((e) => e.className || "ok"));

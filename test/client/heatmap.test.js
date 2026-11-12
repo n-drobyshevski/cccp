@@ -37,7 +37,7 @@ describe("heatmap view", () => {
   });
   it("pillar column heads are in the pillar's colour class", () => {
     const h = s(heatTable(m, new Set()));
-    for (const p of ["cyber", "compliance", "continuity", "platform"]) expect(h).toContain(`<th class="ph pc-${p}">`);
+    for (const p of ["cyber", "compliance", "continuity", "platform"]) expect(h).toContain(`<th class="hp pc-${p}">`);
   });
   it("a group row has one stacked bar per pillar, OK then Attention then Gap then No data, no zero segments", () => {
     const g = { name: "G", apps: 12, rows: [], counts: Object.fromEntries(["cyber", "compliance", "continuity", "platform"].map((p) => [p, { ok: 5, warn: 3, bad: 3, none: 1 }])) };

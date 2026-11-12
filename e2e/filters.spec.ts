@@ -14,7 +14,8 @@ function watchConsole(page: Page): string[] {
 const facets = (page: Page) => page.locator("aside.facets");
 const sec = (page: Page, k: string) => facets(page).locator(`section[data-facet="${k}"]`);
 const visible = async (page: Page) => Number((await page.locator("[data-count=visible]").innerText()).split(" ")[0].replace(/,/g, ""));
-const urlParam = (page: Page, k: string) => new URL(page.url()).searchParams.get(k);
+// A list param is a comma list of percent-encoded values, itself a query value: decode one layer.
+const urlParam = (page: Page, k: string) => { const v = new URL(page.url()).searchParams.get(k); return v == null || k === "q" ? v : v.split(",").map(decodeURIComponent).join(","); };
 const search = (page: Page) => page.getByRole("searchbox", { name: "Search applications" });
 
 async function ready(page: Page, query = "") {
@@ -189,7 +190,7 @@ test.describe("hostile values", () => {
       await expect(sec(page, k).locator("img, script")).toHaveCount(0);
       if (k !== "lc") await sec(page, k).locator("input.find").fill("");
     }
-    await openAll(page, "dom");
+    // the loop above left the domain section open (openAll toggles)
     expect((await rowsOf(sec(page, "dom"))).some((r) => r.value === BAD)).toBe(true);
     await sec(page, "dom").locator("input.find").fill("img src");
     await sec(page, "dom").locator(".ck input").first().check();

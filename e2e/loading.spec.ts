@@ -78,6 +78,7 @@ test.describe("first open: the splash", () => {
 });
 
 test.describe("later waits: the route-shaped skeleton", () => {
+  // The heatmap and the landscape are lenses of the Inventory: route list, a lens in the address.
   const ROUTES: Array<[string, string, string]> = [
     ["overview", "overview", "Status by pillar"],
     ["list", "list", "All applications"],
@@ -88,7 +89,7 @@ test.describe("later waits: the route-shaped skeleton", () => {
     test(`Retry on ${route} shows its frame, then the page`, async ({ page }) => {
       const bad = watchConsole(page);
       await failRegisterOnce(page);
-      await page.goto("/?coldcache&slow=1200&r=" + route);
+      await page.goto("/?coldcache&slow=1200&r=" + (key === "heatmap" || key === "landscape" ? "list&lens=" + key : route));
       await expect(page.getByRole("alert")).toContainText("Data source unreachable");
       await page.evaluate(() => { (window as any).__failReg = false; });
       await page.getByRole("button", { name: "Retry" }).click();
@@ -97,7 +98,7 @@ test.describe("later waits: the route-shaped skeleton", () => {
       await expect(sk).toContainText(words);
       await expect(page.locator(".boot")).toHaveCount(0);
       await expect(page.locator(".appbar")).toBeVisible();
-      await expect(page.locator(`[data-page=${route}]`)).toBeVisible();
+      await expect(page.locator(key === "heatmap" || key === "landscape" ? `[data-lens-body=${key}]` : `[data-page=${route}]`)).toBeVisible();
       await expect(page.locator("[data-skeleton]")).toHaveCount(0);
       expect(bad.filter((m) => !/Failed to load resource/.test(m))).toEqual([]);
     });

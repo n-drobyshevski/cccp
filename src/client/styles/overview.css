@@ -13,8 +13,6 @@
 .kpi small { color: var(--muted); font-size: 13.5px; }
 .kpi .kgo { color: var(--accent); font-weight: 600; margin-top: 8px; font-size: 14px; }
 .kpi:hover .kgo { text-decoration: underline; text-underline-offset: 2px; }
-.kpi.bad b { color: var(--bad); }
-.kpi.warn b { color: var(--warn-strong); }
 .two { display: grid; grid-template-columns: minmax(0, 4fr) minmax(0, 5fr); gap: 0 40px; align-items: start; padding-top: 22px; }
 .ovs { min-width: 0; }
 .ovs > h2.lbl { padding-bottom: 8px; border-bottom: 1px solid var(--line2); font-size: 12px; }

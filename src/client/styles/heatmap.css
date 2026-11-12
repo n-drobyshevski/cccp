@@ -1,7 +1,7 @@
 /* Heatmap lens (identity G): domain group rows with a stacked status bar per pillar; application rows
    with the status glyph and the short reason in each pillar cell. Pillar column heads are in the
    pillar's colour over a 3px underline. The bar's No data segment is hatched. Tokens only. */
-.heat th.ph { color: var(--pc); border-bottom: 3px solid var(--pc); }
+.heat th.hp { color: var(--pc); border-bottom: 3px solid var(--pc); }
 .heat td { padding: 8px 14px; }
 .heat td.hc { white-space: normal; min-width: 180px; font-size: 13.5px; padding: 6px 14px; }
 .heat td.hc > span { display: flex; gap: 10px; align-items: center; }

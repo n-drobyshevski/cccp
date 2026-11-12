@@ -306,6 +306,22 @@ test.describe("the side panel", () => {
     }
   });
 
+  test("a shared view opens on each lens, in the lens the viewer is on, with its count", async ({ page }) => {
+    const shared = [{ id: "sh1", name: "Tier one", scope: "shared", state: { q: "", f: { tier: ["T1"] }, sort: "n", cols: [], metric: "tier" } }];
+    await page.goto("/?r=list&as=viewer@example.com&sharedviews=" + encodeURIComponent(JSON.stringify(shared)));
+    await expect(row(page, "Tier one")).toBeVisible();
+    const t1 = Number(((await counts(page))[1]).replace(/,/g, ""));
+    for (const lens of ["table", "heatmap", "landscape"]) {
+      await row(page, "All applications").click();
+      await page.locator(`[data-act=lens][data-lens=${lens}]`).click();
+      await row(page, "Tier one").click();
+      await expect(page.locator(`.tbl[data-lens=${lens}]`)).toBeVisible();
+      await expect(selected(page)).toHaveText("Tier one");
+      await expect.poll(() => visible(page)).toBe(t1);
+      await expect(page.locator("[data-cue]")).toHaveCount(0);
+    }
+  });
+
   test("a view saved on the old heatmap page still loads and opens on the Inventory in the current lens", async ({ page }) => {
     await ready(page);
     const seed = [{ id: "old1", name: "Old heat", scope: "personal", route: "heatmap", state: { q: "", f: { tier: ["T1"] }, sort: "n", cols: [], metric: "worst" } },

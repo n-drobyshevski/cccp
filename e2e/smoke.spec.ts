@@ -11,17 +11,25 @@ function watchConsole(page: Page): string[] {
   return bad;
 }
 
+// The Inventory's heatmap and landscape are lenses of one page: same route, a lens in the address.
 const PAGES = ["overview", "list", "heatmap", "landscape"] as const;
+const isLens = (r: string) => r === "heatmap" || r === "landscape";
+const query = (r: string) => (isLens(r) ? "list&lens=" + r : r);
+const marker = (r: string) => (isLens(r) ? "[data-lens-body=" + r + "]" : "[data-page=" + r + "]");
 
 test("the walk: every page, the fact sheet and a Settings save, with no console errors", async ({ page }) => {
   const bad = watchConsole(page);
   await page.goto("/");
   await expect(page.locator(".navb")).toBeVisible();
   for (const route of PAGES) {
-    await page.getByRole("button", { name: route === "list" ? "Inventory" : new RegExp("^" + route, "i") }).click();
-    await expect(page.locator("[data-page=" + route + "]")).toBeVisible();
+    if (isLens(route)) {
+      await page.locator("[data-act=lens][data-lens=" + route + "]").click();
+    } else {
+      await page.locator("[data-k=nav-" + route + "]").click();
+    }
+    await expect(page.locator(marker(route))).toBeVisible();
   }
-  await page.getByRole("button", { name: "Inventory", exact: true }).click();
+  await page.locator("[data-act=lens][data-lens=table]").click();
   await expect(page.locator("tr[data-id]").first()).toBeVisible();
   const id = await page.locator("tr[data-id]").first().getAttribute("data-id");
   await page.goto("/?app=" + id);
@@ -40,7 +48,7 @@ test("the walk: every page, the fact sheet and a Settings save, with no console 
   // The dev fakes are per page load, so the stored value is checked in this load: the brand goes
   // to the saved default view.
   await page.getByRole("button", { name: "CCCP home" }).click();
-  await expect(page.locator("[data-page=heatmap]")).toBeVisible();
+  await expect(page.locator("[data-lens-body=heatmap]")).toBeVisible();
   expect(bad).toEqual([]);
 });
 
@@ -103,8 +111,8 @@ test.describe("keyboard", () => {
 
   for (const route of PAGES) {
     test("Tab reaches every control on " + route, async ({ page }) => {
-      await page.goto("/?r=" + route);
-      await expect(page.locator("[data-page=" + route + "]")).toBeVisible();
+      await page.goto("/?r=" + query(route));
+      await expect(page.locator(marker(route))).toBeVisible();
       expect(await unreached(page)).toEqual([]);
     });
   }
@@ -162,8 +170,8 @@ test.describe("contrast", () => {
     for (const route of PAGES) {
       test(route + " text is at least 4.5:1 in " + theme, async ({ page }) => {
         await page.addInitScript((t) => { try { localStorage.setItem("cccp.theme", t); } catch { /* storage refused */ } }, theme);
-        await page.goto("/?r=" + route);
-        await expect(page.locator("[data-page=" + route + "]")).toBeVisible();
+        await page.goto("/?r=" + query(route));
+        await expect(page.locator(marker(route))).toBeVisible();
         const low = await page.evaluate(() => {
           const cv = document.createElement("canvas").getContext("2d")!;
           const rgba = (c: string): number[] => {

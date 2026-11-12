@@ -158,7 +158,8 @@ test("back returns to where the viewer came from, the domain crumb filters the l
   await page.locator("button.nm").first().click();
   const dom = (await page.locator(".crumbs [data-act=crumb-domain]").innerText()).trim();
   await page.locator(".crumbs [data-act=crumb-domain]").click();
-  await expect(page.locator("table[data-table=list]")).toBeVisible();
+  // the domain filter opens on the lens the viewer was on
+  await expect(page.locator("table[data-table=heatmap]")).toBeVisible();
   expect(dom.length).toBeGreaterThan(0);
   const shown = Number((await page.locator("[data-count=visible]").innerText()).replace(/,/g, ""));
   const rows = await page.locator("tr[data-id]").count();

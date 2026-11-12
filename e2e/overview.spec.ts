@@ -84,7 +84,7 @@ test("the domains table has four glyph columns; the glyph is the worst status in
   expect(["Gap", "Needs attention", "OK", "No data"]).toContain(worstCyber);
   await first.locator("td").first().click();
   await expect(page.locator("table[data-table=list]")).toBeVisible();
-  expect(new URL(page.url()).searchParams.get("dom")).toBe(name === "NO DOMAIN" ? "NO DOMAIN" : name);
+  expect(decodeURIComponent(new URL(page.url()).searchParams.get("dom") || "")).toBe(name);
   expect(num(await page.locator("[data-count=visible]").innerText())).toBe(apps);
 });
 

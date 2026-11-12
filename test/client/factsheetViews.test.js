@@ -66,9 +66,9 @@ describe("fact sheet views", () => {
     expect(s(sectionsView(clean.sections, new Set(), false))).toContain('<span class="mut" aria-hidden="true">—</span>');
   });
   it("status buttons carry their section", () => {
-    const h = s(headerView(clean.header, "heatmap", true));
+    const h = s(headerView(clean.header, "list", true));
     for (const k of ["cyber", "compliance", "continuity", "platform"]) expect(h).toContain('data-act="jump" data-sx="' + k + '"');
-    expect(h).toContain("Back to heatmap");
+    expect(h).toContain("Back to inventory");
   });
   it("the scorecard has one cell per pillar with glyph, status word and why", () => {
     const row = rowOf({ id: "g1", name: "Gee", securityOfficer: null });

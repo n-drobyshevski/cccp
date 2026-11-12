@@ -52,7 +52,7 @@ function groupRows(g, isOpen) {
 
 /** The table for a model and the set of open group names. Pure. */
 export function heatTable(m, openSet) {
-  return html`<div class="tw"><table class="heat" data-table="heatmap"><thead><tr><th>${HEATMAP_LEAD_HEADS[0]}</th><th>${HEATMAP_LEAD_HEADS[1]}</th>${PILLARS.map((p) => html`<th class="ph pc-${p}">${PILLAR_LABEL[p]}</th>`)}</tr></thead><tbody>${m.groups.map((g) => groupRows(g, openSet.has(g.name)))}</tbody></table></div>`;
+  return html`<div class="tw"><table class="heat" data-table="heatmap"><thead><tr><th>${HEATMAP_LEAD_HEADS[0]}</th><th>${HEATMAP_LEAD_HEADS[1]}</th>${PILLARS.map((p) => html`<th class="hp pc-${p}">${PILLAR_LABEL[p]}</th>`)}</tr></thead><tbody>${m.groups.map((g) => groupRows(g, openSet.has(g.name)))}</tbody></table></div>`;
 }
 
 /** The lens content: the table, or the empty state. Pure. */

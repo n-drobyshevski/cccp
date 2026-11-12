@@ -198,7 +198,7 @@ test("the owner adds and removes admins; they are saved with saveAdmins", async 
   await expect(dialog(page)).toContainText("admin@example.com");
   await dialog(page).getByRole("button", { name: "Remove" }).click();
   await expect(page.locator(".toast").last()).toContainText("Access updated.");
-  expect((await roster(page)).admins).toEqual(["boss@example.com"]);
+  await expect.poll(async () => (await roster(page)).admins).toEqual(["boss@example.com"]);
 });
 
 test("an admin adds a person with saveAccess only", async ({ page }) => {
@@ -223,4 +223,20 @@ test("the guard asks while an edit is staged or an address is typed, not after a
   await page.getByRole("button", { name: "Save access" }).click();
   await expect(page.locator(".toast")).toContainText("Access updated.");
   expect(await ask()).toBe(false);
+});
+
+test("a long roster grows the page instead of scrolling inside it, and the add box lines up with the cards", async ({ page }) => {
+  const bad = watchConsole(page);
+  await open(page);
+  for (let i = 0; i < 8; i++) {
+    await page.locator("input[data-add=users]").fill("person" + i + "@example.com");
+    await page.locator('[data-act=a-add][data-list=users]').click();
+    await expect(people(page).locator('[data-person="person' + i + '@example.com"]')).toBeVisible();
+  }
+  const m = await people(page).evaluate((el) => ({ sh: el.scrollHeight, ch: el.clientHeight }));
+  expect(m.sh).toBe(m.ch);
+  const right = (sel: string) => page.locator(sel).evaluate((el) => Math.round(el.getBoundingClientRect().right));
+  expect(await right("input[data-add=users]")).toBeLessThanOrEqual(await right(".rcards"));
+  expect(await right('[data-person="person0@example.com"]')).toBe(await right(".rcards"));
+  expect(bad).toEqual([]);
 });

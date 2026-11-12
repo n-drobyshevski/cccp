@@ -129,8 +129,8 @@ export function accessView(ctx) {
   const dirty = isDirty(a, a.saved);
   return html`<div class="sgrp" data-region="access">
     ${sf("Who can open CCCP", "Everyone opens it read only.", modeCards(a))}
-    ${sf("People", "People who can open CCCP, read only. Admins can add and remove them." + (a.canEditAdmins ? "" : " Only the owner can change who is an admin."), html`<div class="plist" data-people>${peopleBlock(a)}</div>`)}
-    ${a.canEditAdmins ? sf("Admins", "Admins see this Settings page. Only you, as the owner, can change who is an admin.", html`<div class="plist" data-admins-editor>${adminsBlock(a)}</div>`) : ""}</div>
+    ${sf("People", "People who can open CCCP, read only. Admins can add and remove them." + (a.canEditAdmins ? "" : " Only the owner can change who is an admin."), html`<div class="acl" data-people>${peopleBlock(a)}</div>`)}
+    ${a.canEditAdmins ? sf("Admins", "Admins see this Settings page. Only you, as the owner, can change who is an admin.", html`<div class="acl" data-admins-editor>${adminsBlock(a)}</div>`) : ""}</div>
     <div class="accfoot"><button type="button" class="btn pri" data-act="a-save" data-k="a-save"${a.busy ? html` disabled` : ""}>Save access</button>${dirty ? html`<span class="unsaved" data-access-dirty><span class="dirtydot" aria-hidden="true"></span>Unsaved changes</span>` : ""}</div>`;
 }
 

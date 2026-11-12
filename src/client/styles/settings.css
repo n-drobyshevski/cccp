@@ -87,8 +87,8 @@
 .sgrp > h3 + .rule { border-top: 0; }
 .rule .txt { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; min-width: 0; }
 .rule.off .txt, .rule.off .aff { opacity: 0.45; }
-.legend { margin: 0; font-size: 13px; display: flex; flex-wrap: wrap; gap: 4px 14px; align-items: center; }
-.legend .lg { display: inline-flex; gap: 6px; align-items: center; }
+.stw .legend { margin: 0; font-size: 13px; display: flex; flex-wrap: wrap; gap: 4px 14px; align-items: center; }
+.stw .legend .lg { display: inline-flex; gap: 6px; align-items: center; }
 @media (max-width: 640px) { .rule { grid-template-columns: auto minmax(0, 1fr) auto; } .rule .aff { grid-column: 2; } }
 .tchips { display: inline-flex; gap: 4px; }
 .tchips button { border: 1px solid var(--line); background: var(--surface); border-radius: 12px; padding: 2px 9px; font: 500 12px var(--mono); color: var(--muted); }
@@ -103,7 +103,7 @@
 .rcard:has(input:focus-visible) { outline: 2px solid var(--accent); outline-offset: 2px; }
 .rcard span { display: flex; flex-direction: column; gap: 2px; }
 .rcard small { color: var(--muted); font-size: 12px; }
-.plist { display: flex; flex-direction: column; gap: 6px; width: 100%; }
+.acl { display: flex; flex-direction: column; gap: 6px; width: 100%; }
 .prow { display: flex; align-items: center; gap: 8px; border: 1px solid var(--line); border-radius: var(--rs); padding: 5px 8px; background: var(--surface); min-width: 0; }
 .prow.locked { background: var(--surface2); }
 .prow .pe { flex: 1; min-width: 0; overflow-wrap: anywhere; }
@@ -112,7 +112,7 @@
 .prm { border: 0; background: none; color: var(--muted); padding: 0 6px; font-size: 16px; line-height: 1; }
 .prm:hover { color: var(--bad); }
 .addp { display: flex; gap: 6px; width: 100%; }
-.small { font-size: 12px; margin: 0; }
+.stw .small { font-size: 12px; margin: 0; }
 .accfoot { display: flex; gap: 12px; align-items: center; border-top: 1px solid var(--line); padding-top: 14px; }
 .unsaved { display: inline-flex; gap: 6px; align-items: center; font-size: 12px; color: var(--muted); }
 .warntxt { flex-basis: 100%; color: var(--warn); font-size: 12px; margin: -6px 0 6px 20px; display: block; }

@@ -144,7 +144,7 @@ test("after save the dots change on the List and the Heatmap", async ({ page }) 
   await saveBtn(page).click();
   await expect(page.locator(".toast")).toContainText("Settings saved");
   expect(await heatCyberWarn(page)).toBeGreaterThan(heat0);
-  expect(await listCyberWarn(page)).toBeGreaterThanOrEqual(list0);
+  expect(await listCyberWarn(page)).toBeGreaterThan(list0);
   // and back: 120 months makes fewer
   await page.getByRole("button", { name: "Settings" }).click();
   await page.getByRole("tab", { name: /Status rules/ }).click();

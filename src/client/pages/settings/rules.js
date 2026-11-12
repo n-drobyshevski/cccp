@@ -111,7 +111,7 @@ function paramsOf(rule, draft) {
 export function rulesView(ctx) {
   const counts = draftCounts(ctx.rows, ctx.session, ctx.today);
   const noTier = cleanTiers(paramsOf(RULE_BY_ID["ct.drpMissing"], ctx.session.draft).tiers).length === 0;
-  return html`${PILLARS.map((pl) => html`<div class="sgrp" data-pillar="${pl}"><h3>${PILLAR_LABEL[pl]}</h3>
+  return html`${PILLARS.map((pl) => html`<div class="sgrp" data-pillar="${pl}"><h3>${dot(rulesOf(pl).some((r) => r.level === "bad") ? "bad" : "warn")}${PILLAR_LABEL[pl]}</h3>
     ${rulesOf(pl).map((rule) => {
       const row = ruleRow(rule, paramsOf(rule, ctx.session.draft), counts[rule.id] || 0);
       return rule.id === "ct.drpMissing" && noTier ? html`${row}<small class="warntxt" role="status" data-no-tier>Choose at least one tier, or this rule never fires.</small>` : row;

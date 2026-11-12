@@ -26,7 +26,7 @@ let memo = null;
 
 /** The results head: 'N of M applications', the hidden note, the legend and the tools. */
 export function headView(shown, total, hidden) {
-  return html`<div class="rhead"><span class="rcount"><span data-count="visible"><b class="num">${num(shown)}</b></span> <span class="mut" data-count="of">of ${count(total, "application")}</span>${hidden ? html` <span class="mut" data-count="hidden"> and ${count(hidden, "application")} hidden by the display settings</span>` : ""}</span>${legend()}<div class="rtools"><span class="pw"><button type="button" class="tbtn" data-act="cols" data-k="cols" aria-haspopup="dialog" aria-expanded="false">${icon("columns")}<span>Columns</span></button></span><button type="button" class="tbtn" data-act="export" data-k="export" data-tip="Export arrives in a later step">${icon("download")}<span>Export</span></button></div></div>`;
+  return html`<div class="rhead"><span class="rcount"><span data-count="visible"><b class="num">${num(shown)}</b></span> <span class="mut" data-count="of">of ${count(total, "application")}</span>${hidden ? html` <span class="mut" data-count="hidden"> and ${count(hidden, "application")} hidden by the display settings</span>` : ""}</span>${legend()}<div class="rtools"><span class="pw"><button type="button" class="tbtn" data-act="cols" data-k="cols" aria-haspopup="dialog" aria-expanded="false">${icon("columns")}<span>Columns</span></button></span><button type="button" class="tbtn" data-act="export" data-k="export" aria-label="Export (arrives in a later step)" data-tip="Export arrives in a later step">${icon("download")}<span>Export</span></button></div></div>`;
 }
 
 /** The whole results panel for a store state. Pure. */

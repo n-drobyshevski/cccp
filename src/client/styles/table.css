@@ -56,3 +56,4 @@ tr:hover .nm, .nm:focus-visible { color: var(--accent); }
 .qcell small { font: 500 11px var(--mono); color: var(--muted); min-width: 30px; }
 
 @media (max-width: 600px) { .rhead { padding-inline: 10px; } th, td { padding-inline: 10px; } }
+.pop-cols .ck.zero input { opacity: .5; cursor: default; }

@@ -175,10 +175,10 @@ describe("columns", () => {
     expect(visibleColumns(after, choice).map((c) => c.key)).toEqual(["n", "b", "c"]);
     expect(columnShown(after[4], choice)).toBe(false);
   });
-  it("the chooser lists every column and counts the shown ones", () => {
+  it("the chooser lists every column; Reset appears only with a deviation", () => {
     const out = s(chooserView(["-so"], "n"));
     expect([...out.matchAll(/data-act="col"/g)].length).toBe(COLUMNS.length);
-        expect(out).toContain("Reset to default");
+    expect(out).toContain("Reset to default");
     expect(s(chooserView([], "n"))).not.toContain("Reset to default");
   });
 });

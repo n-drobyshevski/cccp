@@ -62,7 +62,7 @@ export function openPopover(anchor, safe, opts) {
   document.addEventListener("pointerdown", cur.onDown, true);
   document.addEventListener("keydown", cur.onKey, true);
   window.addEventListener("resize", cur.onResize);
-  const first = pop.querySelector("input,button,[tabindex]");
+  const first = pop.querySelector('input:not([disabled]),button:not([disabled]),[tabindex]:not([tabindex="-1"])');
   (first || pop).focus({ preventScroll: true });
   return {
     el: pop,

@@ -67,6 +67,17 @@ test.describe("sorting", () => {
 });
 
 test.describe("columns", () => {
+  test("the Columns menu opens by keyboard on its first enabled checkbox", async ({ page }) => {
+    await ready(page);
+    await page.getByRole("button", { name: "Columns" }).focus();
+    await page.keyboard.press("Enter");
+    const f = page.locator("input[data-act=col]:focus");
+    await expect(f).toHaveCount(1);
+    await expect(f).toBeEnabled();
+    await page.keyboard.press("Space");
+    expect(urlParam(page, "cols")).toMatch(/^[-+]/);
+  });
+
   test("choose, persist, reset; Application is fixed", async ({ page }) => {
     const bad = watchConsole(page);
     await ready(page);

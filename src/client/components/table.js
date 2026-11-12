@@ -48,7 +48,7 @@ export function cell(col, r) {
     case "sd": return plain(a.subdomain);
     case "g": return blank(a.supportGroup) ? dash() : html`<span class="mut">${a.supportGroup}</span>`;
     case "t":
-      return a.tier ? html`<span class="tier t${a.tier}">T${a.tier}</span>` : html`<span class="tier t0" data-tip="No tiering set">–<span class="sr-only">No tier</span></span>`;
+      return a.tier ? html`<span class="tier t${a.tier}">T${a.tier}</span>` : html`<span class="tier t0" data-tip="No tiering set">–<span class="sr-only">No tiering set</span></span>`;
     case "lc":
       return blank(a.lifecycle) ? dash() : html`<span class="lc ${lifecycleClass(a.lifecycle)}">${lifecycleLabel(a.lifecycle)}</span>`;
     case "o": return plain(a.owner);

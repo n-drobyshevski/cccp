@@ -2,7 +2,7 @@
 .pop-menu { min-width: 230px; padding: 6px; }
 .pop-menu .mlbl { padding: 6px 9px 2px; }
 .pop-menu .menu { gap: 0; }
-.mitem { display: flex; align-items: center; gap: 9px; width: 100%; border: 0; background: none; text-align: left; padding: 7px 9px; border-radius: 6px; white-space: nowrap; color: var(--fg); font: inherit; cursor: pointer; }
+.mitem { display: flex; align-items: center; gap: 9px; width: 100%; border: 0; background: none; text-align: left; padding: 7px 9px; border-radius: var(--r); white-space: nowrap; color: var(--fg); font: inherit; cursor: pointer; }
 .mitem:hover:not(:disabled) { background: var(--surface2); }
 .mitem:disabled { color: var(--muted); cursor: default; }
 .mitem svg { width: 15px; height: 15px; color: var(--muted); flex: none; }

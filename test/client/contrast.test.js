@@ -76,6 +76,18 @@ for (const [name, t] of [["light", light], ["dark", dark]]) {
       expect(ratio(t.teal, mix(t.teal, t.surface, 0.16))).toBeGreaterThanOrEqual(4.5);
       expect(ratio(t["warn-strong"], mix(t.warn, t.surface, 0.18))).toBeGreaterThanOrEqual(4.5);
     });
+    it("pillar names and the muted 'none' text reach 4.5:1 on the page and cards", () => {
+      for (const bg of ["bg", "surface", "surface2"]) {
+        for (const k of ["cy", "co", "ct", "pl", "none", "accent"]) expect(ratio(t[k], t[bg]), k + " on " + bg).toBeGreaterThanOrEqual(4.5);
+      }
+    });
+    it("the glyph marks reach 3:1 on their fills", () => {
+      expect(ratio(t["on-bad"], t.bad)).toBeGreaterThanOrEqual(3);
+      for (const [c, p] of [["ok", 0.13], ["warn", 0.16]]) {
+        const mixed = "#" + rgbOf(t[c]).map((x, i) => Math.round((x * p + rgbOf(t.surface)[i] * (1 - p)) * 255).toString(16).padStart(2, "0")).join("");
+        expect(ratio(t[c], mixed), c).toBeGreaterThanOrEqual(3);
+      }
+    });
     it("the tooltip text reads on its background", () => {
       expect(ratio(t["tip-fg"], t["tip-bg"])).toBeGreaterThanOrEqual(4.5);
     });

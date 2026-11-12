@@ -1,74 +1,97 @@
-/* Design tokens. The only file in src/client that may hold a colour literal. Ported from the
-   approved mockups (proto.src.html), light and dark. Dark is declared twice on purpose: once
-   for the system preference when no choice was made, once for an explicit data-theme.
-   Light --none is #667180, darker than the mockup #98a1b0 (2.6:1 on --surface) so it clears 4.5:1. */
+/* Design tokens, identity G (workbench with pillar tabs). The only file in src/client that may
+   hold a colour literal. Light first; dark keeps the same structure. Dark is declared twice on
+   purpose: once for the system preference when no choice was made, once for an explicit
+   data-theme. Differences from the approved mockup, all for 4.5:1 text contrast on white and on
+   the page: --cy #c2410c (mockup #d9480f), --ct #0b7a5c (mockup #0f8a6b), --none #6e6e6e
+   (mockup #9e9e9e). */
 :root {
-  --bg: #eef1f5;
+  --bg: #fbfbfa;
   --surface: #ffffff;
-  --surface2: #f5f7fa;
-  --line: #dde2ea;
-  --line2: #c9d0db;
-  --fg: #151a23;
-  --muted: #5a6474;
-  --accent: oklch(0.48 0.17 265);
+  --surface2: #f4f4f2;
+  --line: #ebebea;
+  --line2: #d6d6d3;
+  --fg: #202124;
+  --muted: #5f6368;
+  --accent: #1a4f9c;
   --on-accent: #ffffff;
-  --accent-soft: oklch(0.95 0.03 265);
-  --ok: #1b8556;
-  --warn: #c07a00;
-  --bad: #c9303e;
-  --none: #667180;
-  --tip-bg: #151a23;
+  --accent-soft: #eef3fb;
+  --ok: #2e7d32;
+  --warn: #b26a00;
+  --bad: #c62828;
+  --on-bad: #ffffff;
+  --none: #6e6e6e;
+  --cy: #c2410c;
+  --co: #1c64d4;
+  --ct: #0b7a5c;
+  --pl: #7048c8;
+  --tip-bg: #202124;
   --tip-fg: #ffffff;
-  --sans: "Inter", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --sans: "Source Sans 3", system-ui, -apple-system, "Segoe UI", sans-serif;
   --mono: "IBM Plex Mono", ui-monospace, Menlo, Consolas, monospace;
-  --r: 10px;
-  --rc: 18px;
-  --rs: 14px;
-  --shadow: 0 10px 30px color-mix(in srgb, var(--fg) 16%, transparent);
+  --r: 3px;
+  --rc: 4px;
+  --rs: 3px;
+  --shadow: 0 6px 18px color-mix(in srgb, var(--fg) 14%, transparent);
   --scrim: color-mix(in srgb, var(--fg) 40%, transparent);
   color-scheme: light;
 }
 
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme="light"]) {
-    --bg: #0e1117;
-    --surface: #161a22;
-    --surface2: #1c212b;
-    --line: #2a313e;
-    --line2: #3a4252;
-    --fg: #e7eaf0;
-    --muted: #97a1b2;
-    --accent: oklch(0.76 0.12 265);
-    --on-accent: #0e1117;
-    --accent-soft: oklch(0.3 0.06 265);
-    --ok: #4bc088;
-    --warn: #e2a03a;
-    --bad: #ee6370;
-    --none: #7e899b;
-    --tip-bg: #e7eaf0;
-    --tip-fg: #0e1117;
+    --bg: #151617;
+    --surface: #1c1d1f;
+    --surface2: #232426;
+    --line: #2c2d30;
+    --line2: #404246;
+    --fg: #e8e8e6;
+    --muted: #a1a5ab;
+    --accent: #7fa8e6;
+    --on-accent: #101418;
+    --accent-soft: #1f2a3d;
+    --ok: #5bbf73;
+    --warn: #e0a030;
+    --bad: #f06565;
+  --on-bad: #151617;
+    --none: #8f9399;
+    --cy: #ff8a5c;
+    --co: #6ea1f5;
+    --ct: #3fc9a2;
+    --pl: #a98cf0;
+    --tip-bg: #e8e8e6;
+    --tip-fg: #151617;
     color-scheme: dark;
   }
 }
 
 :root[data-theme="dark"] {
-  --bg: #0e1117;
-  --surface: #161a22;
-  --surface2: #1c212b;
-  --line: #2a313e;
-  --line2: #3a4252;
-  --fg: #e7eaf0;
-  --muted: #97a1b2;
-  --accent: oklch(0.76 0.12 265);
-  --on-accent: #0e1117;
-  --accent-soft: oklch(0.3 0.06 265);
-  --ok: #4bc088;
-  --warn: #e2a03a;
-  --bad: #ee6370;
-  --none: #7e899b;
-  --tip-bg: #e7eaf0;
-  --tip-fg: #0e1117;
+  --bg: #151617;
+  --surface: #1c1d1f;
+  --surface2: #232426;
+  --line: #2c2d30;
+  --line2: #404246;
+  --fg: #e8e8e6;
+  --muted: #a1a5ab;
+  --accent: #7fa8e6;
+  --on-accent: #101418;
+  --accent-soft: #1f2a3d;
+  --ok: #5bbf73;
+  --warn: #e0a030;
+  --bad: #f06565;
+  --on-bad: #151617;
+  --none: #8f9399;
+  --cy: #ff8a5c;
+  --co: #6ea1f5;
+  --ct: #3fc9a2;
+  --pl: #a98cf0;
+  --tip-bg: #e8e8e6;
+  --tip-fg: #151617;
   color-scheme: dark;
+}
+
+/* Pillar tints for status glyphs and scorecard cells. */
+:root {
+  --tint-ok: color-mix(in srgb, var(--ok) 13%, var(--surface));
+  --tint-warn: color-mix(in srgb, var(--warn) 16%, var(--surface));
 }
 
 /* Landscape tier ramp (lx3 mval): the accent mixed into the surface, deepest for Tier 1. */
@@ -79,34 +102,31 @@
   --tier4: color-mix(in srgb, var(--accent) 25%, var(--surface));
 }
 
-/* Fact sheet tag and title colours (lx2.ext.html), light and dark. --warn-strong is the solid
-   warning fill: darker than --warn in light so white text on it reaches 4.5:1. */
+/* Fact sheet tag colours and skeleton greys, light and dark. --warn-strong is the solid warning
+   fill: darker than --warn in light so white text on it reaches 4.5:1. */
 :root {
   --violet: oklch(0.5 0.17 300);
   --teal: oklch(0.45 0.1 190);
-  --title: oklch(0.38 0.08 265);
   --warn-strong: #8c5800;
-  --ok-text: #17714a;
-  --sk: #e4e8ee;
-  --sk-hi: #f3f5f8;
+  --ok-text: #1f6b24;
+  --sk: #ebebe9;
+  --sk-hi: #f4f4f2;
 }
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme="light"]) {
     --violet: oklch(0.8 0.11 300);
     --teal: oklch(0.8 0.09 190);
-    --title: oklch(0.85 0.05 265);
-    --warn-strong: #e2a03a;
-    --ok-text: #4bc088;
-    --sk: #232934;
-    --sk-hi: #2e3542;
+    --warn-strong: #e0a030;
+    --ok-text: #5bbf73;
+    --sk: #2a2b2e;
+    --sk-hi: #35363a;
   }
 }
 :root[data-theme="dark"] {
   --violet: oklch(0.8 0.11 300);
   --teal: oklch(0.8 0.09 190);
-  --title: oklch(0.85 0.05 265);
-  --warn-strong: #e2a03a;
-  --ok-text: #4bc088;
-  --sk: #232934;
-  --sk-hi: #2e3542;
+  --warn-strong: #e0a030;
+  --ok-text: #5bbf73;
+  --sk: #2a2b2e;
+  --sk-hi: #35363a;
 }

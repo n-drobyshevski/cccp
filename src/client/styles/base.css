@@ -8,12 +8,13 @@ button { cursor: pointer; }
 button[disabled] { cursor: default; opacity: 0.6; }
 :focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
 h1, h2, h3 { margin: 0; }
-h1 { font-size: 24px; font-weight: 600; letter-spacing: -0.015em; }
-h2 { font-size: 16px; font-weight: 600; }
+h1 { font-size: 24px; font-weight: 700; }
+h2 { font-size: 16px; font-weight: 700; }
 p { margin: 0; }
 a { color: var(--accent); }
 .mut { color: var(--muted); }
 .num { font-variant-numeric: tabular-nums; }
+.mono { font-family: var(--mono); }
 .sr-only { position: absolute; width: 1px; height: 1px; margin: -1px; padding: 0; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0; }
 
 .shell {
@@ -26,6 +27,8 @@ a { color: var(--accent); }
   flex-direction: column;
   gap: 12px;
 }
+/* The workbench pages (Inventory, fact sheet) run edge to edge under the bar. */
+.shell:has(> .wb), .shell:has(> .lxwrap) { padding: 0; gap: 0; }
 
 /* ---------- scroll bars ---------- */
 * { scrollbar-width: thin; scrollbar-color: var(--line2) transparent; }
@@ -38,7 +41,7 @@ a { color: var(--accent); }
 ::-webkit-scrollbar-button { display: none; width: 0; height: 0; }
 
 /* ---------- buttons ---------- */
-.btn { display: inline-flex; align-items: center; gap: 6px; border: 1px solid var(--line); background: var(--surface); border-radius: var(--r); padding: 6px 14px; font-weight: 500; text-decoration: none; color: var(--fg); }
+.btn { display: inline-flex; align-items: center; gap: 6px; border: 1px solid var(--line2); background: var(--surface); border-radius: var(--r); padding: 6px 14px; font-weight: 600; text-decoration: none; color: var(--fg); }
 .btn:hover { border-color: var(--accent); color: var(--accent); }
 .btn.primary { background: var(--accent); color: var(--on-accent); border-color: var(--accent); }
 .btn.primary:hover { color: var(--on-accent); filter: brightness(1.08); }
@@ -48,6 +51,16 @@ a { color: var(--accent); }
 .icon-btn { display: inline-grid; place-items: center; width: 34px; height: 34px; border: 1px solid var(--line); background: var(--surface); border-radius: var(--r); color: var(--muted); padding: 0; }
 .icon-btn:hover { color: var(--fg); border-color: var(--line2); }
 .icon-btn svg { width: 17px; height: 17px; }
+
+/* ---------- status glyphs (components/glyph.js): a check on light green, "!" on light amber, a
+   white cross on solid red, an empty dashed box for no data. Shape differs per status. ---------- */
+.gl { display: inline-flex; align-items: center; justify-content: center; width: 22px; height: 20px; border-radius: 3px; flex: none; vertical-align: middle; }
+.gl svg { width: 11px; height: 11px; stroke-width: 2.6; }
+.gl.ok { background: var(--tint-ok); color: var(--ok); }
+.gl.warn { background: var(--tint-warn); color: var(--warn); }
+.gl.bad { background: var(--bad); color: var(--on-bad); }
+.gl.none { color: var(--none); border: 1px dashed var(--none); }
+.gl.lg { width: 24px; height: 22px; }
 
 /* ---------- status dots: colour plus shape, the "none" dot is dashed ---------- */
 .dot { display: inline-block; width: 10px; height: 10px; border-radius: 50%; background: var(--c, var(--none)); }

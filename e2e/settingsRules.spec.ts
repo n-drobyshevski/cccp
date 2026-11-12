@@ -42,7 +42,7 @@ async function heatCyberWarn(page: Page): Promise<number> {
   return sum;
 }
 const listCyberWarn = async (page: Page) => {
-  await nav(page, "List").click();
+  await nav(page, "Inventory").click();
   await expect(page.locator("table[data-table=list]")).toBeVisible();
   return page.locator('table[data-table=list] [aria-label^="Cyber: Needs attention"]').count();
 };

@@ -6,33 +6,34 @@ body[data-boot] .appbar { display: none; }
 body[data-boot] .shell { min-height: 100vh; justify-content: center; padding-block: 0; }
 .boot { display: grid; place-items: center; min-height: 60vh; }
 .boot-in { display: flex; flex-direction: column; align-items: center; gap: 14px; text-align: center; max-width: 100%; }
-.boot-mark { display: grid; grid-template-columns: repeat(2, 18px); gap: 5px; }
-.boot-mark i { width: 18px; height: 18px; border-radius: 50%; background: var(--accent); animation: boot-dot 1.2s ease-in-out infinite; }
-.boot-mark i:nth-child(2) { background: color-mix(in srgb, var(--accent) 65%, var(--surface)); animation-delay: 0.15s; }
-.boot-mark i:nth-child(4) { background: var(--fg); animation-delay: 0.3s; }
-.boot-mark i:nth-child(3) { background: color-mix(in srgb, var(--accent) 40%, var(--surface)); animation-delay: 0.45s; }
-.boot-name { font: 600 20px/1.1 var(--sans); letter-spacing: 0.04em; }
+.boot-mark { display: flex; gap: 5px; align-items: center; }
+.boot-mark i { width: 7px; height: 30px; display: block; animation: boot-dot 1.2s ease-in-out infinite; }
+.boot-mark i:nth-child(1) { background: var(--cy); }
+.boot-mark i:nth-child(2) { background: var(--co); animation-delay: 0.15s; }
+.boot-mark i:nth-child(3) { background: var(--ct); animation-delay: 0.3s; }
+.boot-mark i:nth-child(4) { background: var(--pl); animation-delay: 0.45s; }
+.boot-name { font: 700 20px/1.1 var(--sans); letter-spacing: 0.12em; }
 .boot-line { color: var(--muted); font-size: 13px; }
 .boot-steps { display: flex; flex-wrap: wrap; justify-content: center; gap: 6px 16px; margin: 0; padding: 0; list-style: none; font-size: 12px; color: var(--muted); }
 .boot-steps li::before { content: ""; display: inline-block; width: 7px; height: 7px; margin-right: 6px; border-radius: 50%; background: var(--line2); vertical-align: middle; }
 .boot-steps li[data-state="done"]::before { background: var(--ok); }
 .boot-steps li[data-state="active"] { color: var(--fg); }
 .boot-steps li[data-state="active"]::before { background: var(--accent); }
-@keyframes boot-dot { 0%, 100% { transform: scale(1); opacity: 1; } 50% { transform: scale(0.6); opacity: 0.5; } }
+@keyframes boot-dot { 0%, 100% { transform: scaleY(1); opacity: 1; } 50% { transform: scaleY(0.55); opacity: 0.55; } }
 
 /* ---------- the slow line, in the splash and in every skeleton ---------- */
 .ld-slow { margin: 0; color: var(--muted); font-size: 12px; }
 .ld > [data-slot="slow"]:not(:empty) { margin-bottom: 8px; }
 
 /* ---------- skeleton atoms ---------- */
-.sk { display: inline-block; width: var(--w, 60%); max-width: 100%; height: 10px; border-radius: 6px; background: var(--sk); vertical-align: middle; animation: sk-pulse 1.4s ease-in-out infinite; }
+.sk { display: inline-block; width: var(--w, 60%); max-width: 100%; height: 10px; border-radius: 2px; background: var(--sk); vertical-align: middle; animation: sk-pulse 1.4s ease-in-out infinite; }
 .sk.h { height: 14px; }
 .sk.big { height: 26px; }
 .sk.sq { width: 28px; height: 18px; }
 .sk.stack { height: 12px; }
 .sk.cell { height: 22px; width: 100%; }
 .sk.title { height: 24px; }
-.sk.tile { width: var(--w); height: 24px; border-radius: 8px; }
+.sk.tile { width: var(--w); height: 24px; border-radius: var(--r); }
 .sk.ring { width: 56px; height: 56px; border-radius: 50%; }
 .sk-dots { display: inline-flex; gap: 3px; }
 .sk-dots i { width: 10px; height: 10px; border-radius: 50%; background: var(--sk); animation: sk-pulse 1.4s ease-in-out infinite; }
@@ -50,10 +51,9 @@ body[data-boot] .shell { min-height: 100vh; justify-content: center; padding-blo
 .ld-tab { font-weight: 600; }
 .ld-tab span { display: inline-block; padding-bottom: 4px; border-bottom: 2px solid var(--accent); }
 .ld-bar-row { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
-.ld-search { flex: 1 1 240px; display: flex; align-items: center; gap: 8px; min-width: 0; border: 1px solid var(--line); background: var(--surface2); border-radius: var(--r); padding: 7px 10px; color: var(--muted); }
-.ld-search svg { width: 15px; height: 15px; flex: none; }
-.ld-search span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .ld .pill { color: var(--muted); }
+.ld-ptabs { gap: 6px 22px; font: 700 11.5px var(--sans); letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); }
+.ld-facets { margin-left: auto; text-transform: none; letter-spacing: 0; font-weight: 500; font-size: 13px; }
 
 /* results table (list and heatmap) */
 .ld-res { padding: 12px 14px; display: flex; flex-direction: column; gap: 10px; }
@@ -89,7 +89,7 @@ body[data-boot] .shell { min-height: 100vh; justify-content: center; padding-blo
 .ld-back { display: inline-flex; align-items: center; gap: 6px; align-self: flex-start; border: 1px solid var(--line); background: var(--surface); border-radius: var(--r); padding: 5px 12px 5px 9px; font-weight: 500; }
 .ld-back svg { width: 15px; height: 15px; }
 .ld-name { display: flex; flex-direction: column; gap: 8px; margin: 6px 0; }
-.ld-sec h2 { font-size: 18px; font-weight: 600; color: var(--title); padding: 12px 0 8px; border-bottom: 1px solid var(--line2); margin-bottom: 8px; }
+.ld-sec h2 { font-size: 18px; font-weight: 600; color: var(--fg); padding: 12px 0 8px; border-bottom: 1px solid var(--line2); margin-bottom: 8px; }
 .ld-kv { display: grid; grid-template-columns: minmax(0, 200px) minmax(0, 1fr); gap: 10px; align-items: center; padding: 4px 0 4px 12px; color: var(--muted); font-size: 13px; }
 .ld-dq { padding: 16px; display: flex; flex-direction: column; gap: 12px; }
 .ld-dq h3 { margin: 0; font-size: 11px; letter-spacing: 0.06em; text-transform: uppercase; color: var(--muted); font-weight: 500; }

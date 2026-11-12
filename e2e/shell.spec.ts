@@ -72,7 +72,7 @@ test.describe("app bar", () => {
   test("four views with aria-current on the open one", async ({ page }) => {
     await page.goto("/?r=heatmap");
     const nav = page.getByRole("navigation", { name: "View" });
-    await expect(nav.getByRole("button")).toHaveText(["Overview", "List", "Heatmap", "Landscape"]);
+    await expect(nav.getByRole("button")).toHaveText(["Overview", "Inventory", "Heatmap", "Landscape"]);
     await expect(nav.locator("[aria-current=page]")).toHaveCount(1);
     await expect(nav.getByRole("button", { name: "Heatmap" })).toHaveAttribute("aria-current", "page");
     await nav.getByRole("button", { name: "Landscape" }).click();

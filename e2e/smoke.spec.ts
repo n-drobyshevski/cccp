@@ -18,10 +18,10 @@ test("the walk: every page, the fact sheet and a Settings save, with no console 
   await page.goto("/");
   await expect(page.locator(".navb")).toBeVisible();
   for (const route of PAGES) {
-    await page.getByRole("button", { name: new RegExp("^" + route, "i") }).click();
+    await page.getByRole("button", { name: route === "list" ? "Inventory" : new RegExp("^" + route, "i") }).click();
     await expect(page.locator("[data-page=" + route + "]")).toBeVisible();
   }
-  await page.getByRole("button", { name: "List", exact: true }).click();
+  await page.getByRole("button", { name: "Inventory", exact: true }).click();
   await expect(page.locator("tr[data-id]").first()).toBeVisible();
   const id = await page.locator("tr[data-id]").first().getAttribute("data-id");
   await page.goto("/?app=" + id);
@@ -123,7 +123,7 @@ test.describe("keyboard", () => {
   });
 
   test("a popover opens from the keyboard and Escape returns focus to its trigger", async ({ page }) => {
-    await page.goto("/?r=list");
+    await page.goto("/?r=heatmap");
     const pill = page.locator(".toolbar [aria-haspopup], .tb [aria-haspopup]").first();
     await expect(pill).toBeVisible();
     await pill.focus();

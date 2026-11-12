@@ -2,7 +2,7 @@
    the metric. Unknown values are hatched. Tokens only. */
 .metric { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
 .lbl { font-size: 11px; letter-spacing: 0.06em; text-transform: uppercase; color: var(--muted); }
-.segs { display: inline-flex; flex-wrap: wrap; border: 1px solid var(--line); border-radius: 8px; overflow: hidden; }
+.segs { display: inline-flex; flex-wrap: wrap; border: 1px solid var(--line); border-radius: var(--r); overflow: hidden; }
 .segs button { border: 0; background: var(--surface); padding: 6px 12px; border-right: 1px solid var(--line); color: var(--fg); }
 .segs button:last-child { border-right: 0; }
 .segs button:hover { background: var(--surface2); }
@@ -30,7 +30,7 @@
 .sdg + .sdg { border-top: 1px dashed var(--line); }
 .sdg > span { font-size: 11px; color: var(--muted); letter-spacing: 0.04em; text-transform: uppercase; }
 .tiles2 { display: flex; flex-wrap: wrap; gap: 4px; }
-.tl { border: 0; border-radius: 6px; padding: 4px 8px; font-size: 12px; font-weight: 500; max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; text-align: left; background: color-mix(in srgb, var(--c) 18%, var(--surface)); color: var(--fg); box-shadow: inset 3px 0 0 var(--c); }
+.tl { border: 0; border-radius: var(--r); padding: 4px 8px; font-size: 12px; font-weight: 500; max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; text-align: left; background: color-mix(in srgb, var(--c) 18%, var(--surface)); color: var(--fg); box-shadow: inset 3px 0 0 var(--c); }
 .tl:hover { background: color-mix(in srgb, var(--c) 30%, var(--surface)); }
 .tl.ls-none { background: repeating-linear-gradient(135deg, var(--surface) 0 4px, var(--surface2) 4px 8px); box-shadow: inset 0 0 0 1px var(--line2); color: var(--muted); }
 .tl.ls-none:hover { background: var(--surface2); }

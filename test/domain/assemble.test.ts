@@ -189,8 +189,12 @@ describe("assemble on the dev workbook", () => {
   });
 });
 
-describe.skipIf(!existsSync(REAL_CSV))("assemble on the real Apps tab", () => {
-  const csv = parseCsv(readFileSync(REAL_CSV, "utf8"));
+const HAS_REAL_CSV = existsSync(REAL_CSV);
+
+describe.skipIf(!HAS_REAL_CSV)("assemble on the real Apps tab", () => {
+  // A skipped describe still runs its body to collect the tests, so read the file only when it
+  // is there; otherwise the whole file fails with ENOENT on every machine without the sample.
+  const csv = HAS_REAL_CSV ? parseCsv(readFileSync(REAL_CSV, "utf8")) : [["UUID"]];
   const headers = csv[0]!;
   const rows = csv.slice(1);
   const { apps, issues } = assemble({ apps: { headers, rows } }, D());

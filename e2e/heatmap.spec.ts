@@ -1,6 +1,6 @@
 import { expect, test, type Page } from "@playwright/test";
 
-// The heatmap page against the dev server: groups sorted by size, exact counts, the red number,
+// The heatmap lens of the Inventory (opened here through the old ?r=heatmap address) against the dev server: groups sorted by size, exact counts, the red number,
 // the default open set and its persistence across filter changes, cells and Back.
 
 function watchConsole(page: Page): string[] {
@@ -34,7 +34,7 @@ async function smallTerm(page: Page): Promise<string | null> {
   await search(page).fill("");
   return null;
 }
-const sizeOf = async (page: Page, i: number) => Number(await groups(page).nth(i).locator(".gb > span").innerText());
+const sizeOf = async (page: Page, i: number) => Number((await groups(page).nth(i).locator(".gb > span").innerText()).replace(/\D/g, ""));
 
 test("groups are sorted by size and the red number equals the bad count", async ({ page }) => {
   const bad = watchConsole(page);
@@ -113,7 +113,7 @@ test("40 applications or fewer open every group; no match shows the empty state"
   await expect(page.locator(".empty")).toBeVisible();
 });
 
-test("toggling a group shows and hides its rows; cells show the dot and why", async ({ page }) => {
+test("toggling a group shows and hides its rows; cells show the glyph and why", async ({ page }) => {
   await ready(page);
   const second = groups(page).nth(1).locator(".gb");
   const size = await sizeOf(page, 1);
@@ -122,7 +122,7 @@ test("toggling a group shows and hides its rows; cells show the dot and why", as
   await expect(second).toHaveAttribute("aria-expanded", "true");
   await expect(page.locator("tr[data-id]")).toHaveCount(before + size);
   const cell = page.locator("tr[data-id] td.hc").first();
-  await expect(cell.locator(".dot")).toBeVisible();
+  await expect(cell.locator(".gl")).toBeVisible();
   expect((await cell.innerText()).trim().length).toBeGreaterThan(2);
   await second.click();
   await expect(page.locator("tr[data-id]")).toHaveCount(before);

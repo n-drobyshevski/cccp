@@ -4,7 +4,7 @@
 // bar never loses it. Pure of the DOM: the store, the URL writers and the timers are passed in.
 export const SEARCH_DEBOUNCE_MS = 120;
 /** Routes whose address carries the list query; the search shows q on these. */
-export const QUERY_ROUTES = ["list", "heatmap", "landscape"];
+export const QUERY_ROUTES = ["list"];
 const PAGE_STEP = 50;
 
 export function createSearch(env) {

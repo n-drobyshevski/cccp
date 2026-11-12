@@ -20,7 +20,7 @@ import { barView, sectionsView } from "./sections.js";
 import { peopleView } from "./people.js";
 import { sidebarView } from "./dqSidebar.js";
 
-const FROM = ["list", "heatmap", "landscape", "overview"];
+const FROM = ["list", "overview"];
 const KEY_CLOSED = "fs.closed";
 const KEY_SIDE = "fs.sidebar";
 const KEY_RECENT = "recent";

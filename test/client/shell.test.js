@@ -35,11 +35,11 @@ describe("shell search", () => {
     expect(calls).toEqual([["navigate", { route: "list", app: null, tab: null, view: null, q: "pay", f: {}, limit: 50 }, "push"]]);
     vi.useRealTimers();
   });
-  it("keeps the filters when it leaves the Heatmap, and drops them when it leaves a fact sheet", () => {
+  it("keeps the filters on the Inventory (any lens), and drops them when it leaves a fact sheet", () => {
     const f = { tier: ["T1"] };
-    const a = make("heatmap", f);
+    const a = make("list", f);
     a.search.enter("x");
-    expect(a.calls[0][1].f).toBe(f);
+    expect(a.calls[0]).toEqual(["replace", { q: "x", limit: 50 }]);
     const b = make("app", f);
     b.search.enter("x");
     expect(b.calls[0][1].f).toEqual({});
@@ -67,8 +67,8 @@ describe("shell search", () => {
 
 describe("the bar", () => {
   const ready = { ...initialState(), route: "list", booted: true, core: {}, live: { viewer: { canEditSettings: false } }, boot: { status: "ready", message: "" } };
-  it("reads Overview, Inventory, Heatmap, Landscape and carries the search", () => {
-    expect(VIEWS.map((v) => v.label)).toEqual(["Overview", "Inventory", "Heatmap", "Landscape"]);
+  it("reads Overview and Inventory (Heatmap and Landscape are lenses) and carries the search", () => {
+    expect(VIEWS.map((v) => v.label)).toEqual(["Overview", "Inventory"]);
     expect(VIEWS[1].route).toBe("list");
     const h = s(appbarView({ ...ready, q: "pay" }, "light"));
     expect(h).toContain('placeholder="Search applications, people"');

@@ -45,12 +45,12 @@ describe("url.js", () => {
   it("records a push for a page change and a replace for a filter change", () => {
     url.init({ fallbackRoute: "list" });
     return url.readLocation().then(() => {
-      url.push({ route: "heatmap" });
-      url.replace({ route: "heatmap", q: "pay" });
+      url.push({ route: "overview" });
+      url.replace({ route: "list", q: "pay" });
       expect(calls[0].slice(0, 2)).toEqual(["push", null]);
-      expect(calls[0][2]).toEqual({ r: "heatmap" });
+      expect(calls[0][2]).toEqual({ r: "overview" });
       expect(calls[1][0]).toBe("replace");
-      expect(calls[1][2]).toEqual({ r: "heatmap", q: "pay" });
+      expect(calls[1][2]).toEqual({ r: "list", q: "pay" });
       expect(store.get().q).toBe("pay");
     });
   });
@@ -82,8 +82,8 @@ describe("url.js", () => {
 
   it("falls back to the default route for an empty, junk or app-less address", async () => {
     location = { parameter: { r: "nonsense", app: "bad\u0007id" } };
-    await url.init({ fallbackRoute: "heatmap" });
-    expect(store.get().route).toBe("heatmap");
+    await url.init({ fallbackRoute: "overview" });
+    expect(store.get().route).toBe("overview");
     expect(store.get().app).toBeNull();
   });
 
@@ -115,6 +115,43 @@ describe("url.js", () => {
 describe("a bare view link", () => {
   it("opens the list when the address carries only ?view=<id>", () => {
     expect(url.patchFromParams({ view: "abc123" })).toMatchObject({ route: "list", view: "abc123" });
-    expect(url.patchFromParams({ r: "heatmap", view: "abc123" }).route).toBe("heatmap");
+    expect(url.patchFromParams({ r: "overview", view: "abc123" }).route).toBe("overview");
+  });
+});
+
+describe("the lens in the address", () => {
+  it("a lens is part of the Inventory's address, the default one is not", () => {
+    url.push({ route: "list", lens: "heatmap" });
+    expect(calls[calls.length - 1][2]).toEqual({ r: "list", lens: "heatmap" });
+    url.replace({ lens: "table" });
+    expect(calls[calls.length - 1][2]).toEqual({ r: "list" });
+    expect(store.get().lens).toBe("table");
+  });
+
+  it("the old heatmap and landscape routes open the Inventory on that lens, filters kept", () => {
+    expect(url.patchFromParams({ r: "heatmap", tier: "T1" })).toMatchObject({ route: "list", lens: "heatmap", f: { tier: ["T1"] } });
+    expect(url.patchFromParams({ r: "landscape", metric: "tier" })).toMatchObject({ route: "list", lens: "landscape", metric: "tier" });
+    expect(url.patchFromParams({ r: "list" })).toMatchObject({ route: "list", lens: "table" });
+    expect(url.patchFromParams({ lens: "landscape" })).toMatchObject({ route: "list", lens: "landscape" });
+  });
+
+  it("navigating to the old routes (a Display default, a saved link) lands on the lens", () => {
+    url.navigate({ route: "landscape", app: null }, "push");
+    expect(store.get()).toMatchObject({ route: "list", lens: "landscape" });
+    expect(calls[calls.length - 1][2]).toEqual({ r: "list", lens: "landscape" });
+  });
+
+  it("the Display default of an old heatmap or landscape opens that lens", async () => {
+    location = { parameter: {} };
+    await url.init({ fallbackRoute: "heatmap" });
+    expect(store.get()).toMatchObject({ route: "list", lens: "heatmap" });
+  });
+
+  it("the lens survives leaving the Inventory and coming back", () => {
+    url.push({ route: "list", lens: "landscape" });
+    url.push({ route: "app", app: "x1" });
+    expect(store.get().lens).toBe("landscape");
+    url.push({ route: "list", app: null });
+    expect(calls[calls.length - 1][2]).toEqual({ r: "list", lens: "landscape" });
   });
 });

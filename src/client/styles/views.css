@@ -1,26 +1,36 @@
-/* The saved-views tab row of the Inventory and of the pill toolbar. Identity G: the open view is
-   a tab with a hairline frame that joins the page; Save view and the view actions are text links. */
-.vtabs { display: flex; gap: 0; align-items: flex-end; border-bottom: 1px solid var(--line2); overflow-x: auto; scrollbar-width: thin; }
-.vlist { display: flex; gap: 0; align-items: flex-end; }
-.vtabs .vt { display: inline-flex; gap: 6px; align-items: center; border: 1px solid transparent; border-bottom: 0; background: none; padding: 7px 14px; margin-bottom: -1px; color: var(--muted); font-weight: 600; white-space: nowrap; }
-.vtabs .vt:focus-visible, .vtabs .add:focus-visible, .vtabs .vact > button:focus-visible { outline-offset: -2px; }
-.vtabs .vt:hover { color: var(--fg); }
-.vtabs .vt[aria-selected="true"] { color: var(--fg); background: var(--bg); border-color: var(--line2); border-bottom: 1px solid var(--bg); }
-.vtabs .vt svg, .vtabs .add svg { width: 13px; height: 13px; }
-.vtabs .add { display: inline-flex; gap: 6px; align-items: center; border: 0; background: none; padding: 7px 14px; color: var(--accent); font-weight: 600; white-space: nowrap; }
-.vtabs .vact { display: inline-flex; gap: 2px; align-items: center; margin-left: auto; padding-left: 10px; align-self: center; }
-.vtabs .vact > button { border: 0; background: none; color: var(--muted); padding: 4px 7px; border-radius: var(--r); font-size: 12px; display: inline-flex; gap: 5px; align-items: center; white-space: nowrap; }
-.vtabs .vact > button:hover { background: var(--surface2); color: var(--fg); }
-.vtabs .vact svg { width: 13px; height: 13px; }
-.modnote { display: inline-flex; gap: 0; align-items: center; font-size: 12px; color: var(--warn-strong); margin-right: 8px; white-space: nowrap; }
-.modnote button { border: 0; background: none; color: var(--accent); padding: 0; font-weight: 600; font-size: 12px; }
-.vform { display: inline-flex; gap: 8px; align-items: center; padding: 3px 6px; flex-wrap: nowrap; }
-.vform .inp { border: 1px solid var(--line2); background: var(--surface); border-radius: var(--r); padding: 4px 9px; min-width: 150px; }
+/* Saved views at the top of the Inventory's left panel (identity G, mockup option 3): a list of
+   rows, each with its live count; the open one has an accent bar on its left. Tokens only. */
+.views { padding-top: 2px; }
+.vg { padding: 0 0 4px; }
+.vl { list-style: none; margin: 0; padding: 0; }
+.vi { position: relative; }
+.vr { display: flex; align-items: stretch; }
+.vrow { flex: 1; min-width: 0; display: flex; align-items: center; justify-content: space-between; gap: 10px; border: 0; background: none; text-align: left; padding: 7px 16px 7px 16px; font-size: 14px; color: var(--fg); border-radius: 0; }
+.vrow:hover { background: var(--surface2); }
+.vrow:focus-visible { outline-offset: -2px; }
+.vn { display: inline-flex; align-items: center; gap: 7px; min-width: 0; }
+.vn > span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.vn svg { width: 12px; height: 12px; flex: none; color: var(--muted); }
+.vc { font: 400 12px var(--mono); color: var(--muted); flex: none; }
+.vi.on .vrow { background: var(--accent-soft); color: var(--accent); font-weight: 600; box-shadow: inset 3px 0 0 var(--accent); }
+.vi.on .vc { color: var(--accent); }
+.vdelb { border: 0; background: none; color: var(--muted); padding: 0 12px; display: inline-grid; place-items: center; }
+.vdelb:hover { color: var(--bad); background: var(--surface2); }
+.vdelb svg { width: 14px; height: 14px; }
+.vstate { display: flex; flex-wrap: wrap; gap: 2px 12px; align-items: center; padding: 3px 16px 6px 19px; background: var(--accent-soft); box-shadow: inset 3px 0 0 var(--accent); font-size: 12px; }
+.vmod { display: inline-flex; gap: 10px; align-items: center; flex-wrap: wrap; }
+.vchg { color: var(--warn-strong); font-weight: 600; }
+.vstate button { border: 0; background: none; padding: 2px 0; color: var(--accent); font-weight: 600; font-size: 12px; display: inline-flex; gap: 5px; align-items: center; }
+.vstate button:hover { text-decoration: underline; text-underline-offset: 2px; }
+.vact { display: inline-flex; gap: 12px; margin-left: auto; }
+.vact button { color: var(--muted); font-weight: 500; }
+.vact svg { width: 12px; height: 12px; }
+.vnone { margin: 0; padding: 4px 16px 6px; color: var(--muted); font-size: 13px; }
+.vform { display: flex; flex-direction: column; gap: 8px; padding: 4px 16px 8px; }
+.vform .inp { border: 1px solid var(--line2); background: var(--surface); border-radius: var(--r); padding: 5px 9px; min-width: 0; width: 100%; }
 .vform .inp:focus { outline: none; border-color: var(--accent); }
 .vform .inp:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
-.vshare { display: inline-flex; gap: 6px; align-items: center; font-size: 12px; color: var(--muted); white-space: nowrap; }
-.vfail { color: var(--bad); font-size: 12px; white-space: nowrap; }
-.modnote .dotsep { white-space: pre; }
-/* inside the pill toolbar (Heatmap, Landscape) the tab row sits on the panel */
-.toolbar .vtabs { margin: -2px 0 2px; }
-.toolbar .vtabs .vt[aria-selected="true"] { background: var(--surface); border-bottom-color: var(--surface); }
+.vfb { display: flex; gap: 8px; }
+.vshare { display: inline-flex; gap: 6px; align-items: center; font-size: 12px; color: var(--muted); }
+.vfail { color: var(--bad); font-size: 12px; }
+.vg + .vg { border-top: 1px solid var(--line); margin-top: 2px; padding-top: 2px; }

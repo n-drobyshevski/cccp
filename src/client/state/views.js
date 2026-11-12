@@ -7,12 +7,13 @@ import * as rpc from "../lib/rpc.js";
 import * as storage from "../lib/storage.js";
 import { store } from "./store.js";
 import { stateOf } from "./url.js";
+import { filterRows } from "../../domain/query";
 import { MAX_PERSONAL_VIEWS, VIEW_NAME_MAX, cleanView, defaultState, savedToState, stateToSaved, toQuery, validateView } from "../../domain/viewState";
 
 export const KEY = "views.v1";
 export const MAX_PERSONAL = MAX_PERSONAL_VIEWS;
 export const ALL_ID = "all";
-export const ALL_VIEW = { id: ALL_ID, name: "All applications", scope: "system", route: "", state: { q: "", f: {}, sort: "n", cols: [], metric: "worst" }, sys: true };
+export const ALL_VIEW = { id: ALL_ID, name: "All applications", scope: "system", state: { q: "", f: {}, sort: "n", cols: [], metric: "worst" }, sys: true };
 
 /** True when this browser lets the page keep personal views. */
 export const canKeepPersonal = () => storage.available();
@@ -28,7 +29,8 @@ export function listPersonal() {
 }
 
 function write(list) {
-  return storage.setJson(KEY, list.map((v) => ({ id: v.id, name: v.name, scope: "personal", route: v.route, state: v.state, at: v.at })));
+  // A view saved on the old heatmap or landscape page keeps that page (never used to open it).
+  return storage.setJson(KEY, list.map((v) => ({ id: v.id, name: v.name, scope: "personal", ...(v.route ? { route: v.route } : {}), state: v.state, at: v.at })));
 }
 
 const today = () => new Date().toISOString().slice(0, 10);
@@ -49,25 +51,26 @@ export function checkName(name) {
 /** The body of a view from a store state: the filters, sort, columns and colour metric. */
 export const bodyOf = (s) => stateToSaved(stateOf(s));
 
-/** Add a personal view. Resolves {view} or {error}. The 21st is refused. */
-export function addPersonal(name, route, state) {
+/** Add a personal view. Resolves {view} or {error}. The 21st is refused. A view is a set of
+ *  applications, a sort, columns and a colour metric; it is not bound to a page. */
+export function addPersonal(name, state) {
   const c = checkName(name);
   if (c.error) return { error: c.error };
   if (!canKeepPersonal()) return { error: "This browser does not allow saving views." };
   const list = listPersonal();
   if (list.length >= MAX_PERSONAL) return { error: "You can keep at most " + MAX_PERSONAL + " personal views. Delete one first." };
-  const view = cleanView({ id: newId(list.map((v) => v.id)), name: c.name, scope: "personal", route, state, at: today() });
+  const view = cleanView({ id: newId(list.map((v) => v.id)), name: c.name, scope: "personal", state, at: today() });
   if (view.id === "" || validateView(view).length) return { error: "That view could not be saved." };
   if (!write(list.concat(view))) return { error: "This browser did not accept the view." };
   return { view: { ...view, scope: "personal" } };
 }
 
 /** Replace the filters of a personal view with the current ones. */
-export function updatePersonal(id, route, state) {
+export function updatePersonal(id, state) {
   const list = listPersonal();
   const at = list.findIndex((v) => v.id === id);
   if (at < 0) return { error: "That view no longer exists." };
-  const view = cleanView({ ...list[at], route, state, scope: "personal", at: today() });
+  const view = cleanView({ ...list[at], state, scope: "personal", at: today() });
   const next = list.map((v, i) => (i === at ? { ...view, scope: "personal" } : v));
   if (!write(next)) return { error: "This browser did not accept the view." };
   return { view: next[at] };
@@ -86,10 +89,15 @@ export function listShared(core) {
   return raw.map((v) => ({ ...cleanView(v), scope: "shared" })).filter((v) => v.id !== "" && v.name !== "");
 }
 
-/** What a viewer sees on a page: All applications, the shared views, then their own. */
-export function tabsFor(route, core, personal) {
-  const mine = (v) => v.route === route;
-  return [ALL_VIEW, ...listShared(core).filter(mine), ...(personal || listPersonal()).filter(mine)];
+/** What a viewer sees in the side panel: All applications, the shared views, then their own. */
+export function allViews(core, personal) {
+  return [ALL_VIEW, ...listShared(core), ...(personal || listPersonal())];
+}
+
+/** How many of `rows` (the register minus display-hidden applications) a view holds. */
+export function countOf(view, rows) {
+  const st = view && !view.sys ? view.state : { q: "", f: {} };
+  return filterRows(rows, { q: st.q || "", f: st.f || {} }).length;
 }
 
 const canon = (b) => JSON.stringify({
@@ -118,7 +126,7 @@ export function patchFor(view) {
 export function linkFor(serviceUrl, view) {
   if (!serviceUrl || !view || view.sys) return "";
   const q = view.scope === "shared"
-    ? toQuery(defaultState(view.route), { view: view.id })
+    ? toQuery(defaultState("list"), { view: view.id })
     : toQuery(savedToState(view));
   return serviceUrl + (q ? "?" + q : "");
 }

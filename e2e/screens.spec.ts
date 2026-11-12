@@ -12,8 +12,8 @@ const THEMES = ["light", "dark"] as const;
 const SCREENS: { name: string; url: (id: string) => string; ready: string }[] = [
   { name: "overview", url: () => "/?r=overview", ready: "[data-page=overview]" },
   { name: "list", url: () => "/?r=list", ready: "[data-page=list] tr[data-id]" },
-  { name: "heatmap", url: () => "/?r=heatmap", ready: "[data-page=heatmap]" },
-  { name: "landscape", url: () => "/?r=landscape", ready: "[data-page=landscape]" },
+  { name: "heatmap", url: () => "/?r=list&lens=heatmap", ready: "[data-lens=heatmap] table[data-table=heatmap]" },
+  { name: "landscape", url: () => "/?r=list&lens=landscape", ready: "[data-lens=landscape] .land" },
   { name: "factsheet", url: (id) => "/?app=" + id, ready: "[data-page=app] .hx h1" },
   ...["source", "fields", "rules", "access", "display"].map((t) => ({ name: "settings-" + t, url: () => "/?r=settings&tab=" + t, ready: "[data-page=settings][data-tab=" + t + "]" })),
 ];

@@ -1,4 +1,5 @@
-// The app bar (identity G): four thin pillar bars and 'CCCP', the view switcher with a 3px accent
+// The app bar (identity G): four thin pillar bars and 'CCCP', Overview and Inventory (the Heatmap and
+// Landscape are lenses of the Inventory) with a 3px accent
 // underline on the active view, the shell search on the right, the gear (owner and admin only)
 // and the light/dark toggle. The search drives the list query (q): on the Inventory page it
 // filters live (debounced); on any other page Enter opens the Inventory with that query.
@@ -15,8 +16,6 @@ export const SEARCH_PLACEHOLDER = "Search applications, people";
 export const VIEWS = [
   { route: "overview", label: "Overview", icon: "overview" },
   { route: "list", label: "Inventory", icon: "list" },
-  { route: "heatmap", label: "Heatmap", icon: "heatmap" },
-  { route: "landscape", label: "Landscape", icon: "landscape" },
 ];
 
 function current(route, appRoute, v) {

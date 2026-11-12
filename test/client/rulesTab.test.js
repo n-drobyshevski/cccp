@@ -2,7 +2,7 @@
 // map to on/off, months are clamped, fixed rules have no switch, the tier rule needs a tier, and
 // every sentence and value is escaped.
 import { describe, expect, it } from "vitest";
-import { clampMonths, cleanTiers, draftCounts, editRule, rulesOfDraft, rulesView, toggleTier } from "../../src/client/pages/settings/rules.js";
+import { RULE_TITLE, clampMonths, cleanTiers, draftCounts, editRule, ruleChangeNotes, rulesOfDraft, rulesView, toggleTier } from "../../src/client/pages/settings/rules.js";
 import { errorsOf, isDirty, newSession, toPatch } from "../../src/client/pages/settings/draft.js";
 import { RULES, ruleCounts } from "../../src/domain/rules";
 import { applyPatch, makeDefaultSettings } from "../../src/domain/settings";
@@ -79,6 +79,37 @@ describe("edits", () => {
   });
 });
 
+describe("rows and the change summary", () => {
+  it("every rule has a short name, the pillar code in its colour class, its sentence and a live count", () => {
+    const out = view(session());
+    for (const r of RULES) {
+      expect(RULE_TITLE[r.id], r.id).toBeTruthy();
+      const at = out.indexOf('data-rule-row="' + r.id + '"');
+      const mine = out.slice(at, out.indexOf("</small>", at));
+      expect(mine).toContain("<b>" + RULE_TITLE[r.id] + "</b>");
+      expect(mine).toContain('class="rc pc-' + r.pillar + '"');
+    }
+  });
+  it("pillars are headed in their own colour class", () => {
+    const out = view(session());
+    for (const p of ["cyber", "compliance", "continuity", "platform"]) expect(out).toContain('<div class="sgrp rg pc-' + p + '" data-pillar="' + p + '"><h3>');
+  });
+  it("says what changed with the count before and after", () => {
+    const base = session();
+    expect(ruleChangeNotes({ session: base, rows, today: TODAY })).toEqual([]);
+    const s = editRule(base, "cy.pentestAge", "months", 1);
+    const [note] = ruleChangeNotes({ session: s, rows, today: TODAY });
+    const b = draftCounts(rows, base, TODAY)["cy.pentestAge"];
+    const a = draftCounts(rows, s, TODAY)["cy.pentestAge"];
+    expect(note).toBe("Pentest too old: 18 \u2192 1 months (" + b + " \u2192 " + a + (a === 1 ? " app" : " apps") + ")");
+    const t = toggleTier(editRule(base, "pl.noSso", "on", false), "ct.drpMissing", 3);
+    const notes = ruleChangeNotes({ session: t, rows, today: TODAY });
+    expect(notes).toHaveLength(2);
+    expect(notes.find((n) => n.startsWith("No single sign-on"))).toBe("No single sign-on: on \u2192 off");
+    expect(notes.find((n) => n.startsWith("No tested DRP"))).toMatch(/^No tested DRP: tiers T1, T2 \u2192 T1, T2, T3/);
+  });
+});
+
 describe("the view", () => {
   it("shows every catalogue rule under its pillar, with a switch only where the rule has one", () => {
     const out = view(session());
@@ -96,17 +127,20 @@ describe("the view", () => {
     expect((out.match(/data-prop="on"/g) || []).length).toBe(RULES.filter((r) => r.toggle).length);
   });
 
-  it("months rules carry a number input, the tier rule four tier chips, and both mark state", () => {
+  it("months rules carry a number input, the tier rule four tier checkboxes, and both mark state", () => {
     const out = view(session());
     expect(out).toMatch(/<input type="number" min="1" max="120" data-rule="cy.pentestAge" data-prop="months"[^>]*value="18"/);
     expect((out.match(/data-act="s-tier"/g) || []).length).toBe(4);
-    expect(out).toMatch(/data-tier="1"[^>]*aria-pressed="true"/);
-    expect(out).toMatch(/data-tier="3"[^>]*aria-pressed="false"/);
+    expect(out).toMatch(/<input type="checkbox" data-act="s-tier" data-trule="ct.drpMissing" data-tier="1"[^>]* checked>/);
+    expect(out).toMatch(/<input type="checkbox" data-act="s-tier" data-trule="ct.drpMissing" data-tier="3" data-k="[^"]*"><span>T3/);
+    // a tier box is not a rule input: it must not be picked up by the on/off and months handlers
+    expect(out).not.toMatch(/data-rule="ct.drpMissing"/);
   });
 
   it("names the level in words for each rule and has no title attribute", () => {
     const out = view(session());
-    expect(out).toContain("Gap: ");
+    expect(out).toMatch(/<span class="lv bad">Gap<\/span> · /);
+    expect(out).toMatch(/<span class="lv warn">Needs attention<\/span> · /);
     expect(out).not.toMatch(/\btitle=/);
   });
 

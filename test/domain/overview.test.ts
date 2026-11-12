@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { overviewModel, TOP_DOMAINS } from "../../src/domain/overview";
+import { overviewModel, STATUS_STACK, TOP_DOMAINS } from "../../src/domain/overview";
 import { filterRows } from "../../src/domain/query";
 import { facetValues } from "../../src/domain/facets";
 import { fixtureRows } from "./rows";
@@ -53,6 +53,20 @@ describe("overview model", () => {
       expect(d.completeness).toBeGreaterThanOrEqual(0);
       expect(d.completeness).toBeLessThanOrEqual(100);
     }
+  });
+
+  it("each domain carries the worst status of each pillar among its applications", () => {
+    const order = ["bad", "warn", "none", "ok"] as const;
+    for (const d of m.domains) {
+      const rs = rows.filter((r) => (r.app.domain && r.app.domain.trim() ? r.app.domain.trim() : "NO DOMAIN") === d.name);
+      for (const p of ["cyber", "compliance", "continuity", "platform"] as const) {
+        expect(d.worst[p]).toBe(order.find((x) => rs.some((r) => r.status[p].status === x)) ?? "ok");
+      }
+    }
+  });
+
+  it("stacks bars OK, Attention, Gap, No data", () => {
+    expect([...STATUS_STACK]).toEqual(["ok", "warn", "bad", "none"]);
   });
 
   it("an empty register gives zeros, not NaN", () => {

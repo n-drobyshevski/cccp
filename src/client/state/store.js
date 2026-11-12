@@ -1,23 +1,25 @@
 // One state object for the whole client, and subscribe(). Updates are shallow merges into a
 // fresh object; a set that changes nothing does not notify. Subscribers get (state, prev).
-import { DEFAULT_METRIC, defaultState } from "../../domain/viewState";
+import { DEFAULT_LENS, DEFAULT_METRIC, defaultState } from "../../domain/viewState";
 
 export function initialState() {
   const v = defaultState("");
   return {
-    // Where the viewer is: overview, list, heatmap, landscape, app or settings, plus the
+    // Where the viewer is: overview, list, app or settings, plus the
     // fact sheet id, the settings tab and the saved view that was opened.
     route: "",
     app: null,
     tab: null,
     view: null,
-    // The filter state shared by list, heatmap and landscape (the shareable part of the URL).
+    // The filter state shared by the three lenses of the Inventory (the shareable part of the URL).
     q: v.q,
     f: v.f,
     sort: v.sort,
     desc: v.desc,
     cols: v.cols,
     metric: DEFAULT_METRIC,
+    // How the Inventory shows the filtered set: table, heatmap or landscape.
+    lens: DEFAULT_LENS,
     // Page state that is not in the URL.
     limit: 50,
     side: false,

@@ -56,3 +56,62 @@ test("a bar tip shows on hover", async ({ page }) => {
   await page.locator(".pbar .stk i").first().hover();
   await expect(page.locator(".tip:not([hidden])")).toContainText(/gaps?|OK|attention|no data/);
 });
+
+test("the title line, four mono figures with Open in inventory, and the pillar names in their colour", async ({ page }) => {
+  await page.setViewportSize({ width: 1440, height: 900 });
+  await page.goto("/?r=overview");
+  await expect(page.locator("[data-page=overview] .ovh")).toContainText(/applications · read /);
+  await expect(page.locator(".kpi .kgo")).toHaveText(["Open in inventory ›", "Open in inventory ›", "Open in inventory ›", "Open in inventory ›"]);
+  const fam = await page.locator(".kpi b").first().evaluate((e) => getComputedStyle(e).fontFamily);
+  expect(fam).toMatch(/IBM Plex Mono|monospace/);
+  const cols = await page.locator(".pbar .pn").evaluateAll((els) => els.map((e) => getComputedStyle(e).color));
+  expect(new Set(cols).size).toBe(4);
+  const rule = await page.locator(".ovh").evaluate((e) => [getComputedStyle(e).borderBottomWidth, getComputedStyle(e).borderBottomColor === getComputedStyle(document.body).color]);
+  expect(rule).toEqual(["2px", true]);
+  // the legend: No data is not a plain colour square
+  await expect(page.locator(".legend span")).toHaveText(["OK", "Needs attention", "Gap", "No data"]);
+});
+
+test("the domains table has four glyph columns; the glyph is the worst status in the domain; a row opens the Inventory on that domain", async ({ page }) => {
+  await page.goto("/?r=overview");
+  const head = page.locator("table[data-table=domains] thead th");
+  await expect(head).toHaveText(["Domain", "Apps", "With a gap", /CY/, /CO/, /CT/, /PL/]);
+  const first = page.locator("table[data-table=domains] tbody tr").first();
+  await expect(first.locator("td.p .gl")).toHaveCount(4);
+  const name = (await first.locator("button.lk b").first().innerText()).trim();
+  const apps = num(await first.locator("td.num").first().innerText());
+  const worstCyber = (await first.locator('td[data-pillar=cyber] .sr-only').innerText()).replace(/^Cyber: /, "");
+  expect(["Gap", "Needs attention", "OK", "No data"]).toContain(worstCyber);
+  await first.locator("td").first().click();
+  await expect(page.locator("table[data-table=list]")).toBeVisible();
+  expect(new URL(page.url()).searchParams.get("dom")).toBe(name === "NO DOMAIN" ? "NO DOMAIN" : name);
+  expect(num(await page.locator("[data-count=visible]").innerText())).toBe(apps);
+});
+
+test("'With a gap' opens the Inventory on that domain's gaps", async ({ page }) => {
+  await page.goto("/?r=overview");
+  const first = page.locator("table[data-table=domains] tbody tr").first();
+  const gaps = num(await first.locator("button.gapn").innerText());
+  await first.locator("button.gapn").click();
+  await expect(page.locator("table[data-table=list]")).toBeVisible();
+  expect(num(await page.locator("[data-count=visible]").innerText())).toBe(gaps);
+  expect(new URL(page.url()).searchParams.get("gap")).not.toBeNull();
+});
+
+test("Open in inventory keeps the lens the viewer was on", async ({ page }) => {
+  await page.goto("/?r=list&lens=landscape");
+  await expect(page.locator(".land")).toBeVisible();
+  await page.locator('[data-k="nav-overview"]').click();
+  await page.locator(".kpi[data-kpi=gap]").click();
+  await expect(page.locator(".land")).toBeVisible();
+  expect(new URL(page.url()).searchParams.get("lens")).toBe("landscape");
+});
+
+test("no sideways scroll at 390, 820 and 1920 px", async ({ page }) => {
+  for (const width of [390, 820, 1920]) {
+    await page.setViewportSize({ width, height: 900 });
+    await page.goto("/?r=overview");
+    await expect(page.locator("[data-page=overview]")).toBeVisible();
+    expect(await page.evaluate(() => document.documentElement.scrollWidth <= document.documentElement.clientWidth), String(width)).toBe(true);
+  }
+});

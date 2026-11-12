@@ -1,17 +1,21 @@
-// The Inventory page (identity G, route id 'list'): the facet panel on the left, then saved views
-// as tabs, a header line with the count, the active-filter tags, Columns and Export, the pillar
-// tabs and the sortable table. Search is the shell's (shell/appbar.js). Sort, columns and filters
-// live in the store and the URL; the limit does not. Everything is computed here in
-// the browser over the whole register. Opening an application remembers the scroll position so
-// Back lands where the viewer was.
+// The Inventory page (identity G, route id 'list'): saved views and the facet panel on the left; on
+// the right a header line with the count, the active-filter tags, Columns, Export and the lens switch
+// (Table | Heatmap | Landscape), the pillar tabs, then the lens: the sortable table, the heatmap by
+// domain or the landscape of tiles. The facet panel, the pillar tabs and the count line are shared by
+// the three lenses. Search is the shell's (shell/appbar.js). Sort, columns, filters and the lens live
+// in the store and the URL; the limit does not. Everything is computed here in the browser over the
+// whole register. Opening an application remembers the scroll position so Back lands where the
+// viewer was. The old Heatmap and Landscape routes open this page on their lens (state/url.js).
 import { delegate, qs, renderRegion } from "../lib/dom.js";
 import { html } from "../lib/html.js";
 import { icon } from "../lib/icons.js";
 import { count, num } from "../lib/format.js";
 import { closePopovers, openPopover } from "../lib/popover.js";
-import { toggled, withFacet } from "../components/toolbar.js";
-import { facetPanelView } from "../components/facetPanel.js";
-import { mountViewTabs } from "../components/viewTabs.js";
+
+import { facetPanelView, toggled, withFacet } from "../components/facetPanel.js";
+import { mountViewList } from "../components/viewList.js";
+import { heatLens, resetClosed, toggleGroup } from "./heatmap.js";
+import { landscapeLens } from "./landscape.js";
 import { tabKeys } from "../lib/tabKeys.js";
 import { chooserView, readCols, writeCols } from "../components/columnChooser.js";
 import { exportMenuView, runExport } from "../components/exportMenu.js";
@@ -21,6 +25,7 @@ import * as register from "../state/register.js";
 import { store } from "../state/store.js";
 import { navigate, queryFor, replace } from "../state/url.js";
 import { ALL_ID } from "../state/views.js";
+import { LENSES } from "../../domain/viewState";
 import { FACETS, PILLAR_LABEL } from "../../domain/facets";
 import { PILLARS } from "../../domain/types";
 import { activeFilterCount, pillarCounts, pillarTabOf, runQuery, withPillarTab } from "../../domain/query";
@@ -30,6 +35,7 @@ let restoredCols = false;
 let memo = null;
 
 const PILLAR_TABS = ["all", ...PILLARS];
+export const LENS_LABEL = { table: "Table", heatmap: "Heatmap", landscape: "Landscape" };
 const tabName = (t) => (t === "all" ? "All" : PILLAR_LABEL[t]);
 
 /** The tags of the active filters: the search text and one per facet with a selection. Pure. */
@@ -43,11 +49,18 @@ export function activeTags(s) {
   return tags;
 }
 
-/** The header line: 'N of M applications', the active-filter tags, Columns and Export. */
+/** The lens switch at the top right of the content: Table, Heatmap, Landscape. Pure. */
+export function lensSwitch(lens) {
+  const on = LENSES.indexOf(lens) >= 0 ? lens : "table";
+  return html`<span class="lens" role="group" aria-label="Show applications as">${LENSES.map((l) => html`<button type="button" data-act="lens" data-lens="${l}" data-k="lens-${l}" aria-pressed="${l === on ? "true" : "false"}">${LENS_LABEL[l]}</button>`)}</span>`;
+}
+
+/** The header line: 'N of M applications', the active-filter tags, Filters (small screens),
+ *  Columns (table lens), Export and the lens switch. */
 export function headView(s, shown, total, hidden) {
   const tags = activeTags(s);
   const n = activeFilterCount(s.f);
-  return html`<div class="rhead"><span class="rcount"><span data-count="visible"><b class="num mono">${num(shown)}</b></span> <span class="mut" data-count="of">of ${count(total, "application")}</span>${hidden ? html` <span class="mut" data-count="hidden"> and ${count(hidden, "application")} hidden by the display settings</span>` : ""}</span><span class="ftags">${tags.map((t) => html`<span class="ftag" data-tag="${t.key}"><span data-tip="${t.label}">${t.label}</span><button type="button" data-act="${t.act}" data-facet="${t.key}" data-k="tag-${t.key}" aria-label="Remove ${t.label}">${icon("close", 10)}</button></span>`)}${tags.length ? html`<button type="button" class="tlink" data-act="clear-all" data-k="clear-all">Clear all</button>` : ""}</span><div class="rtools"><button type="button" class="tlink fbtn" data-act="fopen" data-k="fopen" aria-haspopup="dialog" aria-expanded="false">Filters${n ? " (" + n + ")" : ""}</button><button type="button" class="tlink" data-act="cols" data-k="cols" aria-haspopup="dialog" aria-expanded="false">Columns</button><button type="button" class="tlink" data-act="export" data-k="export" aria-haspopup="dialog" aria-expanded="false">Export</button></div></div>`;
+  return html`<div class="rhead"><div class="rleft"><span class="rcount"><span data-count="visible"><b class="num mono">${num(shown)}</b></span> <span class="mut" data-count="of">of ${count(total, "application")}</span>${hidden ? html` <span class="mut" data-count="hidden"> and ${count(hidden, "application")} hidden by the display settings</span>` : ""}</span><span class="ftags">${tags.map((t) => html`<span class="ftag" data-tag="${t.key}"><span data-tip="${t.label}">${t.label}</span><button type="button" data-act="${t.act}" data-facet="${t.key}" data-k="tag-${t.key}" aria-label="Remove ${t.label}">${icon("close", 10)}</button></span>`)}${tags.length ? html`<button type="button" class="tlink" data-act="clear-all" data-k="clear-all">Clear all</button>` : ""}</span></div><div class="rtools"><button type="button" class="tlink fbtn" data-act="fopen" data-k="fopen" aria-haspopup="dialog" aria-expanded="false">Filters${n ? " (" + n + ")" : ""}</button>${s.lens === "table" || !s.lens ? html`<button type="button" class="tlink" data-act="cols" data-k="cols" aria-haspopup="dialog" aria-expanded="false">Columns</button>` : ""}<button type="button" class="tlink" data-act="export" data-k="export" aria-haspopup="dialog" aria-expanded="false">Export</button>${lensSwitch(s.lens)}</div></div>`;
 }
 
 /** The pillar tabs: All and one per pillar, each with its count over the filtered set. Pure. */
@@ -62,21 +75,30 @@ export function pillarTabsView(s, visible) {
   })}</div>`;
 }
 
+/** The content under the pillar tabs for the current lens. Pure apart from the heatmap's open groups. */
+export function lensView(s, rows, visible, limit) {
+  if (s.lens === "heatmap") return heatLens(rows, visible.length);
+  if (s.lens === "landscape") return landscapeLens(rows, s.metric, visible.length);
+  const cols = visibleColumnDefs(s.cols, s.sort);
+  const drawn = rows.slice(0, limit);
+  return rows.length ? html`${tableView({ cols, rows: drawn, sort: s.sort, desc: s.desc })}${moreView(drawn.length, rows.length)}` : emptyView(visible.length);
+}
+
 /** The whole results area for a store state. Pure. */
 export function resultsView(s, all, visible, hidden, limit) {
   const rows = runQuery(visible, s);
-  const cols = visibleColumnDefs(s.cols, s.sort);
-  const drawn = rows.slice(0, limit);
-  return html`${headView(s, rows.length, all, hidden)}${pillarTabsView(s, visible)}<section class="tbl" id="inv-panel" role="tabpanel" aria-label="Applications">${rows.length ? html`${tableView({ cols, rows: drawn, sort: s.sort, desc: s.desc })}${moreView(drawn.length, rows.length)}` : emptyView(visible.length)}</section>`;
+  const lens = LENSES.indexOf(s.lens) >= 0 ? s.lens : "table";
+  return html`${headView(s, rows.length, all, hidden)}${pillarTabsView(s, visible)}<section class="tbl lens-${lens}" id="inv-panel" role="tabpanel" aria-label="${lens === "table" ? "Applications" : lens === "heatmap" ? "Applications by domain" : "Applications by domain and subdomain"}" data-lens="${lens}">${lensView(s, rows, visible, limit)}</section>`;
 }
 
 export const listPage = {
   mount(el, ctx) {
-    renderRegion(el, html`<div class="wb"><aside class="facets" data-region="facets" aria-label="Filters"></aside><button type="button" class="fscrim" data-act="fclose" data-k="fscrim" aria-label="Close filters" tabindex="-1"></button><div class="wmain"><div class="views-slot" data-slot="views"></div><div data-region="content" data-page="list"></div></div></div>`, { keepFocus: false, keepScroll: false });
+    renderRegion(el, html`<div class="wb"><aside class="facets" data-region="facets" aria-label="Views and filters"><div class="fhead"><b>Views and filters</b><button type="button" class="tlink" data-act="fclose" data-k="fdone">Done</button></div><div class="views" data-slot="views"></div><div data-region="facetbody"></div></aside><button type="button" class="fscrim" data-act="fclose" data-k="fscrim" aria-label="Close filters" tabindex="-1"></button><div class="wmain"><div data-region="content" data-page="list"></div></div></div>`, { keepFocus: false, keepScroll: false });
     const aside = qs(el, '[data-region="facets"]');
+    const facetBody = qs(el, '[data-region="facetbody"]');
     const content = qs(el, '[data-region="content"]');
     const wb = qs(el, ".wb");
-    const offViews = mountViewTabs(qs(el, "[data-slot=views]"));
+    const offViews = mountViewList(qs(el, "[data-slot=views]"));
 
     const first = store.get();
     if (!restoredCols) {
@@ -92,7 +114,7 @@ export const listPage = {
 
     const drawFacets = () => {
       const s = store.get();
-      renderRegion(aside, html`<div class="fhead"><b>Filters</b><button type="button" class="tlink" data-act="fclose" data-k="fdone">Done</button></div>${facetPanelView(s, register.visibleRows(), panel)}`);
+      renderRegion(facetBody, facetPanelView(s, register.visibleRows(), panel));
     };
     const drawDrawer = () => {
       wb.classList.toggle("fopen", drawer);
@@ -201,6 +223,10 @@ export const listPage = {
       else if (act === "fopen") setDrawer(!drawer);
       else if (act === "cols") openChooser(b);
       else if (act === "export") openExport(b);
+      else if (act === "lens") { if (LENSES.indexOf(b.getAttribute("data-lens")) >= 0) replace({ lens: b.getAttribute("data-lens") }); }
+      else if (act === "metric") replace({ metric: b.getAttribute("data-v") });
+      else if (act === "grp") { toggleGroup(runQuery(register.visibleRows(), s), b.getAttribute("data-grp")); draw(); }
+      else if (act === "open") open(b.getAttribute("data-id"));
     }));
     offs.push(delegate(content, "click", "tr[data-id]", (ev, tr) => open(tr.getAttribute("data-id"))));
     offs.push(delegate(aside, "click", "[data-act]", (ev, b) => {
@@ -223,7 +249,8 @@ export const listPage = {
 
     const offStore = store.subscribe((s, p) => {
       if (s.q !== p.q || s.f !== p.f) drawFacets();
-      if (s.q !== p.q || s.f !== p.f || s.sort !== p.sort || s.desc !== p.desc || s.cols !== p.cols || s.limit !== p.limit) draw();
+      if (s.q !== p.q || s.f !== p.f) resetClosed();
+      if (s.lens !== p.lens || s.metric !== p.metric || s.q !== p.q || s.f !== p.f || s.sort !== p.sort || s.desc !== p.desc || s.cols !== p.cols || s.limit !== p.limit) draw();
     });
     const offReg = register.subscribe(() => { drawFacets(); draw(); });
     return () => { document.removeEventListener("keydown", onKey); offViews(); offReg(); offStore(); offs.forEach((f) => f()); closePopovers(false); };

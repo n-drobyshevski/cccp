@@ -5,7 +5,7 @@ import { num, plural } from "../../lib/format.js";
 import { switchView } from "../../components/switch.js";
 import { isHidden } from "../../state/register.js";
 
-const OPENS = [["overview", "Overview"], ["list", "List"], ["heatmap", "Heatmap"], ["landscape", "Landscape"]];
+const OPENS = [["overview", "Overview"], ["list", "Inventory"], ["heatmap", "Heatmap"], ["landscape", "Landscape"]];
 const THEMES = [["system", "System"], ["light", "Light"], ["dark", "Dark"]];
 
 /** How many of `rows` the draft's hide rules would hide: {prefix, eol}. Each rule on its own. */

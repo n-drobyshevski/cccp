@@ -27,8 +27,8 @@ a { color: var(--accent); }
   flex-direction: column;
   gap: 12px;
 }
-/* The workbench pages (Inventory, fact sheet) run edge to edge under the bar. */
-.shell:has(> .wb), .shell:has(> .lxwrap) { padding: 0; gap: 0; }
+/* The workbench pages (Inventory, fact sheet, Settings) run edge to edge under the bar. */
+.shell:has(> .wb), .shell:has(> .lxwrap), .shell:has(> .stw) { padding: 0; gap: 0; }
 
 /* ---------- scroll bars ---------- */
 * { scrollbar-width: thin; scrollbar-color: var(--line2) transparent; }

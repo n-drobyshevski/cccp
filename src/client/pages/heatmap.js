@@ -1,30 +1,24 @@
-// The Heatmap page (proto.src.html heatmap): the filtered register grouped by domain, largest
-// first. A group row carries a status bar per pillar and the gap count in red; opened, it lists
-// its applications with the status dot and the reason in every pillar. Which groups are open is
-// remembered across filter changes (the first sight of the page seeds it with the largest group);
-// while the result has 40 applications or fewer, or one group, every group shows open and a toggle
-// closes it in a separate set that a filter change clears. Opening an application remembers the scroll so Back
-// lands where the viewer was.
-import { delegate, qs, renderRegion } from "../lib/dom.js";
+// The Heatmap lens of the Inventory (proto.src.html heatmap, identity G): the filtered register grouped
+// by domain, largest first. A group row carries a stacked status bar per pillar (OK, Attention, Gap,
+// No data, the last hatched); opened, it lists its applications with the status glyph and the short
+// reason in every pillar. Pillar column heads are in the pillar's colour over a 3px underline. Which
+// groups are open is remembered across filter changes (the first sight of the lens seeds it with the
+// largest group); while the result has 40 applications or fewer, or one group, every group shows
+// open and a toggle closes it in a separate set that a filter change clears. The Inventory page owns
+// the count line, the pillar tabs and the clicks; this file draws the content and holds the open
+// groups.
 import { html } from "../lib/html.js";
 import { icon } from "../lib/icons.js";
-import { count, num } from "../lib/format.js";
-import { dot } from "../components/dots.js";
-import { filtersShell, mountFilters } from "../components/toolbar.js";
+import { num } from "../lib/format.js";
+import { glyphMark } from "../components/glyph.js";
 import { emptyView } from "../components/table.js";
-import { registerPage } from "../shell/router.js";
-import * as register from "../state/register.js";
-import { store } from "../state/store.js";
-import { navigate, queryFor } from "../state/url.js";
 import { HEATMAP_LEAD_HEADS } from "../../domain/heatmap";
 import { PILLARS } from "../../domain/types";
 import { PILLAR_LABEL, STATUS_WORD } from "../../domain/facets";
-import { runQuery } from "../../domain/query";
 import { HEAT_STACK, heatmapModel, isOpenAll } from "../../domain/heatmap";
 
 let open = null;
 let closedSmall = new Set();
-let memo = null;
 
 const isSmall = isOpenAll;
 
@@ -48,73 +42,52 @@ function appRow(r) {
   const a = r.app;
   return html`<tr data-id="${a.id}" data-dom="${a.domain}"><td><button type="button" class="nm" data-k="open-${a.id}" data-tip="${a.name}">${a.name}</button></td><td>${tierMark(a)}</td>${PILLARS.map((p) => {
     const s = r.status[p];
-    return html`<td class="hc ${s.status}" data-pillar="${p}"><span>${dot(s.status)}<span class="hw"><span class="sr-only">${PILLAR_LABEL[p] + ": " + STATUS_WORD[s.status] + ". "}</span>${s.sentence}</span></span></td>`;
+    return html`<td class="hc ${s.status}" data-pillar="${p}"><span>${glyphMark(s.status)}<span class="hw"><span class="sr-only">${PILLAR_LABEL[p] + ": " + STATUS_WORD[s.status] + ". "}</span>${s.sentence}</span></span></td>`;
   })}</tr>`;
 }
 
 function groupRows(g, isOpen) {
-  return html`<tr class="grp" data-group="${g.name}"><td colspan="2"><button type="button" class="gb" data-act="grp" data-grp="${g.name}" data-k="grp-${g.name}" aria-expanded="${isOpen ? "true" : "false"}">${icon("chevron")}${g.name} <span>${num(g.apps)}</span></button></td>${PILLARS.map((p) => barCell(g, p))}</tr>${isOpen ? g.rows.map(appRow) : ""}`;
+  return html`<tr class="grp" data-group="${g.name}"><td colspan="2"><button type="button" class="gb" data-act="grp" data-grp="${g.name}" data-k="grp-${g.name}" aria-expanded="${isOpen ? "true" : "false"}">${icon("chevron")}${g.name} <span>${num(g.apps)} apps</span></button></td>${PILLARS.map((p) => barCell(g, p))}</tr>${isOpen ? g.rows.map(appRow) : ""}`;
 }
 
 /** The table for a model and the set of open group names. Pure. */
 export function heatTable(m, openSet) {
-  return html`<div class="tw"><table class="heat" data-table="heatmap"><thead><tr><th>${HEATMAP_LEAD_HEADS[0]}</th><th>${HEATMAP_LEAD_HEADS[1]}</th>${PILLARS.map((p) => html`<th>${PILLAR_LABEL[p]}</th>`)}</tr></thead><tbody>${m.groups.map((g) => groupRows(g, openSet.has(g.name)))}</tbody></table></div>`;
+  return html`<div class="tw"><table class="heat" data-table="heatmap"><thead><tr><th>${HEATMAP_LEAD_HEADS[0]}</th><th>${HEATMAP_LEAD_HEADS[1]}</th>${PILLARS.map((p) => html`<th class="ph pc-${p}">${PILLAR_LABEL[p]}</th>`)}</tr></thead><tbody>${m.groups.map((g) => groupRows(g, openSet.has(g.name)))}</tbody></table></div>`;
 }
 
-/** The results panel: count, legend, then the table or the empty state. Pure. */
-export function heatView(m, openSet, all, hidden) {
-  return html`<section class="panel results" aria-label="Applications by domain"><div class="rhead"><span class="rcount"><span data-count="visible"><b class="num">${num(m.total)}</b></span> <span class="mut" data-count="of">of ${count(all, "application")}</span>${hidden ? html` <span class="mut" data-count="hidden"> and ${count(hidden, "application")} hidden by the display settings</span>` : ""}</span><span class="mut hint">Bars show the share of applications per status; the red number counts gaps.</span></div>${m.total ? heatTable(m, openSet) : emptyView(all)}</section>`;
+/** The lens content: the table, or the empty state. Pure. */
+export function heatView(m, openSet, all) {
+  return m.total ? heatTable(m, openSet) : emptyView(all);
 }
 
-export const heatmapPage = {
-  mount(el, ctx) {
-    renderRegion(el, filtersShell(html``), { keepFocus: false, keepScroll: false });
-    const content = qs(el, '[data-region="content"]');
-    const offFilters = mountFilters(el);
+/** The open groups for a model: all of them for a small result, else the remembered set. */
+function shownFor(m) {
+  if (open === null && m.total) open = new Set([m.groups[0].name]);
+  return isSmall(m) ? new Set(m.groups.map((g) => g.name).filter((n) => !closedSmall.has(n))) : (open || new Set());
+}
 
-    const draw = () => {
-      const s = store.get();
-      const visible = register.visibleRows();
-      const m = heatmapModel(runQuery(visible, s));
-      if (open === null && m.total) open = new Set([m.groups[0].name]);
-      const shown = isSmall(m) ? new Set(m.groups.map((g) => g.name).filter((n) => !closedSmall.has(n))) : (open || new Set());
-      renderRegion(content, html`<div data-page="heatmap">${heatView(m, shown, register.allRows().length, register.hiddenCount())}</div>`);
-    };
-    draw();
+/** The Heatmap lens for the filtered rows. `all` is the size of the register in scope. */
+export function heatLens(rows, all) {
+  const m = heatmapModel(rows);
+  return html`<div class="lens-heat" data-lens-body="heatmap">${heatView(m, shownFor(m), all)}</div>`;
+}
 
-    if (memo && memo.key === queryFor(store.get())) {
-      const y = memo.y;
-      requestAnimationFrame(() => { if (ctx.current()) window.scrollTo(0, y); });
-    }
-    memo = null;
+/** Open or close one group (the page redraws afterwards). */
+export function toggleGroup(rows, name) {
+  const m = heatmapModel(rows);
+  if (isSmall(m)) {
+    if (closedSmall.has(name)) closedSmall.delete(name); else closedSmall.add(name);
+  } else {
+    if (open === null) open = new Set();
+    if (open.has(name)) open.delete(name); else open.add(name);
+  }
+}
 
-    const offs = [];
-    offs.push(delegate(content, "click", "[data-act=grp]", (ev, b) => {
-      const name = b.getAttribute("data-grp");
-      const m = heatmapModel(runQuery(register.visibleRows(), store.get()));
-      if (isSmall(m)) {
-        if (closedSmall.has(name)) closedSmall.delete(name); else closedSmall.add(name);
-      } else {
-        if (open === null) open = new Set();
-        if (open.has(name)) open.delete(name); else open.add(name);
-      }
-      draw();
-    }));
-    offs.push(delegate(content, "click", "tr[data-id]", (ev, tr) => {
-      memo = { y: window.scrollY, key: queryFor(store.get()) };
-      navigate({ route: "app", app: tr.getAttribute("data-id"), tab: null, view: null }, "push");
-    }));
-    const offStore = store.subscribe((s, p) => { if (s.q !== p.q || s.f !== p.f) { closedSmall = new Set(); draw(); } });
-    const offReg = register.subscribe(draw);
-    return () => { offReg(); offStore(); offs.forEach((f) => f()); offFilters(); };
-  },
-};
-
-registerPage("heatmap", heatmapPage);
+/** A filter change: every small group shows open again. */
+export function resetClosed() { closedSmall = new Set(); }
 
 /** Test seam. */
 export function __resetHeatmapForTest() {
   open = null;
   closedSmall = new Set();
-  memo = null;
 }

@@ -27,19 +27,7 @@ const bar = (width, cls) => html`<i class="sk${cls ? " " + cls : ""}" style="--w
 const dots = () => html`<span class="sk-dots"><i></i><i></i><i></i><i></i></span>`;
 const rows = (n, fn) => Array.from({ length: n }, (_, i) => fn(i));
 
-// The filter toolbar the Heatmap and the Landscape share.
-function toolbar() {
-  const pills = ["tier", "dom", "lc", "so", "gap"].map((k) => html`<span class="pill ld-hide-s"><span>${FACET_BY_KEY[k].label}</span>${icon("chevron")}</span>`);
-  return html`<section class="panel ld-bar">
-    <div class="ld-tab"><span>${ALL_VIEW.name}</span></div>
-    <div class="ld-bar-row">
-      ${pills}
-      <span class="pill">${icon("filter", 14)}</span>
-    </div>
-  </section>`;
-}
-
-// The Inventory's frame: the saved-view tab, the pillar tabs and the facet names.
+// The Inventory's frame, shared by its three lenses: the view name, the pillar tabs and the facet names.
 function inventoryBar() {
   return html`<section class="panel ld-bar">
     <div class="ld-tab"><span>${ALL_VIEW.name}</span></div>
@@ -76,7 +64,7 @@ function overviewView() {
 function heatmapView() {
   const cols = HEATMAP_LEAD_HEADS.concat(PILLARS.map((p) => PILLAR_LABEL[p]));
   const style = "grid-template-columns:2fr repeat(" + (cols.length - 1) + ", minmax(0, 1fr))";
-  return html`${toolbar()}
+  return html`${inventoryBar()}
     <section class="panel ld-res">
       <div class="ld-head">${bar(14, "h")}</div>
       <div class="ld-tbl">
@@ -87,7 +75,7 @@ function heatmapView() {
 }
 
 function landscapeView() {
-  return html`${toolbar()}
+  return html`${inventoryBar()}
     <section class="panel ld-res">
       <div class="ld-head">${bar(14, "h")}</div>
       <div class="ld-metric"><span>Colour by</span>${LANDSCAPE_METRICS.map((m, i) => html`<span class="${i > 3 ? "ld-hide-s" : ""}">${m.label}</span>`)}</div>

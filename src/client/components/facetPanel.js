@@ -44,3 +44,17 @@ function section(s, rows, key, st) {
 export function facetPanelView(s, rows, st) {
   return html`${PANEL_FACETS.map((k) => section(s, rows, k, st))}`;
 }
+
+/** The facet map with one value switched on or off. Empty lists are dropped. */
+export function toggled(f, key, value, on) {
+  const cur = f[key] || [];
+  const next = on ? (cur.indexOf(value) >= 0 ? cur : cur.concat([value])) : cur.filter((v) => v !== value);
+  return withFacet(f, key, next);
+}
+
+export function withFacet(f, key, values) {
+  const out = { ...f };
+  if (values.length) out[key] = values;
+  else delete out[key];
+  return out;
+}

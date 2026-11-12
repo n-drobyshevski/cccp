@@ -3,7 +3,8 @@
 // DOM behaviour is in e2e/inventory.spec.ts.
 import { describe, expect, it } from "vitest";
 import { TOP_N, facetPanelView, ranked, visibleOptions } from "../../src/client/components/facetPanel.js";
-import { activeTags, headView, pillarTabsView } from "../../src/client/pages/list.js";
+import { LENS_LABEL, activeTags, headView, lensSwitch, lensView, pillarTabsView, resultsView } from "../../src/client/pages/list.js";
+import { __resetHeatmapForTest } from "../../src/client/pages/heatmap.js";
 import * as register from "../../src/client/state/register.js";
 import { initialState } from "../../src/client/state/store.js";
 import { facetOptions } from "../../src/domain/query";
@@ -91,5 +92,67 @@ describe("filters drawer button and tags", () => {
   it("tags are one per facet with a selection, plus the search", () => {
     expect(activeTags(state({ q: " x ", f: { tier: ["T1"] } })).map((t) => t.key)).toEqual(["q", "tier"]);
     expect(activeTags(state())).toEqual([]);
+  });
+});
+
+describe("the lens switch", () => {
+  it("is Table, Heatmap, Landscape in that order, with the current one pressed", () => {
+    const h = s(lensSwitch("heatmap"));
+    expect([...h.matchAll(/data-lens="(\w+)"[^>]*aria-pressed="(\w+)"/g)].map((m) => m[1] + ":" + m[2])).toEqual(["table:false", "heatmap:true", "landscape:false"]);
+    expect(Object.values(LENS_LABEL)).toEqual(["Table", "Heatmap", "Landscape"]);
+    expect(h).toContain('role="group" aria-label="Show applications as"');
+  });
+  it("an unknown lens reads as the table", () => {
+    expect(s(lensSwitch("nonsense"))).toMatch(/data-lens="table"[^>]*aria-pressed="true"/);
+    expect(s(lensSwitch(undefined))).toMatch(/data-lens="table"[^>]*aria-pressed="true"/);
+  });
+  it("sits in the header line with the count, for every lens", () => {
+    for (const lens of ["table", "heatmap", "landscape"]) {
+      const h = s(headView(state({ lens }), 3, 9, 0));
+      expect(h).toContain('data-act="lens" data-lens="heatmap"');
+      expect(h).toContain('data-count="visible"');
+    }
+  });
+  it("Columns belongs to the table lens only, Export to all", () => {
+    expect(s(headView(state({ lens: "table" }), 1, 1, 0))).toContain('data-act="cols"');
+    expect(s(headView(state({ lens: "heatmap" }), 1, 1, 0))).not.toContain('data-act="cols"');
+    expect(s(headView(state({ lens: "landscape" }), 1, 1, 0))).not.toContain('data-act="cols"');
+    for (const lens of ["table", "heatmap", "landscape"]) expect(s(headView(state({ lens }), 1, 1, 0))).toContain('data-act="export"');
+  });
+});
+
+describe("one page, three lenses", () => {
+  const draw = (lens, extra) => s(resultsView(state({ lens, ...(extra || {}) }), rows.length, rows, 0, 50));
+  it("the count line, the pillar tabs and the tags are the same for every lens", () => {
+    for (const lens of ["table", "heatmap", "landscape"]) {
+      const h = draw(lens, { f: { dom: ["A"] } });
+      expect(h).toContain('data-count="visible"');
+      expect(h).toContain('data-tab="cyber"');
+      expect(h).toContain('data-tag="dom"');
+      expect(h).toContain('data-lens="' + lens + '"');
+    }
+  });
+  it("only the content under the tabs changes", () => {
+    __resetHeatmapForTest();
+    expect(draw("table")).toContain('data-table="list"');
+    expect(draw("table")).not.toContain('data-table="heatmap"');
+    expect(draw("heatmap")).toContain('data-table="heatmap"');
+    expect(draw("heatmap")).not.toContain('data-table="list"');
+    expect(draw("landscape")).toContain('data-lens-body="landscape"');
+    expect(draw("landscape")).toContain('data-act="metric"');
+    expect(draw("landscape")).not.toContain("<table");
+  });
+  it("the filters apply to every lens: filtering to one domain leaves one heatmap group and one landscape box", () => {
+    __resetHeatmapForTest();
+    expect((draw("heatmap", { f: { dom: ["B"] } }).match(/class="grp"/g) || []).length).toBe(1);
+    expect((draw("landscape", { f: { dom: ["B"] } }).match(/class="dbox"/g) || []).length).toBe(1);
+    expect((draw("table", { f: { dom: ["B"] } }).match(/<tr data-id=/g) || []).length).toBe(2);
+  });
+  it("the landscape lens follows the colour metric of the state", () => {
+    expect(draw("landscape", { metric: "tier" })).toContain('data-legend="tier"');
+    expect(draw("landscape", { metric: "c1" })).toContain('data-legend="c1"');
+  });
+  it("lensView gives the empty state when nothing matches, in every lens", () => {
+    for (const lens of ["table", "heatmap", "landscape"]) expect(s(lensView(state({ lens }), [], rows, 50))).toContain("empty");
   });
 });

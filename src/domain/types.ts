@@ -157,7 +157,7 @@ export interface Issues {
 
 export type FacetKey = "dom" | "sd" | "tier" | "lc" | "so" | "gap" | "ty" | "h";
 
-/** The list/heatmap/landscape view state. viewState.ts owns the URL and saved-view encoding. */
+/** The Inventory view state (table, heatmap and landscape lenses). viewState.ts owns the URL and saved-view encoding. */
 export interface ViewState {
   route: string;
   q: string;
@@ -166,6 +166,8 @@ export interface ViewState {
   desc: boolean;
   cols: string[];
   metric: string;
+  /** How the Inventory shows the filtered set: table, heatmap or landscape. Not part of a saved view. */
+  lens: string;
 }
 
 export type SharedViewScope = "shared" | "personal";
@@ -173,7 +175,8 @@ export interface SavedView {
   id: string;
   name: string;
   scope: SharedViewScope;
-  route: string;
+  /** Legacy: the page the view was saved on. Read and kept, never used to open a view. */
+  route?: string;
   state: { q: string; f: Partial<Record<FacetKey, string[]>>; sort: string; cols: string[]; metric: string };
   by?: string;
   at?: string;

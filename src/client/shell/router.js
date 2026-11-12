@@ -5,7 +5,6 @@
 import { renderRegion, delegate } from "../lib/dom.js";
 import { html } from "../lib/html.js";
 import { count } from "../lib/format.js";
-import { filtersShell, mountFilters } from "../components/toolbar.js";
 import { runQuery } from "../../domain/query";
 import { closePopovers } from "../lib/popover.js";
 import { closeTips } from "../lib/tip.js";
@@ -28,12 +27,11 @@ export function registerPage(route, page) {
 
 export const hasPage = (route) => pages.has(route);
 
-const TITLES = { overview: "Overview", list: "List", heatmap: "Heatmap", landscape: "Landscape", settings: "Settings", app: "Application" };
+const TITLES = { overview: "Overview", list: "Inventory", settings: "Settings", app: "Application" };
 
-const FILTERED = ["list", "heatmap", "landscape"];
+const FILTERED = ["list"];
 
-// Until each page ships: a heading and the counts. The filtered routes already carry the real
-// toolbar and filter panel; their page replaces only the content region.
+// Until each page ships: a heading and the counts.
 function placeholder(route) {
   return {
     mount(el, ctx) {
@@ -41,8 +39,6 @@ function placeholder(route) {
       const row = route === "app" ? register.byId(s.app) : null;
       if (route === "app" && !row) { renderRegion(el, notFound("That application")); return null; }
       const filtered = FILTERED.indexOf(route) >= 0;
-      let into = el;
-      let offFilters = null;
       const draw = () => {
         const st = store.get();
         const all = register.visibleRows();
@@ -51,7 +47,7 @@ function placeholder(route) {
         const body = route === "app"
           ? html`<p class="mut">${row.app.name}</p>`
           : html`<p class="mut"><span data-count="visible">${count(vis, "application")}</span> in view${vis !== all.length ? html`<span data-count="of"> of ${count(all.length, "application")}</span>` : ""}${hid ? html`<span data-count="hidden"> and ${count(hid, "application")} hidden by the display settings</span>` : ""}.</p>`;
-        renderRegion(into, html`<section class="ph" data-page="${route}">
+        renderRegion(el, html`<section class="ph" data-page="${route}">
           ${route === "app" ? html`<button type="button" class="btn" data-act="back" data-k="back">Back to the list</button>` : ""}
           <h1>${TITLES[route] || route}</h1>
           ${route === "app" ? html`<p class="mut" data-app-id>${s.app}</p>` : ""}
@@ -59,15 +55,10 @@ function placeholder(route) {
           <p class="mut">This page arrives in a later step.</p>
         </section>`);
       };
-      if (filtered) {
-        renderRegion(el, filtersShell(html``), { keepFocus: false, keepScroll: false });
-        into = el.querySelector('[data-region="content"]');
-        offFilters = mountFilters(el);
-      }
       draw();
       const offReg = register.subscribe(draw);
       const offStore = filtered ? store.subscribe((n, p) => { if (n.q !== p.q || n.f !== p.f) draw(); }) : null;
-      return () => { offReg(); if (offStore) offStore(); if (offFilters) offFilters(); };
+      return () => { offReg(); if (offStore) offStore(); };
     },
   };
 }
@@ -114,7 +105,7 @@ function render(el) {
       if (!cancelSlow) cancelSlow = armSlow(el);
       return;
     }
-    show(el, s.booted ? skeleton(s.route) : splashView(b.step));
+    show(el, s.booted ? skeleton(s.route === "list" && s.lens !== "table" ? s.lens : s.route) : splashView(b.step));
     cancelSlow = armSlow(el);
     return;
   }

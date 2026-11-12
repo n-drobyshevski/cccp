@@ -108,6 +108,15 @@ describe("tab marks, bar and problems", () => {
     expect(String(savebar({ count: 0, text: "", tabs: [] }))).toBe("");
   });
 
+  it("the bar says Discard and Save, lists the first two rule changes and counts the rest", () => {
+    const out = String(savebar({ count: 4, text: "4 unsaved changes", tabs: [{ tab: "rules", label: "Status rules" }], notes: ["A: 18 \u2192 24 months (131 \u2192 74 apps)", "B: on \u2192 off", "C: x", "D: y"], busy: false, problems: 0 }));
+    expect(out).toContain("A: 18 \u2192 24 months (131 \u2192 74 apps); B: on \u2192 off and 2 more");
+    expect(out).not.toContain("C: x");
+    expect(out).toMatch(/data-act="s-discard"[^>]*>Discard</);
+    expect(out).toMatch(/data-act="s-save"[^>]*>Save</);
+    expect(String(savebar({ count: 1, text: "1 unsaved change", tabs: [], busy: true, problems: 0 }))).toContain("Saving…");
+  });
+
   it("problems land on the tab that owns them and block through errors", () => {
     let s = edit(session(), "source.tabs.apps.name", "");
     let r = errorsOf(s);

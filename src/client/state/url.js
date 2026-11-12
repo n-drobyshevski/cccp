@@ -5,8 +5,10 @@
 import { defaultState, fromParams, parseQuery, toQuery } from "../../domain/viewState";
 import { store } from "./store.js";
 
-/** Routes whose state carries the list filters in the URL. */
-const FILTERED = ["list", "heatmap", "landscape"];
+/** Routes whose state carries the list filters in the URL. The old heatmap and landscape routes are
+ *  lenses of the list now; navigate() and patchFromParams() turn them into list plus a lens. */
+const FILTERED = ["list"];
+const LENS_ROUTES = ["heatmap", "landscape"];
 const LOCATION_TIMEOUT_MS = 400;
 
 let lastQuery = null;
@@ -20,7 +22,7 @@ const bridge = () => (typeof google !== "undefined" && google.script ? google.sc
 export function stateOf(s) {
   const d = defaultState(s.route);
   if (FILTERED.indexOf(s.route) < 0) return d;
-  return { route: s.route, q: s.q, f: s.f, sort: s.sort, desc: s.desc, cols: s.cols, metric: s.metric };
+  return { route: s.route, q: s.q, f: s.f, sort: s.sort, desc: s.desc, cols: s.cols, metric: s.metric, lens: s.lens };
 }
 
 function linkOf(s) {
@@ -52,9 +54,14 @@ export function patchFromParams(params) {
   if (p.app && (route === "" || route === "app")) route = "app";
   if (route === "app" && !p.app) route = "";
   if (route === "" && p.view) route = "list";
+  if (route === "" && p.state.lens !== "table") route = "list";
   if (route === "") route = defaultRoute;
+  // A default of 'heatmap' or 'landscape' (an old Display setting) opens the Inventory on that lens.
+  let lens = p.state.lens;
+  if (LENS_ROUTES.indexOf(route) >= 0) { lens = route; route = "list"; }
   return {
     route,
+    lens,
     app: route === "app" ? p.app || null : null,
     tab: p.tab || null,
     view: p.view || null,
@@ -80,7 +87,9 @@ function write(kind, s) {
  * Apply a patch to the store and record it in the address: mode 'push' for a page change,
  * 'replace' for a filter-like change, 'none' to leave the URL alone.
  */
-export function navigate(patch, mode) {
+export function navigate(rawPatch, mode) {
+  // The old Heatmap and Landscape routes are the Inventory with that lens.
+  const patch = rawPatch && LENS_ROUTES.indexOf(rawPatch.route) >= 0 ? { ...rawPatch, route: "list", lens: rawPatch.route } : rawPatch;
   const next = { ...store.get(), ...patch };
   if (mode === "push" || mode === "replace") write(mode, next);
   store.set(patch);

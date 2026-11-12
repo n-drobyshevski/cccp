@@ -6,7 +6,7 @@ import { icon } from "../../lib/icons.js";
 import { glyphMark } from "../../components/glyph.js";
 import { tagsView, tierBadge } from "../../components/tags.js";
 
-export const BACK_LABEL = { list: "Inventory", heatmap: "Heatmap", landscape: "Landscape", overview: "Overview" };
+export const BACK_LABEL = { list: "Inventory", overview: "Overview" };
 
 export function sealView(seal) {
   const label = seal.label + ". " + seal.tip;

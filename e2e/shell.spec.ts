@@ -69,16 +69,22 @@ test.describe("boot", () => {
 });
 
 test.describe("app bar", () => {
-  test("four views with aria-current on the open one", async ({ page }) => {
+  test("two views, Overview and Inventory, with aria-current on the open one; the old Heatmap URL is the Inventory", async ({ page }) => {
     await page.goto("/?r=heatmap");
     const nav = page.getByRole("navigation", { name: "View" });
-    await expect(nav.getByRole("button")).toHaveText(["Overview", "Inventory", "Heatmap", "Landscape"]);
+    await expect(nav.getByRole("button")).toHaveText(["Overview", "Inventory"]);
     await expect(nav.locator("[aria-current=page]")).toHaveCount(1);
-    await expect(nav.getByRole("button", { name: "Heatmap" })).toHaveAttribute("aria-current", "page");
-    await nav.getByRole("button", { name: "Landscape" }).click();
-    await expect(nav.getByRole("button", { name: "Landscape" })).toHaveAttribute("aria-current", "page");
-    await expect(page.locator("[data-page=landscape]")).toBeVisible();
-    expect(new URL(page.url()).searchParams.get("r")).toBe("landscape");
+    await expect(nav.getByRole("button", { name: "Inventory" })).toHaveAttribute("aria-current", "page");
+    await expect(page.locator("[data-page=list]")).toBeVisible();
+    await expect(page.locator("table[data-table=heatmap]")).toBeVisible();
+    await nav.getByRole("button", { name: "Overview" }).click();
+    await expect(nav.getByRole("button", { name: "Overview" })).toHaveAttribute("aria-current", "page");
+    await expect(page.locator("[data-page=overview]")).toBeVisible();
+    expect(new URL(page.url()).searchParams.get("r")).toBe("overview");
+    // Inventory again: the lens the viewer had is still there
+    await nav.getByRole("button", { name: "Inventory" }).click();
+    await expect(page.locator("table[data-table=heatmap]")).toBeVisible();
+    expect(new URL(page.url()).searchParams.get("lens")).toBe("heatmap");
   });
 
   for (const [who, gear] of [["owner@example.com", true], ["admin@example.com", true], ["viewer@example.com", false]] as const) {
@@ -183,12 +189,19 @@ test.describe("history and hidden count", () => {
     await page.goto("/?r=list");
     await expect(page.locator("[data-page=list]")).toBeVisible();
     const before = await page.evaluate(() => history.length);
-    await page.locator('[data-k="nav-heatmap"]').click();
-    await expect(page.locator("[data-page=heatmap]")).toBeVisible();
+    await page.locator('[data-k="nav-overview"]').click();
+    await expect(page.locator("[data-page=overview]")).toBeVisible();
     const after = await page.evaluate(() => history.length);
     expect(after).toBe(before + 1);
-    await page.evaluate(() => (window as any).google.script.history.replace(null, { r: "heatmap", x: "1" }, ""));
-    expect(await page.evaluate(() => history.length)).toBe(after);
+    // a lens switch is a replace, like a filter change: it adds no history entry
+    await page.locator('[data-k="nav-list"]').click();
+    await expect(page.locator("[data-page=list]")).toBeVisible();
+    const inv = await page.evaluate(() => history.length);
+    await page.locator('[data-act=lens][data-lens=heatmap]').click();
+    await expect(page.locator("table[data-table=heatmap]")).toBeVisible();
+    expect(await page.evaluate(() => history.length)).toBe(inv);
+    await page.evaluate(() => (window as any).google.script.history.replace(null, { r: "list", x: "1" }, ""));
+    expect(await page.evaluate(() => history.length)).toBe(inv);
   });
 
   test("a hidden-name prefix shows a non-zero hidden count", async ({ page }) => {

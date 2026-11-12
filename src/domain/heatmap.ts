@@ -12,8 +12,8 @@ export const HEATMAP_LEAD_HEADS = ["Domain / application", "Tier"] as const;
 
 /** At this many applications or fewer every group starts open. */
 export const OPEN_ALL_MAX = 40;
-/** Stacked bar order: worst first. */
-export const HEAT_STACK: readonly Status[] = ["bad", "warn", "none", "ok"];
+/** Stacked bar order, left to right: OK, Attention, Gap, then No data (identity G). */
+export const HEAT_STACK: readonly Status[] = ["ok", "warn", "bad", "none"];
 
 export interface HeatGroup {
   name: string;

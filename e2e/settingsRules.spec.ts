@@ -18,7 +18,7 @@ const spy = (page: Page) => page.evaluate(() => {
   w.api_saveSettings = (p: unknown) => { w.__saves.push(JSON.parse(JSON.stringify(p))); return orig(p); };
 });
 const saves = (page: Page) => page.evaluate(() => (window as any).__saves as any[]);
-const saveBtn = (page: Page) => page.locator(".savebar").getByRole("button", { name: "Save changes" });
+const saveBtn = (page: Page) => page.locator(".savebar").getByRole("button", { name: "Save", exact: true });
 const cnt = async (page: Page, id: string) => Number((await page.locator('[data-cnt="' + id + '"] b').innerText()).replace(/,/g, ""));
 const months = (page: Page, id: string) => page.locator('input[data-rule="' + id + '"][data-prop=months]');
 const nav = (page: Page, name: string) => page.locator(".navb").getByRole("button", { name });
@@ -31,7 +31,8 @@ async function open(page: Page) {
 
 /** Cyber 'needs attention' across every domain of the heatmap. */
 async function heatCyberWarn(page: Page): Promise<number> {
-  await nav(page, "Heatmap").click();
+  await nav(page, "Inventory").click();
+  await page.locator("[data-act=lens][data-lens=heatmap]").click();
   await expect(page.locator("table[data-table=heatmap]")).toBeVisible();
   const tips = await page.locator("tr.grp td.sbc:nth-child(2) .sbw").evaluateAll((els) => els.map((e) => e.getAttribute("data-tip") || ""));
   let sum = 0;
@@ -43,6 +44,7 @@ async function heatCyberWarn(page: Page): Promise<number> {
 }
 const listCyberWarn = async (page: Page) => {
   await nav(page, "Inventory").click();
+  await page.locator("[data-act=lens][data-lens=table]").click();
   await expect(page.locator("table[data-table=list]")).toBeVisible();
   return page.locator('table[data-table=list] [aria-label^="Cyber: Needs attention"]').count();
 };
@@ -80,6 +82,57 @@ test("a threshold edit updates the counts before save and discard restores them"
   await expect(page.locator(".savebar")).toHaveCount(0);
 });
 
+test("rules sit under their pillar's colour: heading, rule and code", async ({ page }) => {
+  await open(page);
+  const seen = new Set<string>();
+  for (const p of ["cyber", "compliance", "continuity", "platform"]) {
+    const g = page.locator('[data-pillar="' + p + '"]');
+    const c = await g.evaluate((e) => {
+      const h = e.querySelector("h3")!;
+      const code = e.querySelector(".rc")!;
+      return [getComputedStyle(h).color, getComputedStyle(h).borderBottomColor, getComputedStyle(h).borderBottomWidth, getComputedStyle(code).color];
+    });
+    expect(c[0]).toBe(c[1]);
+    expect(c[0]).toBe(c[3]);
+    expect(c[2]).toBe("2px");
+    seen.add(c[0]!);
+  }
+  expect(seen.size).toBe(4);
+  await expect(page.locator('[data-rule-row="cy.pentestAge"] .rc')).toHaveText("CY");
+});
+
+test("the save bar sits under a 2px ink rule and says what changed, with the count before and after", async ({ page }) => {
+  await open(page);
+  const before = await cnt(page, "cy.pentestAge");
+  await expect(page.locator("#st-tab-rules .edited")).toHaveCount(0);
+  await months(page, "cy.pentestAge").fill("1");
+  const bar = page.locator(".savebar");
+  await expect(bar).toContainText("1 unsaved change");
+  await expect(bar).toContainText("Pentest too old: 18 \u2192 1 months (" + before.toLocaleString("en-US") + " \u2192 " + (await cnt(page, "cy.pentestAge")).toLocaleString("en-US") + " apps)");
+  await expect(page.locator("#st-tab-rules .edited")).toHaveText(/edited/);
+  expect(await bar.evaluate((e) => [getComputedStyle(e).borderTopWidth, getComputedStyle(e).borderTopColor === getComputedStyle(document.body).color, getComputedStyle(e).position])).toEqual(["2px", true, "sticky"]);
+  await expect(bar.getByRole("button", { name: "Discard" })).toBeVisible();
+  await expect(bar.getByRole("button", { name: "Save", exact: true })).toBeVisible();
+  // other tabs have no edited marker
+  await expect(page.locator("#st-tab-display .edited")).toHaveCount(0);
+});
+
+test("the tabs are a vertical list on the left", async ({ page }) => {
+  await page.setViewportSize({ width: 1280, height: 900 });
+  await open(page);
+  const tabs = page.getByRole("tab");
+  await expect(tabs).toHaveText([/Data source/, /Field mapping/, /Status rules/, /Access/, /Display/]);
+  const boxes = await tabs.evaluateAll((els) => els.map((e) => { const r = e.getBoundingClientRect(); return [r.x, r.y]; }));
+  for (const b of boxes) expect(b[0]).toBe(boxes[0]![0]);
+  expect(boxes[1]![1]).toBeGreaterThan(boxes[0]![1]);
+  const main = (await page.locator("#st-panel").boundingBox())!;
+  expect(main.x).toBeGreaterThan(boxes[0]![0]! + 150);
+  await page.getByRole("tab", { name: /Data source/ }).focus();
+  await page.keyboard.press("ArrowDown");
+  await expect(page.getByRole("tab", { name: /Field mapping/ })).toBeFocused();
+  expect(await page.evaluate(() => document.documentElement.scrollWidth <= document.documentElement.clientWidth)).toBe(true);
+});
+
 test("months are clamped to 1 to 120", async ({ page }) => {
   await open(page);
   await months(page, "ct.drpAge").fill("9999");
@@ -93,16 +146,19 @@ test("months are clamped to 1 to 120", async ({ page }) => {
   expect(s[0].patch).toEqual({ rules: { rules: { "ct.drpAge": { months: 120 }, "co.review": { months: 1 } } } });
 });
 
-test("tier chips change the DRP count and a rule with no tier says so", async ({ page }) => {
+test("tier checkboxes change the DRP count and a rule with no tier says so", async ({ page }) => {
   await open(page);
   const row = page.locator('[data-rule-row="ct.drpMissing"]');
   const before = await cnt(page, "ct.drpMissing");
-  await row.locator("[data-tier='3']").click();
-  await expect(row.locator("[data-tier='3']")).toHaveAttribute("aria-pressed", "true");
+  await expect(row.locator("input[data-tier]")).toHaveCount(4);
+  await expect(row.locator("input[data-tier='1']")).toBeChecked();
+  await expect(row.locator("input[data-tier='3']")).not.toBeChecked();
+  await row.locator("input[data-tier='3']").check();
+  await expect(row.locator("input[data-tier='3']")).toBeChecked();
   expect(await cnt(page, "ct.drpMissing")).toBeGreaterThanOrEqual(before);
-  await row.locator("[data-tier='1']").click();
-  await row.locator("[data-tier='2']").click();
-  await row.locator("[data-tier='3']").click();
+  await row.locator("input[data-tier='1']").uncheck();
+  await row.locator("input[data-tier='2']").uncheck();
+  await row.locator("input[data-tier='3']").uncheck();
   await expect(page.locator("[data-no-tier]")).toContainText("at least one tier");
   expect(await cnt(page, "ct.drpMissing")).toBe(0);
 });

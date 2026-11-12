@@ -29,7 +29,7 @@ import {
 import { accessView, createAccess } from "./access.js";
 import { displayView } from "./display.js";
 import { fieldsView } from "./fields.js";
-import { editRule, toggleTier, rulesView } from "./rules.js";
+import { editRule, toggleTier, rulesView, ruleChangeNotes } from "./rules.js";
 import { sourceView } from "./source.js";
 
 const VIEWS = { source: sourceView, fields: fieldsView, rules: rulesView, access: accessView, display: displayView };
@@ -72,10 +72,10 @@ function adoptPublic(settings, cfgGen) {
 }
 
 function tabsView(tab, marks) {
-  return html`<div class="stabs" role="tablist" aria-label="Settings sections">${SETTINGS_TABS.map((t) => {
+  return html`<div class="stabs" role="tablist" aria-orientation="vertical" aria-label="Settings sections">${SETTINGS_TABS.map((t) => {
     const m = marks[t.key];
     const on = t.key === tab;
-    return html`<button type="button" role="tab" id="st-tab-${t.key}" aria-selected="${on ? "true" : "false"}" aria-controls="st-panel" tabindex="${on ? "0" : "-1"}" data-act="s-tab" data-tab="${t.key}" data-k="stt-${t.key}">${t.label}${m.dirty ? html`<span class="dirtydot" data-tip="Unsaved changes" aria-hidden="true"></span><span class="sr-only"> (unsaved changes)</span>` : ""}${m.warn ? html`<span class="warnmark" data-tip="Fields not mapped" aria-hidden="true"></span><span class="sr-only"> (fields not mapped)</span>` : ""}${m.invalid ? html`<span class="badmark" data-tip="Needs a fix" aria-hidden="true"></span><span class="sr-only"> (needs a fix)</span>` : ""}</button>`;
+    return html`<button type="button" role="tab" id="st-tab-${t.key}" aria-selected="${on ? "true" : "false"}" aria-controls="st-panel" tabindex="${on ? "0" : "-1"}" data-act="s-tab" data-tab="${t.key}" data-k="stt-${t.key}"><span class="tl">${t.label}</span>${m.dirty ? html`<span class="edited"><i class="dirtydot" aria-hidden="true"></i>edited<span class="sr-only"> (unsaved changes)</span></span>` : ""}${m.warn ? html`<span class="warnmark" data-tip="Fields not mapped" aria-hidden="true"></span><span class="sr-only"> (fields not mapped)</span>` : ""}${m.invalid ? html`<span class="badmark" data-tip="Needs a fix" aria-hidden="true"></span><span class="sr-only"> (needs a fix)</span>` : ""}</button>`;
   })}</div>`;
 }
 
@@ -121,19 +121,18 @@ export const settingsPage = {
       const vctx = { session, meta: st.core.sourceMeta, viewer: st.live.viewer, ui, errors, rows: register.allRows(), today: st.live.today, access: accessCtl.state };
       const def = SETTINGS_TABS.find((t) => t.key === tab);
       if (tab === "access") accessCtl.ensureLoaded();
+      const notes = bar.changed.some((k) => k.indexOf("rules.") === 0) ? ruleChangeNotes({ session, rows: vctx.rows, today: vctx.today }) : [];
       renderRegion(el, html`<div class="stw" data-page="settings" data-tab="${tab}">
-        <div class="top"><button type="button" class="backbtn" data-act="s-back" data-k="back">${icon("arrowleft")}Back</button></div>
-        <div class="sth"><h1>Settings</h1><p>Changes apply to everyone who opens CCCP after you save.</p></div>
-        ${bannerView(banner)}
-        <div class="panel">
-          ${tabsView(tab, marks)}
+        <aside class="stside"><button type="button" class="backbtn" data-act="s-back" data-k="back">${icon("arrowleft")}Back</button><h1>Settings</h1>${tabsView(tab, marks)}<p class="mut stnote">Changes apply to everyone who opens CCCP after you save.</p></aside>
+        <div class="stmain">
           <section class="sts" id="st-panel" role="tabpanel" aria-labelledby="st-tab-${tab}">
             <header><h2>${def.label}</h2><p>${def.help}.</p></header>
+            ${bannerView(banner)}
             ${problemsView(problems)}
             ${view(vctx)}
           </section>
+          ${savebar({ count: bar.count, text: bar.text, tabs: bar.tabs, notes, busy, problems: problems.length })}
         </div>
-        ${savebar({ count: bar.count, text: bar.text, tabs: bar.tabs, busy, problems: problems.length })}
       </div>`);
     }
 
@@ -270,7 +269,7 @@ export const settingsPage = {
       const s = sessionOf();
       if (act === "s-tab") navigate({ tab: b.getAttribute("data-tab") }, "replace");
       else if (act === "s-back") navigate({ route: homeRoute(store.get()), app: null, tab: null, view: null }, "push");
-      else if (act === "s-tier") setRule(b.getAttribute("data-rule"), "tier", Number(b.getAttribute("data-tier")));
+      else if (act === "s-tier") setRule(b.getAttribute("data-trule"), "tier", Number(b.getAttribute("data-tier")));
       else if (act === "s-set") setDraft(b.getAttribute("data-key"), b.getAttribute("data-v"));
       else if (act === "s-discard" && s) { banner = null; ui.probe = { state: "idle" }; store.set({ settingsDraft: discard(s) }); draw(); }
       else if (act === "s-save") save();
@@ -306,7 +305,7 @@ export const settingsPage = {
     offs.push(delegate(el, "change", "select[data-key], input[type=checkbox][data-key]", onField));
 
     offs.push(delegate(el, "keydown", '[role="tab"]', (ev, t) => {
-      const step = ev.key === "ArrowRight" ? 1 : ev.key === "ArrowLeft" ? -1 : 0;
+      const step = ev.key === "ArrowRight" || ev.key === "ArrowDown" ? 1 : ev.key === "ArrowLeft" || ev.key === "ArrowUp" ? -1 : 0;
       if (!step) return;
       ev.preventDefault();
       const to = nextTab(t.getAttribute("data-tab"), step);

@@ -1,17 +1,20 @@
-/* Landscape (lx3.ext.html): domain boxes in columns, subdomain groups, named tiles coloured by
-   the metric. Unknown values are hatched. Tokens only. */
-.metric { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+/* Landscape lens (identity G): domains in columns under a 2px ink rule with their count, subdomain
+   groups of named tiles. A tile has a small status square, dashed when the value is unknown, and a
+   Gap tile a red-tinted border. The colour-by control is a segmented switch whose pillar choices
+   carry the pillar's colour; the legend sits at its right. Tokens only. */
+.lctl { display: flex; flex-wrap: wrap; gap: 8px 24px; align-items: center; justify-content: space-between; padding: 14px 0 6px; }
+.metric { display: flex; flex-wrap: wrap; gap: 8px 12px; align-items: center; }
 .lbl { font-size: 11px; letter-spacing: 0.06em; text-transform: uppercase; color: var(--muted); }
-.segs { display: inline-flex; flex-wrap: wrap; border: 1px solid var(--line); border-radius: var(--r); overflow: hidden; }
-.segs button { border: 0; background: var(--surface); padding: 6px 12px; border-right: 1px solid var(--line); color: var(--fg); }
+.metric .lbl { font: 500 14px var(--sans); letter-spacing: 0; text-transform: none; }
+.segs { display: inline-flex; flex-wrap: wrap; border: 1px solid var(--line2); background: var(--surface); }
+.segs button { border: 0; background: var(--surface); padding: 6px 13px; border-right: 1px solid var(--line2); color: var(--pc, var(--fg)); font-weight: 500; }
 .segs button:last-child { border-right: 0; }
 .segs button:hover { background: var(--surface2); }
 .segs button:focus-visible { outline-offset: -2px; }
-.segs button[aria-pressed="true"] { background: var(--accent); color: var(--on-accent); }
-.rleg { padding-top: 0; }
-.lgd { display: flex; flex-wrap: wrap; gap: 4px 12px; font-size: 12px; color: var(--muted); }
+.segs button[aria-pressed="true"] { background: var(--fg); color: var(--surface); }
+.lgd { display: flex; flex-wrap: wrap; gap: 4px 16px; font-size: 14px; color: var(--muted); }
 .lgd span { display: inline-flex; gap: 6px; align-items: center; }
-.lgd i { width: 12px; height: 12px; border-radius: 3px; background: var(--c); }
+.sq { display: inline-block; width: 11px; height: 11px; background: var(--c); flex: none; }
 .ls-ok { --c: var(--ok); }
 .ls-warn { --c: var(--warn); }
 .ls-bad { --c: var(--bad); }
@@ -20,18 +23,18 @@
 .ls-t3 { --c: var(--tier3); }
 .ls-t4 { --c: var(--tier4); }
 .ls-none { --c: var(--none); }
-.lgd i.ls-none { background: repeating-linear-gradient(135deg, var(--none) 0 2px, transparent 2px 5px); box-shadow: inset 0 0 0 1px var(--none); }
-.land { columns: 3 320px; column-gap: 12px; padding: 4px 14px 16px; }
-.dbox { break-inside: avoid; margin-bottom: 12px; border: 1px solid var(--line); border-radius: var(--rs); background: var(--surface); overflow: hidden; }
-.dbox > header { display: flex; justify-content: space-between; align-items: center; gap: 8px; padding: 8px 12px; background: var(--surface2); border-bottom: 1px solid var(--line); }
-.dbox > header b { font-size: 12px; letter-spacing: 0.04em; font-weight: 600; }
-.dbox > header small { font: 500 11px var(--mono); color: var(--muted); }
-.sdg { padding: 8px 10px 10px; display: flex; flex-direction: column; gap: 6px; }
-.sdg + .sdg { border-top: 1px dashed var(--line); }
-.sdg > span { font-size: 11px; color: var(--muted); letter-spacing: 0.04em; text-transform: uppercase; }
-.tiles2 { display: flex; flex-wrap: wrap; gap: 4px; }
-.tl { border: 0; border-radius: var(--r); padding: 4px 8px; font-size: 12px; font-weight: 500; max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; text-align: left; background: color-mix(in srgb, var(--c) 18%, var(--surface)); color: var(--fg); box-shadow: inset 3px 0 0 var(--c); }
-.tl:hover { background: color-mix(in srgb, var(--c) 30%, var(--surface)); }
-.tl.ls-none { background: repeating-linear-gradient(135deg, var(--surface) 0 4px, var(--surface2) 4px 8px); box-shadow: inset 0 0 0 1px var(--line2); color: var(--muted); }
-.tl.ls-none:hover { background: var(--surface2); }
-@media (max-width: 600px) { .land { padding-inline: 10px; } }
+.sq.ls-none, .ls-none > .sq { background: none; border: 1.5px dashed var(--none); }
+.land { columns: 4 300px; column-gap: 28px; padding: 14px 0 20px; }
+.dbox { break-inside: avoid; margin-bottom: 22px; border-top: 2px solid var(--fg); }
+.dbox > header { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; padding: 8px 0 8px; }
+.dbox > header b { font: 700 13px var(--sans); letter-spacing: 0.08em; text-transform: uppercase; }
+.dbox > header small { font: 400 13px var(--mono); color: var(--muted); }
+.sdg { display: flex; flex-direction: column; gap: 6px; padding-bottom: 8px; }
+.sdg > span { font-size: 11px; color: var(--muted); letter-spacing: 0.06em; text-transform: uppercase; font-weight: 600; }
+.tiles2 { display: flex; flex-wrap: wrap; gap: 6px; }
+.tl { display: inline-flex; align-items: center; gap: 7px; border: 1px solid var(--line2); border-radius: var(--r); padding: 4px 9px; font-size: 14px; font-weight: 400; max-width: 100%; text-align: left; background: var(--surface); color: var(--fg); }
+.tl > span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; min-width: 0; }
+.tl:hover { background: var(--surface2); border-color: var(--none); }
+.tl.ls-bad { border-color: color-mix(in srgb, var(--bad) 55%, var(--surface)); }
+.tl.ls-none { color: var(--muted); }
+@media (max-width: 600px) { .land { columns: 1; } }

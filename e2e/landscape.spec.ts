@@ -1,6 +1,6 @@
 import { expect, test, type Page } from "@playwright/test";
 
-// The landscape page against the dev server: named tiles, the colour metric with its legend, its
+// The landscape lens of the Inventory (opened through the old ?r=landscape address) against the dev server: named tiles, the colour metric with its legend, its
 // persistence in the address and in saved views, and the render time of the whole register.
 
 function watchConsole(page: Page): string[] {
@@ -40,7 +40,7 @@ test("every application is a named tile, domains are ordered by size, tiles have
 test("the metric switch recolours, the legend follows it and the address keeps it", async ({ page }) => {
   const bad = watchConsole(page);
   await ready(page);
-  await expect(pressed(page)).toHaveText("Worst status");
+  await expect(pressed(page)).toHaveText("Worst");
   await expect(page.locator(".lgd")).toContainText("Needs attention");
   await page.locator(".segs").getByRole("button", { name: "Tier", exact: true }).click();
   await expect(pressed(page)).toHaveText("Tier");
@@ -57,29 +57,57 @@ test("the metric switch recolours, the legend follows it and the address keeps i
   expect(bad).toEqual([]);
 });
 
-test("unknown values are hatched tiles and the legend says so", async ({ page }) => {
+test("unknown values have a dashed square and the legend says so", async ({ page }) => {
   await ready(page, "&metric=tier");
-  const hatched = await page.locator("button.tl.ls-none").count();
   const sample = page.locator("button.tl.ls-none").first();
-  expect(hatched).toBeGreaterThan(0);
-  const bg = await sample.evaluate((e) => getComputedStyle(e).backgroundImage);
-  expect(bg).toContain("repeating-linear-gradient");
+  expect(await page.locator("button.tl.ls-none").count()).toBeGreaterThan(0);
+  expect(await sample.locator(".sq").evaluate((e) => getComputedStyle(e).borderTopStyle)).toBe("dashed");
   await expect(page.locator(".lgd")).toContainText("No tier");
+  await expect(page.locator(".lgd .sq.ls-none")).toHaveCount(1);
 });
 
-test("the metric is stored in a saved view", async ({ page }) => {
+test("a tile has a status square, a Gap tile a red-tinted border, and domains sit in columns under a 2px ink rule", async ({ page }) => {
+  await page.setViewportSize({ width: 1440, height: 900 });
+  await ready(page);
+  const bad = page.locator("button.tl.ls-bad").first();
+  const ok = page.locator("button.tl.ls-ok").first();
+  expect(await bad.count()).toBe(1);
+  const bc = await bad.evaluate((e) => getComputedStyle(e).borderTopColor);
+  const oc = await ok.evaluate((e) => getComputedStyle(e).borderTopColor);
+  expect(bc).not.toBe(oc);
+  expect(await bad.locator(".sq").evaluate((e) => getComputedStyle(e).backgroundColor)).not.toBe(await ok.locator(".sq").evaluate((e) => getComputedStyle(e).backgroundColor));
+  const box = page.locator(".dbox").first();
+  const rule = await box.evaluate((e) => [getComputedStyle(e).borderTopWidth, getComputedStyle(e).borderTopColor === getComputedStyle(document.body).color]);
+  expect(rule).toEqual(["2px", true]);
+  const xs = await page.locator(".dbox").evaluateAll((els) => [...new Set(els.map((e) => Math.round(e.getBoundingClientRect().x)))]);
+  expect(xs.length).toBeGreaterThanOrEqual(3);
+});
+
+test("the pillar choices of the switch are in the pillar's colour", async ({ page }) => {
+  await ready(page);
+  const colours = await page.locator(".segs button").evaluateAll((els) => els.map((e) => [e.textContent, getComputedStyle(e).color]));
+  const byName = Object.fromEntries(colours.map(([n, c]) => [n, c]));
+  const pillars = [byName.Cyber, byName.Compliance, byName.Continuity, byName.Platform];
+  expect(new Set(pillars).size).toBe(4);
+  expect(new Set([...pillars, byName.Tier]).size).toBe(5);
+});
+
+test("the metric is stored in a saved view, which is not bound to the page", async ({ page }) => {
   await ready(page, "&metric=tier");
-  await page.getByRole("button", { name: "Save view" }).click();
+  await page.getByRole("button", { name: "+ Save" }).click();
   await page.getByLabel("View name").fill("By tier");
-  await page.getByRole("button", { name: "Save", exact: true }).click();
+  await page.locator('[data-k="vsave"]').click();
   const stored = await page.evaluate(() => JSON.parse(localStorage.getItem("cccp.views.v1") as string));
-  expect(stored[0].route).toBe("landscape");
+  expect(stored[0]).not.toHaveProperty("route");
   expect(stored[0].state.metric).toBe("tier");
-  // Another metric, then the view brings the metric back.
+  // Another metric, then the view brings the metric back, still on the landscape lens.
   await page.getByRole("button", { name: "Platform", exact: true }).click();
   await expect(pressed(page)).toHaveText("Platform");
-  await page.getByRole("tab", { name: "By tier" }).click();
+  await expect(page.locator(".vi.on .vn")).toHaveText("By tier");
+  await expect(page.locator("[data-cue]")).toContainText("changed");
+  await page.locator(".vrow", { hasText: "By tier" }).click();
   await expect(pressed(page)).toHaveText("Tier");
+  await expect(page.locator(".land")).toBeVisible();
 });
 
 test("1,125-scale render is fast", async ({ page }) => {
@@ -102,6 +130,7 @@ test("a tile opens the application and Back returns to the landscape", async ({ 
   await ready(page, "&metric=c1");
   await tiles(page).first().click();
   await expect(page.locator(".land")).toHaveCount(0);
+  await expect(page.locator("[data-page=app]")).toBeVisible();
   await page.goBack();
   await expect(page.locator(".land")).toBeVisible();
   await expect(pressed(page)).toHaveText("Compliance");

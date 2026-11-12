@@ -20,7 +20,7 @@ import { TAB_KEYS } from "../../../domain/types";
 export const SETTINGS_TABS = [
   { key: "source", label: "Data source", help: "Sheet and tabs CCCP reads" },
   { key: "fields", label: "Field mapping", help: "Which column feeds which field" },
-  { key: "rules", label: "Status rules", help: "When a dot turns amber or red" },
+  { key: "rules", label: "Status rules", help: "When each pillar shows Gap or Attention. Counts are live over the whole register" },
   { key: "access", label: "Access", help: "Who can open CCCP and edit settings" },
   { key: "display", label: "Display", help: "Defaults and hidden applications" },
 ];

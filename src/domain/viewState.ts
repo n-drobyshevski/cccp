@@ -15,20 +15,25 @@ export const MAX_SHARED_BYTES = 8000;
 export const VIEW_NAME_MAX = 60;
 
 export const ROUTES: readonly string[] = ["overview", "list", "heatmap", "landscape", "app", "settings"];
-/** Routes a saved view can belong to. */
+/** Routes an older saved view may carry. Kept for reading; a view no longer belongs to a page. */
 export const VIEW_ROUTES: readonly string[] = ["list", "heatmap", "landscape"];
+/** The three ways the Inventory shows the filtered set. */
+export const LENSES: readonly string[] = ["table", "heatmap", "landscape"];
+export const DEFAULT_LENS = "table";
+/** The old pages that are now lenses of the Inventory (?r=heatmap opens ?r=list&lens=heatmap). */
+export const LENS_ROUTES: readonly string[] = ["heatmap", "landscape"];
 export const METRICS: readonly string[] = ["worst", "c0", "c1", "c2", "c3", "tier", "q"];
 export const DEFAULT_METRIC = "worst";
 
 /** Every param the URL may carry. Anything else is dropped. */
-export const PARAM_KEYS: readonly string[] = ["r", "app", "view", "tab", "q", ...FACET_KEYS, "sort", "desc", "cols", "metric"];
+export const PARAM_KEYS: readonly string[] = ["r", "lens", "app", "view", "tab", "q", ...FACET_KEYS, "sort", "desc", "cols", "metric"];
 
 /** Params that are not part of the filter state. */
 export interface LinkTarget { app?: string; view?: string; tab?: string }
 export interface ParsedLink extends LinkTarget { state: ViewState }
 
 export function defaultState(route = ""): ViewState {
-  return { route, q: "", f: {}, sort: DEFAULT_SORT, desc: false, cols: [], metric: DEFAULT_METRIC };
+  return { route, q: "", f: {}, sort: DEFAULT_SORT, desc: false, cols: [], metric: DEFAULT_METRIC, lens: DEFAULT_LENS };
 }
 
 const cap = (s: string, n = STRING_MAX): string => (s.length > n ? s.slice(0, n) : s);
@@ -68,6 +73,7 @@ export function cleanState(raw: unknown): ViewState {
   s.desc = r.desc === true;
   if (Array.isArray(r.cols)) s.cols = signedKeys(choiceOf(r.cols.filter((x): x is string => typeof x === "string")));
   if (typeof r.metric === "string" && METRICS.includes(r.metric)) s.metric = r.metric;
+  if (typeof r.lens === "string" && LENSES.includes(r.lens)) s.lens = r.lens;
   return s;
 }
 
@@ -92,6 +98,7 @@ const listDecode = (text: string): string[] => text.split(",").filter((x) => x !
 export function toParams(state: ViewState, link: LinkTarget = {}): Array<[string, string]> {
   const out: Array<[string, string]> = [];
   if (state.route) out.push(["r", state.route]);
+  if (state.lens && state.lens !== DEFAULT_LENS && LENSES.includes(state.lens)) out.push(["lens", state.lens]);
   if (link.app) out.push(["app", link.app]);
   if (link.view) out.push(["view", link.view]);
   if (link.tab) out.push(["tab", link.tab]);
@@ -154,6 +161,10 @@ export function fromParams(params: ParamMap): ParsedLink {
   const state = defaultState();
   const r = one(params.r);
   if (r && ROUTES.includes(r)) state.route = r;
+  const lens = one(params.lens);
+  if (lens && LENSES.includes(lens)) state.lens = lens;
+  // The old Heatmap and Landscape pages are lenses of the Inventory now.
+  if (LENS_ROUTES.includes(state.route)) { state.lens = state.route; state.route = "list"; }
   const q = one(params.q);
   if (q) state.q = cap(q);
   for (const k of FACET_KEYS) {
@@ -191,10 +202,10 @@ export function stateToSaved(s: ViewState): SavedView["state"] {
   return { q: s.q, f: s.f, sort: (s.desc ? "-" : "") + s.sort, cols: s.cols, metric: s.metric };
 }
 
-/** A saved view back to a full state for its route. */
+/** A saved view back to a full state. It opens on the Inventory whatever page it was saved on. */
 export function savedToState(v: SavedView): ViewState {
   const desc = v.state.sort.charAt(0) === "-";
-  return cleanState({ route: v.route, q: v.state.q, f: v.state.f, sort: desc ? v.state.sort.slice(1) : v.state.sort, desc, cols: v.state.cols, metric: v.state.metric });
+  return cleanState({ route: "list", q: v.state.q, f: v.state.f, sort: desc ? v.state.sort.slice(1) : v.state.sort, desc, cols: v.state.cols, metric: v.state.metric });
 }
 
 /** A saved view of any origin, cleaned: unknown keys dropped, strings capped, bad parts defaulted. */
@@ -208,9 +219,9 @@ export function cleanView(raw: unknown): SavedView {
     id: typeof r.id === "string" && ID_RE.test(r.id) ? r.id : "",
     name: typeof r.name === "string" ? cap(r.name.trim()) : "",
     scope: r.scope === "shared" ? "shared" : "personal",
-    route: typeof r.route === "string" && VIEW_ROUTES.includes(r.route) ? r.route : "list",
     state: { q: clean.q, f: clean.f, sort: (desc ? "-" : "") + clean.sort, cols: clean.cols, metric: clean.metric },
   };
+  if (typeof r.route === "string" && VIEW_ROUTES.includes(r.route)) v.route = r.route;
   if (typeof r.by === "string" && r.by) v.by = cap(r.by);
   if (typeof r.at === "string" && r.at) v.at = cap(r.at);
   return v;
@@ -224,7 +235,8 @@ export function validateView(raw: unknown): string[] {
   if (typeof r.name !== "string" || r.name.trim() === "") errs.push("A view needs a name.");
   else if (r.name.trim().length > VIEW_NAME_MAX) errs.push("A view name can be at most " + VIEW_NAME_MAX + " characters.");
   if (r.scope !== "shared" && r.scope !== "personal") errs.push("A view's scope must be shared or personal.");
-  if (typeof r.route !== "string" || !VIEW_ROUTES.includes(r.route)) errs.push("A view must belong to the list, heatmap or landscape page.");
+  // A view no longer belongs to a page; an older one still carries the page it was saved on.
+  if (r.route != null && (typeof r.route !== "string" || !VIEW_ROUTES.includes(r.route))) errs.push("A view's page, when it has one, must be the list, heatmap or landscape.");
   if (!r.state || typeof r.state !== "object" || Array.isArray(r.state)) {
     errs.push("A view needs its filters, sort and columns.");
     return errs;

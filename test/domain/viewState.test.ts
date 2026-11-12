@@ -5,7 +5,7 @@ import { URL_MAX, cleanView, defaultState, fromParams, fromQuery, savedToState, 
 const full: ViewState = {
   route: "list", q: "café & co", f: { dom: ["Finance, Risk", "NO DOMAIN"], sd: ["Other"], tier: ["T1", "No tier"], lc: ["End of life"],
     so: ["None assigned"], gap: ["Cyber", "Platform"], ty: ["Application"], h: ["Cloud"] },
-  sort: "st", desc: true, cols: ["-d", "+h"], metric: "tier",
+  sort: "st", desc: true, cols: ["-d", "+h"], metric: "tier", lens: "landscape",
 };
 
 describe("URL round trip", () => {
@@ -27,7 +27,7 @@ describe("URL round trip", () => {
 
   it("drops unknown keys and invalid values", () => {
     const p = fromParams({ r: "nowhere", q: "x", evil: "1", sort: "bogus", metric: "zzz", cols: "-n,-zzz,+h", dom: "A,B", app: "bad\u0007id", tab: "X/Y", desc: "1" });
-    expect(p.state).toEqual({ route: "", q: "x", f: { dom: ["A", "B"] }, sort: "n", desc: true, cols: ["+h"], metric: "worst" });
+    expect(p.state).toEqual({ route: "", q: "x", f: { dom: ["A", "B"] }, sort: "n", desc: true, cols: ["+h"], metric: "worst", lens: "table" });
     expect(p.app).toBeUndefined();
     expect(p.tab).toBeUndefined();
     expect(JSON.stringify(p)).not.toContain("evil");
@@ -37,6 +37,20 @@ describe("URL round trip", () => {
   it("survives malformed percent escapes and a leading question mark", () => {
     expect(fromQuery("?q=%E0%A4%A&dom=%zz").state.q).toBe("%E0%A4%A");
     expect(fromQuery("?r=list&r=heatmap").state.route).toBe("list");
+  });
+
+  it("carries the lens and leaves the default one out", () => {
+    expect(toQuery({ ...defaultState("list"), lens: "heatmap" })).toBe("r=list&lens=heatmap");
+    expect(toQuery(defaultState("list"))).toBe("r=list");
+    expect(fromQuery("r=list&lens=landscape").state.lens).toBe("landscape");
+    expect(fromQuery("r=list&lens=bogus").state.lens).toBe("table");
+    expect(fromQuery("lens=heatmap").state).toMatchObject({ route: "", lens: "heatmap" });
+  });
+
+  it("opens the old heatmap and landscape routes as lenses of the Inventory", () => {
+    expect(fromQuery("r=heatmap&tier=T1").state).toMatchObject({ route: "list", lens: "heatmap", f: { tier: ["T1"] } });
+    expect(fromQuery("r=landscape&metric=tier").state).toMatchObject({ route: "list", lens: "landscape", metric: "tier" });
+    expect(fromQuery("r=list").state.lens).toBe("table");
   });
 
   it("caps the query at 2,000 characters", () => {
@@ -75,6 +89,24 @@ describe("saved views", () => {
     expect(c.state.q).toHaveLength(200);
     expect(c.state.f).toEqual({ tier: ["T1"] });
     expect(cleanView(view)).toEqual(view);
+  });
+
+  it("still reads and validates a view saved on the heatmap or landscape page", () => {
+    for (const route of ["heatmap", "landscape"]) {
+      const old = { ...view, route };
+      expect(validateView(old)).toEqual([]);
+      expect(cleanView(old).route).toBe(route);
+      expect(validateSharedViews([old])).toEqual([]);
+      // Opening ignores the page it was saved on: the view is a set of applications, a sort, columns and a metric.
+      expect(savedToState(old)).toMatchObject({ route: "list", lens: "table", sort: "st", desc: true });
+    }
+  });
+
+  it("accepts a new view with no page, and rejects a page that is not one of the three", () => {
+    const { route: _r, ...bare } = view;
+    expect(validateView(bare)).toEqual([]);
+    expect(cleanView(bare)).not.toHaveProperty("route");
+    expect(validateView({ ...view, route: "settings" })).toHaveLength(1);
   });
 
   it("converts between a saved view and a state", () => {

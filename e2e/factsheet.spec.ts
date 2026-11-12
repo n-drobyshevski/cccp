@@ -151,8 +151,9 @@ test("back returns to where the viewer came from, the domain crumb filters the l
   await expect(page.locator("table[data-table=heatmap]")).toBeVisible();
   await page.locator("button.nm").first().click();
   await expect(page.locator(".hx h1")).toBeVisible();
-  await expect(page.locator("[data-k=fs-crumb-back]")).toHaveAttribute("aria-label", "Back to heatmap");
+  await expect(page.locator("[data-k=fs-crumb-back]")).toHaveAttribute("aria-label", "Back to inventory");
   await page.locator("[data-k=fs-crumb-back]").click();
+  // Back lands on the lens the viewer left
   await expect(page.locator("table[data-table=heatmap]")).toBeVisible();
   await page.locator("button.nm").first().click();
   const dom = (await page.locator(".crumbs [data-act=crumb-domain]").innerText()).trim();

@@ -8,13 +8,14 @@ import { PILLARS } from "./types";
 import type { Row } from "./facets";
 import { GAP_ORDER, NONE_ASSIGNED, PILLAR_LABEL, TIER_ORDER } from "./facets";
 import { filterRows } from "./query";
+import { worst } from "./rules";
 
 export type Target = Partial<Record<FacetKey, string[]>>;
 
 export const EOL_LABELS: readonly string[] = ["End of life", "End of support"];
 export const TOP_DOMAINS = 8;
-/** Stacked bar order: worst first. */
-export const STATUS_STACK: readonly Status[] = ["bad", "warn", "none", "ok"];
+/** Stacked bar order, left to right: OK, Attention, Gap, then No data (identity G). */
+export const STATUS_STACK: readonly Status[] = ["ok", "warn", "bad", "none"];
 
 export interface Kpi {
   id: "gap" | "t1gap" | "noso" | "eol";
@@ -49,6 +50,8 @@ export interface DomainRow {
   gaps: number;
   /** Mean completeness, whole percent. */
   completeness: number;
+  /** The worst status among the domain's applications, per pillar (bad > warn > none > ok). */
+  worst: Record<Pillar, Status>;
   /** Reproduces `apps`. */
   target: Target;
   /** Reproduces `gaps`. */
@@ -104,6 +107,7 @@ export function overviewModel(rows: readonly Row[]): Overview {
       apps: n(target),
       gaps: n(gapTarget),
       completeness: Math.round(rs.reduce((s, r) => s + r.pct, 0) / rs.length),
+      worst: Object.fromEntries(PILLARS.map((p) => [p, worst(rs.map((r) => r.status[p].status))])) as Record<Pillar, Status>,
       target,
       gapTarget,
     };

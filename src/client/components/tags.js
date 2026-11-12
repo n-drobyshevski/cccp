@@ -23,5 +23,5 @@ export function lifecycleMark(lc) {
 
 /** The tier badge and the coloured tags (typology, hosting, internet exposed, personal data, no SSO). */
 export function tagsView(tier, tags) {
-  return html`<div class="tags lxc">${tierBadge(tier)}${tags.map((t) => html`<span class="tag t-${t.key}">${t.label}</span>`)}</div>`;
+  return html`<div class="tags lxc">${tier ? tierBadge(tier) : ""}${tags.map((t) => html`<span class="tag t-${t.key}">${t.label}</span>`)}</div>`;
 }

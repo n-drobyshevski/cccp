@@ -106,6 +106,7 @@ export const factsheetPage = {
         const sx = el.querySelector("#sx-" + key);
         if (!sx) return;
         if (!sx.open) { sx.open = true; }
+        const sel = qs(el, "select.jump"); if (sel) sel.value = key;
         sx.scrollIntoView({ behavior: reducedMotion() ? "auto" : "smooth", block: "start" });
       };
       if (fs().tab !== "sheet") { store.set({ fs: { ...fs(), tab: "sheet" } }); }

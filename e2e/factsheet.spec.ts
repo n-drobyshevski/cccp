@@ -67,9 +67,17 @@ test("closed sections and the collapsed sidebar persist across a reload", async 
   await expect(page.locator("#sx-compliance")).toHaveAttribute("open", "");
   await expect(page.locator(".dqmini")).toBeVisible();
   expect(await page.evaluate(() => localStorage.getItem("cccp.fs.closed"))).toBe('["cyber"]');
+  await page.evaluate(() => window.scrollTo(0, 1200));
+  const mini = await page.locator(".dqmini").evaluate((e) => e.getBoundingClientRect().top);
+  expect(mini).toBeGreaterThanOrEqual(0);
+  expect(mini).toBeLessThanOrEqual(20);
   await page.locator("[data-act=side]").click();
   await page.locator("#sx-cyber > summary").click();
   await expect(page.locator("aside.dq")).toBeVisible();
+  await page.evaluate(() => window.scrollTo(0, 1200));
+  const dqTop = await page.locator("aside.dq").evaluate((e) => e.getBoundingClientRect().top);
+  expect(dqTop).toBeGreaterThanOrEqual(0);
+  expect(dqTop).toBeLessThanOrEqual(20);
   await expect(page.locator("#sx-cyber")).toHaveAttribute("open", "");
 });
 

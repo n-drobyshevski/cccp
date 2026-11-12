@@ -4,7 +4,7 @@
 import { html } from "../../lib/html.js";
 import { icon } from "../../lib/icons.js";
 import { dot } from "../../components/dots.js";
-import { lifecycleMark, tagsView, typeBadge } from "../../components/tags.js";
+import { tagsView, typeBadge } from "../../components/tags.js";
 
 export const BACK_LABEL = { list: "Applications", heatmap: "Heatmap", landscape: "Landscape", overview: "Overview" };
 
@@ -20,14 +20,14 @@ export function headerView(h, from, sheetEnabled) {
   const back = BACK_LABEL[from] || BACK_LABEL.list;
   const big = h.completeness.pct + "%";
   const bigTip = h.completeness.filled + " of " + h.completeness.total + " mandatory fields filled";
-  return html`<div class="top"><button type="button" class="backbtn" data-act="fs-back" data-k="fs-back" aria-label="${"Back to " + back.toLowerCase()}">${icon("back")}Back</button>
+  return html`<div class="top"><button type="button" class="backbtn" data-act="fs-back" data-k="fs-back" aria-label="${"Back to " + back.toLowerCase()}">${icon("arrowleft")}Back</button>
     <nav class="crumbs" aria-label="Breadcrumb"><button type="button" data-act="fs-back" data-k="fs-crumb-back">${back}</button><span aria-hidden="true">/</span><button type="button" data-act="crumb-domain" data-dom="${h.domain}" data-k="fs-crumb-dom">${h.domain}</button><span aria-hidden="true">/</span><span aria-current="page">${h.name}</span></nav></div>
   <div class="hx">
     <div class="r1"><h1>${h.name}</h1><span class="big ${LEVEL_CLASS[h.completeness.level]}" data-fs="pct" tabindex="0" role="img" aria-label="${big + " complete. " + bigTip}" data-tip="${bigTip}">${big}</span>
       <div class="acts">${sealView(h.seal)}
         <button type="button" class="icon-btn" data-act="copy" data-k="fs-copy" aria-label="Copy link" data-tip="Copy link">${icon("link")}</button>
         ${h.sheetLink && sheetEnabled !== false ? html`<a class="icon-btn" data-act="sheet" data-k="fs-sheet" href="${h.sheetLink}" target="_blank" rel="noopener noreferrer" aria-label="Open row in the Sheet. Needs access to the Sheet." data-tip="Open row in the Sheet. Needs access to the Sheet.">${icon("sheet")}</a>` : ""}</div></div>
-    <div class="r1">${typeBadge()}<span class="lcline">${icon("check")}Lifecycle: <b>${lifecycleMark(h.lifecycle)}</b></span>${tagsView(h.tier, h.tags)}</div>
+    <div class="r1">${typeBadge()}<span class="lcline">${icon("check")}Lifecycle: <b>${h.lifecycle ? h.lifecycle.label : html`<span class="mut">–</span>`}</b></span>${tagsView(h.tier, h.tags)}</div>
     <div class="r3"><p class="desc">${h.subline}</p>
       <div class="pstat">${h.statuses.map((s) => html`<button type="button" class="stag ${s.status}" data-act="jump" data-sx="${s.section}" data-k="fs-st-${s.section}" data-tip="${s.why}" aria-label="${s.label + ": " + s.word + ". " + s.why + ". Jump to the section"}">${dot(s.status)}${s.label}</button>`)}</div></div>
   </div>`;

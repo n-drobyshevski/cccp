@@ -163,3 +163,6 @@
 .rec .rnm { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .rec .dots { flex: none; }
 .rec .tbadge b { padding: 0 6px; }
+
+/* The aside wrapper spans the grid row so the sticky panel has room to travel. */
+.lxwrap > [data-region="fsside"] { align-self: stretch; }

@@ -18,6 +18,22 @@ async function ready(page: Page, query = "") {
   await page.goto("/?r=heatmap" + query);
   await expect(page.locator("table[data-table=heatmap]")).toBeVisible();
 }
+const search = (page: Page) => page.locator("input[type=search]").first();
+const visibleCount = async (page: Page) => Number((await page.locator("[data-count=visible]").innerText()).replace(/,/g, ""));
+
+/** A search term (a prefix of an application name) that leaves 40 applications or fewer in more than one domain. */
+async function smallTerm(page: Page): Promise<string | null> {
+  const names = await page.locator("tr[data-id] button.nm").allInnerTexts();
+  const terms = [...new Set(names.map((n) => n.trim().slice(0, 3).toLowerCase()).filter((t) => /^[a-z]{3}$/.test(t)))];
+  for (const term of terms.slice(0, 60)) {
+    await search(page).fill(term);
+    await page.waitForTimeout(400); // the search is debounced; let the table settle
+    const shown = await visibleCount(page);
+    if (shown > 0 && shown <= 40 && (await groups(page).count()) > 1) return term;
+  }
+  await search(page).fill("");
+  return null;
+}
 const sizeOf = async (page: Page, i: number) => Number(await groups(page).nth(i).locator(".gb > span").innerText());
 
 test("groups are sorted by size and the red number equals the bad count", async ({ page }) => {
@@ -49,21 +65,34 @@ test("groups are sorted by size and the red number equals the bad count", async 
 
 test("the largest group is open by default and stays open across a filter change", async ({ page }) => {
   await ready(page);
+  test.skip((await total(page)) <= 40, "the register has 40 applications or fewer, so every group opens");
   const size = await sizeOf(page, 0);
-  if ((await total(page)) > 40) {
-    await expect(open(page)).toHaveCount(1);
-    await expect(groups(page).first().locator(".gb")).toHaveAttribute("aria-expanded", "true");
-    await expect(page.locator("tr[data-id]")).toHaveCount(size);
-  }
+  await expect(open(page)).toHaveCount(1);
+  await expect(groups(page).first().locator(".gb")).toHaveAttribute("aria-expanded", "true");
+  await expect(page.locator("tr[data-id]")).toHaveCount(size);
   const firstName = (await groups(page).first().getAttribute("data-group"))!;
   await page.getByRole("searchbox").or(page.locator("input[type=search]")).first().fill("a");
   await expect(page.locator("[data-count=visible]")).not.toHaveText(String(await total(page)));
   await page.locator("input[type=search]").first().fill("");
   await expect(groups(page)).not.toHaveCount(0);
-  if ((await total(page)) > 40) {
-    await expect(page.locator(`tr.grp[data-group="${firstName}"] .gb`)).toHaveAttribute("aria-expanded", "true");
-    await expect(open(page)).toHaveCount(1);
-  }
+  await expect(page.locator(`tr.grp[data-group="${firstName}"] .gb`)).toHaveAttribute("aria-expanded", "true");
+  await expect(open(page)).toHaveCount(1);
+});
+
+test("narrowing to 40 applications or fewer opens every group, and clearing brings the remembered set back", async ({ page }) => {
+  await ready(page);
+  test.skip((await total(page)) <= 40, "the register has 40 applications or fewer, so every group opens");
+  await expect(open(page)).toHaveCount(1);
+  const term = await smallTerm(page);
+  test.skip(term === null, "no application-name prefix leaves 40 applications or fewer across more than one domain");
+  await expect(open(page)).toHaveCount(await groups(page).count());
+  await expect(page.locator("tr[data-id]")).toHaveCount(await visibleCount(page));
+  // A toggle still works in this mode.
+  await groups(page).first().locator(".gb").click();
+  await expect(groups(page).first().locator(".gb")).toHaveAttribute("aria-expanded", "false");
+  await search(page).fill("");
+  await expect(open(page)).toHaveCount(1);
+  await expect(page.locator("tr[data-id]")).toHaveCount(await sizeOf(page, 0));
 });
 
 test("40 applications or fewer open every group; no match shows the empty state", async ({ page }) => {
@@ -71,11 +100,14 @@ test("40 applications or fewer open every group; no match shows the empty state"
   const word = (await page.locator("tr[data-id] button.nm").first().innerText()).trim().split(/\s+/)[0]!;
   await page.goto("/?r=heatmap&q=" + encodeURIComponent(word));
   await expect(page.locator("table[data-table=heatmap]")).toBeVisible();
-  const shown = Number((await page.locator("[data-count=visible]").innerText()).replace(/,/g, ""));
+  const shown = await visibleCount(page);
   if (shown <= 40) {
     const n = await groups(page).count();
     await expect(open(page)).toHaveCount(n);
     await expect(page.locator("tr[data-id]")).toHaveCount(shown);
+  } else {
+    // A first-name word that matches more than 40 applications: the largest group alone is open.
+    await expect(open(page)).toHaveCount(1);
   }
   await page.goto("/?r=heatmap&q=zzzzzzzz");
   await expect(page.locator(".empty")).toBeVisible();

@@ -1,8 +1,9 @@
 // The Heatmap page (proto.src.html heatmap): the filtered register grouped by domain, largest
 // first. A group row carries a status bar per pillar and the gap count in red; opened, it lists
 // its applications with the status dot and the reason in every pillar. Which groups are open is
-// remembered across filter changes (and the first sight of the page sets it: every group for 40
-// applications or fewer, else the largest). Opening an application remembers the scroll so Back
+// remembered across filter changes (the first sight of the page seeds it with the largest group);
+// while the result has 40 applications or fewer, or one group, every group shows open and a toggle
+// closes it in a separate set that a filter change clears. Opening an application remembers the scroll so Back
 // lands where the viewer was.
 import { delegate, qs, renderRegion } from "../lib/dom.js";
 import { html } from "../lib/html.js";
@@ -18,10 +19,13 @@ import { navigate, queryFor } from "../state/url.js";
 import { PILLARS } from "../../domain/types";
 import { PILLAR_LABEL, STATUS_WORD } from "../../domain/facets";
 import { runQuery } from "../../domain/query";
-import { HEAT_STACK, defaultOpen, heatmapModel } from "../../domain/heatmap";
+import { HEAT_STACK, OPEN_ALL_MAX, heatmapModel } from "../../domain/heatmap";
 
 let open = null;
+let closedSmall = new Set();
 let memo = null;
+
+const isSmall = (m) => m.total <= OPEN_ALL_MAX || m.groups.length === 1;
 
 const tierMark = (a) => a.tier
   ? html`<span class="tier t${a.tier}">T${a.tier}</span>`
@@ -36,7 +40,7 @@ function barCell(g, p) {
   const c = g.counts[p];
   const text = PILLAR_LABEL[p] + ": " + barText(c);
   const segs = HEAT_STACK.filter((s) => c[s] > 0);
-  return html`<td class="sbc"><span class="sbw" data-tip="${text}"><span class="sb" role="img" aria-label="${text}">${segs.map((s) => html`<i class="${s}" style="flex:${c[s]}"></i>`)}</span><small data-bad="${p}" class="${c.bad ? "bad" : ""}">${c.bad || ""}</small></span></td>`;
+  return html`<td class="sbc"><span class="sbw" tabindex="0" data-tip="${text}"><span class="sb" role="img" aria-label="${text}">${segs.map((s) => html`<i class="${s}" style="flex:${c[s]}"></i>`)}</span><small data-bad="${p}" class="${c.bad ? "bad" : ""}">${c.bad || ""}</small></span></td>`;
 }
 
 function appRow(r) {
@@ -71,8 +75,9 @@ export const heatmapPage = {
       const s = store.get();
       const visible = register.visibleRows();
       const m = heatmapModel(runQuery(visible, s));
-      if (open === null && m.total) open = new Set(defaultOpen(m));
-      renderRegion(content, html`<div data-page="heatmap">${heatView(m, open || new Set(), register.allRows().length, register.hiddenCount())}</div>`);
+      if (open === null && m.total) open = new Set([m.groups[0].name]);
+      const shown = isSmall(m) ? new Set(m.groups.map((g) => g.name).filter((n) => !closedSmall.has(n))) : (open || new Set());
+      renderRegion(content, html`<div data-page="heatmap">${heatView(m, shown, register.allRows().length, register.hiddenCount())}</div>`);
     };
     draw();
 
@@ -85,15 +90,20 @@ export const heatmapPage = {
     const offs = [];
     offs.push(delegate(content, "click", "[data-act=grp]", (ev, b) => {
       const name = b.getAttribute("data-grp");
-      if (open === null) open = new Set();
-      if (open.has(name)) open.delete(name); else open.add(name);
+      const m = heatmapModel(runQuery(register.visibleRows(), store.get()));
+      if (isSmall(m)) {
+        if (closedSmall.has(name)) closedSmall.delete(name); else closedSmall.add(name);
+      } else {
+        if (open === null) open = new Set();
+        if (open.has(name)) open.delete(name); else open.add(name);
+      }
       draw();
     }));
     offs.push(delegate(content, "click", "tr[data-id]", (ev, tr) => {
       memo = { y: window.scrollY, key: queryFor(store.get()) };
       navigate({ route: "app", app: tr.getAttribute("data-id"), tab: null, view: null }, "push");
     }));
-    const offStore = store.subscribe((s, p) => { if (s.q !== p.q || s.f !== p.f) draw(); });
+    const offStore = store.subscribe((s, p) => { if (s.q !== p.q || s.f !== p.f) { closedSmall = new Set(); draw(); } });
     const offReg = register.subscribe(draw);
     return () => { offReg(); offStore(); offs.forEach((f) => f()); offFilters(); };
   },
@@ -104,5 +114,6 @@ registerPage("heatmap", heatmapPage);
 /** Test seam. */
 export function __resetHeatmapForTest() {
   open = null;
+  closedSmall = new Set();
   memo = null;
 }

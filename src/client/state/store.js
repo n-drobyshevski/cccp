@@ -20,7 +20,6 @@ export function initialState() {
     metric: DEFAULT_METRIC,
     // Page state that is not in the URL.
     limit: 50,
-    openGroups: [],
     side: false,
     currentViewId: null,
     fs: { tab: "sheet", find: "" },

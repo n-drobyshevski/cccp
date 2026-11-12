@@ -56,7 +56,7 @@ export const subsectionView = (u) => html`<div class="subsec" data-sub="${u.key}
 
 /** One collapsible section. `open` is decided by the page (its state, or forced by a find). */
 export function sectionView(s, open) {
-  return html`<details class="fsx" id="sx-${s.key}" data-sx="${s.key}"${open ? html` open` : ""}><summary data-k="fs-sum-${s.key}">${CHEV()}${s.status ? dot(s.status) : ""}<h2>${s.title}</h2>${s.pct !== null ? html`<span class="pct" data-tip="${s.pct + "% of the mandatory fields filled"}">${s.pct}%</span>` : ""}${s.status ? html`<span class="why ${s.status}">${s.why}</span>` : ""}</summary><div class="inner">${s.subsections.map(subsectionView)}</div></details>`;
+  return html`<details class="fsx" id="sx-${s.key}" data-sx="${s.key}"${open ? html` open` : ""}><summary data-k="fs-sum-${s.key}">${CHEV()}${s.status ? dot(s.status) : ""}<h2>${s.title}</h2>${s.pct !== null ? html`<span class="pct" aria-label="${s.pct + "% of the mandatory fields filled"}" data-tip="${s.pct + "% of the mandatory fields filled"}">${s.pct}%</span>` : ""}${s.status ? html`<span class="why ${s.status}">${s.why}</span>` : ""}</summary><div class="inner">${s.subsections.map(subsectionView)}</div></details>`;
 }
 
 /** The list of sections for a find query. `closed` is the set of collapsed keys. */

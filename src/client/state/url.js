@@ -33,7 +33,9 @@ function linkOf(s) {
 
 /** The query string (no '?') for a store state. */
 export function queryFor(s) {
-  return toQuery(stateOf(s), linkOf(s));
+  const q = toQuery(stateOf(s), linkOf(s));
+  // a fact sheet is addressed by a bare ?app=<id>; patchFromParams routes it back
+  return s.route === "app" && s.app ? q.replace(/^r=app&/, "") : q;
 }
 
 /** The shareable address: the service URL plus the query. Empty when there is no service URL. */

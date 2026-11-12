@@ -66,6 +66,18 @@ describe("fact sheet views", () => {
   });
   it("Copy link gives ?app=", () => {
     const st = { ...initialState(), route: "app", app: "c1" };
-    expect(linkFor("https://svc.test/exec", st)).toMatch(/\?(r=app&)?app=c1/);
+    expect(linkFor("https://svc.test/exec", st)).toMatch(/\?app=c1$/);
+  });
+  it("renders the RTO against MTD widget", () => {
+    const w = (o) => s(sectionsView(factsheetModel(rowOf(o), ctx).sections, new Set(), false));
+    const both = w({ rto: 4, mtd: 24 });
+    expect(both).toContain('aria-label="RTO 4 hours, MTD 24 hours"');
+    for (const m of both.match(/class="track"[\s\S]*?<\/div>/)[0].matchAll(/width:calc\(([\d.]+)%/g)) {
+      expect(Number(m[1])).toBeGreaterThan(0);
+      expect(Number(m[1])).toBeLessThanOrEqual(100);
+    }
+    const noMtd = w({ rto: 4, mtd: null });
+    expect(noMtd).toContain('aria-label="RTO 4 hours"');
+    expect(noMtd).not.toContain("MTD");
   });
 });

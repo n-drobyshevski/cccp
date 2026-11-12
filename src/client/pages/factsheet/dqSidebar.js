@@ -20,6 +20,6 @@ export function sidebarView(dq, recent, collapsed) {
     <div class="ringw">${ring(dq.pct, dq.level, false)}<p><b>Completeness</b><br><small>${dq.filled} of ${dq.total} mandatory fields filled</small></p></div>
     <div data-dq="review"><h3>Review</h3>${sealView(dq.review)}<br><small class="mut">${dq.review.tip}</small></div>
     <div data-dq="mandatory"><h3>Mandatory fields</h3>${dq.groups.map((g) => html`<div class="qg"><b>${g.name}</b>${g.items.map((i) => html`<span class="qi ${i.ok ? "y" : ""}" data-field="${i.field}"><i aria-hidden="true"></i>${i.label}<span class="sr-only">${i.ok ? " (filled)" : " (missing)"}</span></span>`)}</div>`)}</div>
-    ${recent.length ? html`<div data-dq="recent"><h3>Recently viewed</h3><div class="rec">${recent.map((r) => html`<button type="button" data-act="recent" data-id="${r.id}" data-k="fs-rec-${r.id}"><span class="tbadge" aria-hidden="true"><b>A</b></span><span>${r.name}</span>${dots(r.status)}</button>`)}</div></div>` : ""}
+    ${recent.length ? html`<div data-dq="recent"><h3>Recently viewed</h3><div class="rec">${recent.map((r) => html`<button type="button" data-act="recent" data-id="${r.id}" data-k="fs-rec-${r.id}"><span class="tbadge" aria-hidden="true"><b>A</b></span><span class="rnm">${r.name}</span>${dots(r.status)}</button>`)}</div></div>` : ""}
   </aside>`;
 }

@@ -125,7 +125,7 @@
 /* people as subscriptions */
 .subs { display: flex; flex-direction: column; }
 .subs .hd { display: flex; justify-content: space-between; align-items: center; padding: 4px 0 10px; color: var(--muted); }
-.subs .r { display: grid; grid-template-columns: minmax(0, 1.3fr) auto minmax(0, 0.8fr) minmax(0, 1.4fr); gap: 10px 16px; align-items: center; padding: 12px 0; border-top: 1px solid var(--line); }
+.subs .r { display: grid; grid-template-columns: minmax(0, 1.3fr) 96px minmax(0, 0.8fr) minmax(0, 1.4fr); gap: 10px 16px; align-items: center; padding: 12px 0; border-top: 1px solid var(--line); }
 .subs .r b { font-weight: 600; }
 .subs .r .mut { font-size: 12px; }
 @media (max-width: 700px) { .subs .r { grid-template-columns: minmax(0, 1fr) auto; } .subs .r > :nth-child(4) { grid-column: 1 / -1; } }
@@ -160,6 +160,6 @@
 .rec { display: flex; flex-direction: column; }
 .rec button { display: flex; gap: 8px; align-items: center; border: 0; background: none; padding: 5px 4px; border-radius: 6px; text-align: left; }
 .rec button:hover { background: var(--surface2); }
-.rec span:not(.tbadge) { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.rec .rnm { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .rec .dots { flex: none; }
 .rec .tbadge b { padding: 0 6px; }

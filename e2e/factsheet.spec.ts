@@ -105,7 +105,7 @@ test("copy link gives ?app= and open row in sheet uses the Sheet url", async ({ 
   await page.locator("[data-act=copy]").click();
   await expect(page.locator(".toast")).toContainText(/Link copied|Copy blocked/);
   const copied = await page.evaluate(() => navigator.clipboard.readText().catch(() => ""));
-  if (copied) expect(copied).toMatch(new RegExp("[?&]app=" + id));
+  if (copied) expect(new URL(copied).search).toBe("?app=" + id);
   const href = await page.locator("a[data-act=sheet]").getAttribute("href");
   expect(href).toMatch(/^https:/);
   expect(href).toMatch(/#gid=\d+&range=A\d+$/);

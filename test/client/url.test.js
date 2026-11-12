@@ -77,7 +77,7 @@ describe("url.js", () => {
     await url.init({ fallbackRoute: "list" });
     expect(store.get().route).toBe("app");
     expect(store.get().app).toBe(id);
-    expect(url.queryFor(store.get())).toBe("r=app&app=" + id);
+    expect(url.queryFor(store.get())).toBe("app=" + id);
   });
 
   it("falls back to the default route for an empty, junk or app-less address", async () => {

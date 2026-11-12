@@ -2,7 +2,6 @@
    brand at the left, the minimal view switcher, then the gear and the theme toggle. */
 .appbar { display: block; }
 .abin {
-  max-width: 1280px;
   margin: 0 auto;
   display: flex;
   flex-wrap: wrap;

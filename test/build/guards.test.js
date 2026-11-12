@@ -1,5 +1,5 @@
 import { execFileSync } from "node:child_process";
-import { existsSync, mkdtempSync, readFileSync, readdirSync, rmSync } from "node:fs";
+import { existsSync, mkdtempSync, readFileSync, readdirSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { describe, expect, it } from "vitest";
@@ -66,5 +66,26 @@ describe("build", () => {
     } finally {
       rmSync(out, { recursive: true, force: true });
     }
+  });
+
+  it("drops stale pushable files, such as the starter Code.js clasp create pulls", () => {
+    const out = mkdtempSync(join(tmpdir(), "cccp-dist-"));
+    try {
+      writeFileSync(join(out, "Code.js"), "function myFunction() {}\n");
+      writeFileSync(join(out, "notes.txt"), "kept\n");
+      execFileSync("node", [join(root, "build/esbuild.config.mjs")], { env: { ...process.env, CCCP_DIST: out }, encoding: "utf8" });
+      expect(readdirSync(out).sort()).toEqual(
+        ["appsscript.json", "entry.js", "index.html", "js_app.html", "notes.txt", "server.js", "styles.html"],
+      );
+    } finally {
+      rmSync(out, { recursive: true, force: true });
+    }
+  });
+});
+
+describe("push", () => {
+  it("overwrites the remote manifest, since clasp otherwise asks, defaults to No and skips the push", () => {
+    const pkg = JSON.parse(readFileSync(join(root, "package.json"), "utf8"));
+    expect(pkg.scripts.push).toMatch(/clasp push --force$/);
   });
 });

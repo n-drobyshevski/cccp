@@ -17,7 +17,7 @@
     "check": "npm run typecheck && npm run lint && npm run vendor:verify && npm run test && npm run test:build",
     "dev": "node dev/serve.mjs",
     "e2e": "playwright test",
-    "push": "npm run check && clasp push",
+    "push": "npm run check && clasp push --force",
     "deploy": "node src/vendor/gas_shared/build/deploy.mjs",
     "deploy:new": "npm run push && clasp deploy"
   },

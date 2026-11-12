@@ -3,7 +3,7 @@
 // gas_hub/esbuild.config.mjs at commit 77bcf22 (see VENDOR.md). CCCP_DIST overrides the
 // output directory (tests build into a temp dir).
 import { build } from "esbuild";
-import { copyFileSync, mkdirSync, readFileSync, readdirSync, writeFileSync } from "node:fs";
+import { copyFileSync, mkdirSync, readFileSync, readdirSync, statSync, unlinkSync, writeFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { guardCss, guardEntryDrift, guardJs } from "./guards.mjs";
@@ -12,6 +12,13 @@ import { stampFor } from "./stamp.mjs";
 const root = join(dirname(fileURLToPath(import.meta.url)), "..");
 const dist = process.env.CCCP_DIST || join(root, "dist");
 mkdirSync(dist, { recursive: true });
+// clasp pushes every .js/.gs/.ts/.html/appsscript.json under dist, and `clasp create --rootDir
+// dist` pulls the new project's starter files there. Drop any such top-level file first, so a
+// push sends exactly the six files written below. Only files, only those types: nothing else.
+for (const name of readdirSync(dist)) {
+  const p = join(dist, name);
+  if (/\.(js|gs|ts|html|json)$/.test(name) && statSync(p).isFile()) unlinkSync(p);
+}
 
 const STAMP = stampFor(root);
 

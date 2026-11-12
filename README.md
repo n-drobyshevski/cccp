@@ -55,13 +55,19 @@ node tools/vendor.mjs sync --from /home/user/sidekick --commit <sha>
    them through `npx`.
 1. `npx clasp login` as the OWNER, who needs view access to the register Sheet.
 2. `npx clasp create --type webapp --title CCCP --rootDir dist`.
-3. `npm run push` (runs check, then `clasp push`).
+3. `npm run push`: runs the check, then `clasp push --force`. `--force` is deliberate: the repo's
+   `appsscript.json` is the source of truth, and without it clasp asks to overwrite the remote
+   manifest, defaults to No and skips the push.
 4. In the Apps Script editor run `setup('<sheet url>')` and grant the 4 scopes.
 5. `npm run deploy:new` once; record the DEPLOYMENT_ID and the `/exec` URL.
 6. Open the URL as the owner and configure Settings.
-7. Later releases: `DEPLOYMENT_ID=... npm run deploy` (updates in place).
+7. Later releases update the same deployment in place, so the `/exec` URL stays:
+   `DEPLOYMENT_ID=AKfy... npm run deploy` (bash), or
+   `$env:DEPLOYMENT_ID="AKfy..."; npm run deploy` (PowerShell).
 8. Rollback: `npx clasp deploy -i <DEPLOYMENT_ID> -V <previous version>`.
 9. Run `deploymentDiagnostic` after each deploy, then work through the live checklist in `VERIFY.md`.
 
 If it fails: `tsc: command not found` or `clasp: command not found` means step 0 was not run in
 this folder. `npm run push` runs the full check first, so a failing test blocks the push by design.
+No code in the Apps Script editor after a deploy means the push was skipped (an older `push` script
+without `--force`): run `npm run push`, then step 4, then step 7 with the deployment you already have.

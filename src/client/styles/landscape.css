@@ -16,7 +16,7 @@
 .lgd span { display: inline-flex; gap: 6px; align-items: center; }
 .sq { display: inline-block; width: 11px; height: 11px; background: var(--c); flex: none; }
 .ls-ok { --c: var(--ok); }
-.ls-warn { --c: var(--warn); }
+.ls-warn { --c: var(--warn-fill); }
 .ls-bad { --c: var(--bad); }
 .ls-t1 { --c: var(--tier1); }
 .ls-t2 { --c: var(--tier2); }

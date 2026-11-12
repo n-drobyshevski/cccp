@@ -152,7 +152,7 @@
 .qi.y .qs { color: var(--ok-text); }
 .ring { --p: 0; --rc: var(--accent); width: 30px; height: 30px; border-radius: 50%; flex: none; display: grid; place-items: center; background: conic-gradient(var(--rc) calc(var(--p) * 1%), var(--line) 0); }
 .ring.ok { --rc: var(--ok); }
-.ring.warn { --rc: var(--warn); }
+.ring.warn { --rc: var(--warn-fill); }
 .ring.bad { --rc: var(--bad); }
 .ring b { display: block; width: 22px; height: 22px; border-radius: 50%; background: var(--surface); }
 .dqmini { padding: 12px 6px; align-items: center; gap: 12px; }

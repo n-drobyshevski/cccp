@@ -62,7 +62,7 @@ tr:hover .nm, .nm:focus-visible { color: var(--accent); }
 .qbar { width: 56px; height: 6px; border-radius: 1px; background: var(--line); overflow: hidden; }
 .qbar i { display: block; height: 100%; background: var(--accent); }
 .qbar i.ok { background: var(--ok); }
-.qbar i.warn { background: var(--warn); }
+.qbar i.warn { background: var(--warn-fill); }
 .qbar i.bad { background: var(--bad); }
 .qcell small { font: 500 11px var(--mono); color: var(--muted); min-width: 30px; }
 

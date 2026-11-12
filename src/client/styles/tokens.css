@@ -3,7 +3,10 @@
    purpose: once for the system preference when no choice was made, once for an explicit
    data-theme. Differences from the approved mockup, all for 4.5:1 text contrast on white and on
    the page: --cy #c2410c (mockup #d9480f), --ct #0b7a5c (mockup #0f8a6b), --none #6e6e6e
-   (mockup #9e9e9e). */
+   (mockup #9e9e9e). Status (the "calm status" set, chosen by the owner): --ok, --bad and the
+   fill-only --warn-fill pass the colour-blind separation check as adjacent bar segments
+   (worst ΔE 20.7 light, 11.2 dark); --warn stays darker because it is also used as text.
+   --nd-line / --nd-bg draw the No data texture. */
 :root {
   --bg: #fbfbfa;
   --surface: #ffffff;
@@ -15,11 +18,14 @@
   --accent: #1a4f9c;
   --on-accent: #ffffff;
   --accent-soft: #eef3fb;
-  --ok: #2e7d32;
+  --ok: #2f7a55;
   --warn: #b26a00;
-  --bad: #c62828;
+  --bad: #b5302a;
   --on-bad: #ffffff;
   --none: #6e6e6e;
+  --warn-fill: #e5a73e;
+  --nd-line: #d8d8d3;
+  --nd-bg: #efefec;
   --cy: #c2410c;
   --co: #1c64d4;
   --ct: #0b7a5c;
@@ -48,11 +54,14 @@
     --accent: #7fa8e6;
     --on-accent: #101418;
     --accent-soft: #1f2a3d;
-    --ok: #5bbf73;
+    --ok: #4f9e74;
     --warn: #e0a030;
-    --bad: #f06565;
+    --bad: #e66a58;
   --on-bad: #151617;
     --none: #8f9399;
+    --warn-fill: #e3ad4f;
+    --nd-line: #4a4d52;
+    --nd-bg: #26282b;
     --cy: #ff8a5c;
     --co: #6ea1f5;
     --ct: #3fc9a2;
@@ -74,11 +83,14 @@
   --accent: #7fa8e6;
   --on-accent: #101418;
   --accent-soft: #1f2a3d;
-  --ok: #5bbf73;
+  --ok: #4f9e74;
   --warn: #e0a030;
-  --bad: #f06565;
+  --bad: #e66a58;
   --on-bad: #151617;
   --none: #8f9399;
+  --warn-fill: #e3ad4f;
+  --nd-line: #4a4d52;
+  --nd-bg: #26282b;
   --cy: #ff8a5c;
   --co: #6ea1f5;
   --ct: #3fc9a2;
@@ -91,7 +103,7 @@
 /* Pillar tints for status glyphs and scorecard cells. */
 :root {
   --tint-ok: color-mix(in srgb, var(--ok) 13%, var(--surface));
-  --tint-warn: color-mix(in srgb, var(--warn) 16%, var(--surface));
+  --tint-warn: color-mix(in srgb, var(--warn-fill) 22%, var(--surface));
 }
 
 /* Landscape tier ramp (lx3 mval): the accent mixed into the surface, deepest for Tier 1. */

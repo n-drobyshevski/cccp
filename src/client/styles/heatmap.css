@@ -16,11 +16,11 @@
 .gb span { color: var(--muted); font: 400 12.5px var(--mono); text-transform: none; letter-spacing: 0; }
 .grp td.sbc { padding: 8px 14px; }
 .sbw { display: flex; align-items: center; gap: 8px; max-width: 260px; }
-.sb { display: flex; flex: 1; min-width: 90px; height: 10px; overflow: hidden; background: var(--line); }
+.sb { display: flex; gap: 2px; flex: 1; min-width: 90px; height: 10px; overflow: hidden; border-radius: 3px; }
 .sb i { background: var(--ok); }
 .sb i.bad { background: var(--bad); }
-.sb i.warn { background: var(--warn); }
-.sb i.none { background: repeating-linear-gradient(90deg, var(--none) 0 1.5px, transparent 1.5px 4px); }
+.sb i.warn { background: var(--warn-fill); }
+.sb i.none { background: repeating-linear-gradient(135deg, var(--nd-line) 0 1.5px, var(--nd-bg) 1.5px 5px); }
 .sbw small { font: 600 11px var(--mono); color: var(--bad); min-width: 18px; text-align: right; }
 .hint { font-size: 12px; }
 

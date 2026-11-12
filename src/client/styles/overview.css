@@ -21,15 +21,15 @@
 .pbar:hover { background: var(--surface2); }
 .pbar:focus-visible { outline-offset: -2px; }
 .pbar .pn { font: 700 12.5px var(--sans); letter-spacing: 0.08em; text-transform: uppercase; color: var(--pc); }
-.stk { display: flex; height: 16px; overflow: hidden; background: var(--line); position: relative; }
+.stk { display: flex; gap: 2px; height: 14px; overflow: hidden; border-radius: 3px; position: relative; }
 .stk i { background: var(--ok); }
 .stk i.bad { background: var(--bad); }
-.stk i.warn { background: var(--warn); }
-.stk i.none { background: repeating-linear-gradient(90deg, var(--none) 0 1.5px, transparent 1.5px 4px); }
+.stk i.warn { background: var(--warn-fill); }
+.stk i.none { background: repeating-linear-gradient(135deg, var(--nd-line) 0 1.5px, var(--nd-bg) 1.5px 5px); }
 .pbar small { font-size: 15px; color: var(--muted); text-align: right; white-space: nowrap; }
 .pbar small b { font-size: 16px; font-weight: 500; color: var(--fg); }
 .legend { padding-top: 12px; font-size: 13.5px; gap: 4px 16px; }
-.legend .sq.ls-none { border: 0; background: repeating-linear-gradient(90deg, var(--none) 0 1.5px, transparent 1.5px 4px); }
+.legend .sq.ls-none { border: 1px solid var(--nd-line); background: repeating-linear-gradient(135deg, var(--nd-line) 0 1.5px, var(--nd-bg) 1.5px 5px); }
 .dt { width: 100%; border-collapse: collapse; }
 .dt th.n, .dt td.num { text-align: right; }
 .dt th { padding-block: 10px; }

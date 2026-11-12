@@ -65,7 +65,7 @@ a { color: var(--accent); }
 /* ---------- status dots: colour plus shape, the "none" dot is dashed ---------- */
 .dot { display: inline-block; width: 10px; height: 10px; border-radius: 50%; background: var(--c, var(--none)); }
 .dot.ok { --c: var(--ok); }
-.dot.warn { --c: var(--warn); }
+.dot.warn { --c: var(--warn-fill); }
 .dot.bad { --c: var(--bad); }
 .dot.none { background: none; border: 1.5px dashed var(--none); }
 

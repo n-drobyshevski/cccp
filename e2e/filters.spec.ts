@@ -36,7 +36,7 @@ test.describe("pills and popovers", () => {
     const bad = watchConsole(page);
     await page.goto("/?r=list");
     await expect(page.locator(".toolbar")).toBeVisible();
-    await expect(page.locator(".pill[data-act=open] > span")).toHaveText(["Domain", "Lifecycle", "Security officer", "Gap in"]);
+    await expect(page.locator(".pill[data-act=open] > span")).toHaveText(["Tier", "Domain", "Lifecycle", "Security officer", "Gap in"]);
     await open(page, "lc");
     const rows = await rowsOf(pop(page));
     expect(rows.length).toBeGreaterThan(2);
@@ -64,7 +64,9 @@ test.describe("pills and popovers", () => {
     expect(own[0].checked).toBe(true);
     // Another facet narrows this one: T1 alone leaves some lifecycles with zero.
     await page.keyboard.press("Escape");
-    await page.getByRole("button", { name: "No tier" }).click();
+    await open(page, "tier");
+    await pop(page).locator('[data-k="pop-tier-No tier"]').check();
+    await page.keyboard.press("Escape");
     await open(page, "lc");
     const narrowed = await rowsOf(pop(page));
     expect(narrowed.length).toBe(before.length);
@@ -185,15 +187,20 @@ test.describe("search, tiers, count, Clear all", () => {
     await expect(page.locator(".toolbar")).toBeVisible();
     const total = await visible(page);
     await expect(page.getByRole("button", { name: "Clear all" })).toHaveCount(0);
-    const t1 = page.getByRole("button", { name: "T1", exact: true });
-    await expect(t1).toHaveAttribute("aria-pressed", "false");
-    await t1.click();
-    await expect(t1).toHaveAttribute("aria-pressed", "true");
+    await expect(pill(page, "tier")).toHaveText("Tier");
+    await open(page, "tier");
+    await pop(page).locator('[data-k="pop-tier-T1"]').check();
+    await expect(pill(page, "tier")).toHaveText("Tier: 1");
+    await expect(pill(page, "tier")).toHaveClass(/\bon\b/);
+    await page.keyboard.press("Escape");
     await expect.poll(() => visible(page)).toBeLessThan(total);
     await expect(page.locator("[data-count=of]")).toContainText(`of ${total.toLocaleString("en-US")} application`);
     expect(urlParam(page, "tier")).toBe("T1");
     const afterTier = await visible(page);
-    await page.getByRole("button", { name: "T2", exact: true }).click();
+    await open(page, "tier");
+    await pop(page).locator('[data-k="pop-tier-T2"]').check();
+    await expect(pill(page, "tier")).toHaveText("Tier: 1, 2");
+    await page.keyboard.press("Escape");
     await expect.poll(() => visible(page)).toBeGreaterThan(afterTier);
     await page.getByRole("searchbox", { name: "Search applications" }).fill("zzzzqqqq");
     await expect.poll(() => visible(page)).toBe(0);
@@ -202,7 +209,7 @@ test.describe("search, tiers, count, Clear all", () => {
     await page.getByRole("button", { name: "Clear all", exact: true }).click();
     await expect.poll(() => visible(page)).toBe(total);
     await expect(page.getByRole("searchbox", { name: "Search applications" })).toHaveValue("");
-    await expect(page.locator(".tg [aria-pressed=true]")).toHaveCount(0);
+    await expect(pill(page, "tier")).toHaveText("Tier");
     await expect(page.getByRole("button", { name: "Clear all" })).toHaveCount(0);
     await expect(page.locator(".badge")).toHaveCount(0);
     for (const k of ["q", "tier", "dom", "lc", "so", "gap"]) expect(urlParam(page, k)).toBeNull();
@@ -229,7 +236,7 @@ test.describe("search, tiers, count, Clear all", () => {
 
   test("a filter in the address is shown by the toolbar on load", async ({ page }) => {
     await page.goto("/?r=list&tier=T1&q=a");
-    await expect(page.getByRole("button", { name: "T1", exact: true })).toHaveAttribute("aria-pressed", "true");
+    await expect(pill(page, "tier")).toHaveText("Tier: 1");
     await expect(page.getByRole("searchbox", { name: "Search applications" })).toHaveValue("a");
     await expect(page.getByRole("button", { name: "Clear all" })).toBeVisible();
   });
@@ -289,7 +296,8 @@ test.describe("the right filter panel", () => {
     await pop(page).locator(".ck input").nth(0).check();
     await page.keyboard.press("Escape");
     await page.locator('[data-k="side"]').click();
-    await expect(page.locator(".pill[data-act=open]")).toHaveCount(0);
+    await expect(page.locator(".pill[data-act=open]")).toHaveCount(1);
+    await expect(pill(page, "tier")).toBeVisible();
     await expect(page.locator(".chip")).toHaveText([`Lifecycle: ${first}×`]);
     const section = page.locator(".side fieldset").nth(1);
     await expect(section.locator("input").first()).toBeChecked();

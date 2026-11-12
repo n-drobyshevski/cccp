@@ -2,7 +2,7 @@
 // value with a zero count, a 'Nothing matches' hint and a footer in the popover. Used by the
 // pill popovers and by the right panel. Pure: it takes options from domain/query facetOptions.
 import { html } from "../lib/html.js";
-import { fold } from "../../domain/facets";
+import { NO_TIER, fold } from "../../domain/facets";
 import { dot } from "./dots.js";
 import { num } from "../lib/format.js";
 
@@ -19,7 +19,7 @@ export function findOptions(options, find) {
 export function checklist(opts) {
   const list = findOptions(opts.options, opts.find);
   const rows = list.length
-    ? list.map((o) => html`<label class="ck${o.count ? "" : " zero"}"><input type="checkbox" data-act="pick" data-facet="${opts.key}" data-v="${o.value}" data-k="${opts.scope}-${opts.key}-${o.value}"${o.selected ? " checked" : ""}>${opts.key === "gap" ? dot("bad") : ""}<span>${o.value}</span><small>${num(o.count)}</small></label>`)
+    ? list.map((o) => html`<label class="ck${o.count ? "" : " zero"}"><input type="checkbox" data-act="pick" data-facet="${opts.key}" data-v="${o.value}" data-k="${opts.scope}-${opts.key}-${o.value}"${o.selected ? " checked" : ""}>${opts.key === "gap" ? dot("bad") : opts.key === "tier" && o.value === NO_TIER ? dot("none") : ""}<span>${o.value}</span><small>${num(o.count)}</small></label>`)
     : html`<span class="hint">Nothing matches</span>`;
   return html`<div class="plist" data-keep-scroll="${opts.scope}-${opts.key}" data-list="${opts.key}">${rows}</div>`;
 }

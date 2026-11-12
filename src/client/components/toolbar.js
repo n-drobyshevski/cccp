@@ -1,6 +1,6 @@
-// The filter toolbar over the register: search (debounced 120 ms), the tier toggles, the pills
-// Domain / Lifecycle / Security officer / Gap in with their checklist popovers, Clear all and the
-// Filter panel toggle. While the panel is open, chips replace the pills. The state is the
+// The filter toolbar over the register: search (debounced 120 ms), the pills Tier / Domain /
+// Lifecycle / Security officer / Gap in with their checklist popovers, Clear all and the
+// Filter panel icon button (with the count of selected values). While the panel is open, chips replace the pills. The state is the
 // shared filter state in the store (q and f), written through url.replace, so the address, the
 // pills, the panel and the page all read one source. Saved views (viewTabs.js) render into
 // [data-slot=views] at the top of the toolbar.
@@ -11,23 +11,36 @@ import { closePopovers, openPopover } from "../lib/popover.js";
 import * as register from "../state/register.js";
 import { store } from "../state/store.js";
 import { replace } from "../state/url.js";
-import { FACET_BY_KEY, TIER_ORDER } from "../../domain/facets";
+import { FACET_BY_KEY } from "../../domain/facets";
 import { activeFilterCount, facetOptions } from "../../domain/query";
 import { facetPopover } from "./facetList.js";
 import { panelView, readSide, writeSide } from "./filterPanel.js";
-import { segmented } from "./segmented.js";
 import { mountViewTabs } from "./viewTabs.js";
 
-/** The facets that have a pill (and a panel section). Tier is the toggle group. */
+/** The facets that have a panel section and, with the panel closed, a pill after Tier. */
 export const PILL_FACETS = ["dom", "lc", "so", "gap"];
+/** Every pill in the row, in order. Tier stays a pill while the panel is open. */
+export const ROW_PILLS = ["tier", ...PILL_FACETS];
 export const SEARCH_DEBOUNCE_MS = 120;
 export const SEARCH_PLACEHOLDER = "Search name, team, owner, officer";
 
-/** 'Domain', or 'Domain: X' or 'Domain: X +2'. */
+/** The pill's visible value text: tier shows 'T1' as '1'; other values show as they are. */
+const shown = (key, v) => (key === "tier" ? v.replace(/^T(\d)$/, "$1") : v);
+
+/** 'Domain', or 'Domain: X' or 'Domain: X +2'. Tier lists its values: 'Tier: 1, 2'. An active
+ *  Security officer pill says 'Officer' to leave room for the name; its tip says it in full. */
 export function pillLabel(key, selected) {
-  const label = FACET_BY_KEY[key].label;
   const s = selected || [];
-  return s.length ? label + ": " + s[0] + (s.length > 1 ? " +" + (s.length - 1) : "") : label;
+  const label = key === "so" && s.length ? "Officer" : FACET_BY_KEY[key].label;
+  if (!s.length) return label;
+  if (key === "tier") return label + ": " + s.map((v) => shown(key, v)).join(", ");
+  return label + ": " + s[0] + (s.length > 1 ? " +" + (s.length - 1) : "");
+}
+
+/** The full text of an active pill: the facet name and every selected value. '' when none. */
+export function pillTip(key, selected) {
+  const s = selected || [];
+  return s.length ? FACET_BY_KEY[key].label + ": " + s.join(", ") : "";
 }
 
 /** The facet map with one value switched on or off. Empty lists are dropped. */
@@ -44,20 +57,24 @@ export function withFacet(f, key, values) {
   return out;
 }
 
-/** Facet keys with a selection, other than the tier toggles: what the chips show. */
+/** Facet keys with a selection, other than tier (which keeps its pill): what the chips show. */
 export function chipKeys(f) {
   return Object.keys(f).filter((k) => k !== "tier" && FACET_BY_KEY[k] && f[k] && f[k].length);
 }
 
-const tierOptions = () => TIER_ORDER.map((v) => (v === "No tier" ? { value: v, text: "–", tip: "No tier" } : { value: v }));
-
 /** The part of the toolbar row that follows the search box. */
 export function rowView(s, popKey) {
   const n = activeFilterCount(s.f);
-  const tier = segmented({ label: "Tier", act: "tier", k: "tier", options: tierOptions(), selected: s.f.tier || [] });
-  const pills = PILL_FACETS.map((k) => html`<span class="pw"><button type="button" class="pill${(s.f[k] || []).length ? " on" : ""}" data-act="open" data-facet="${k}" data-k="pill-${k}" aria-haspopup="dialog" aria-expanded="${popKey === k ? "true" : "false"}"><span>${pillLabel(k, s.f[k])}</span>${icon("chevron")}</button></span>`);
+  const pillKeys = s.side ? ["tier"] : ROW_PILLS;
+  const pills = pillKeys.map((k) => {
+    const sel = s.f[k] || [];
+    const tip = pillTip(k, sel);
+    const name = tip ? html` aria-label="${tip}" data-tip="${tip}"` : "";
+    return html`<span class="pw"><button type="button" class="pill${sel.length ? " on" : ""}" data-act="open" data-facet="${k}" data-k="pill-${k}" aria-haspopup="dialog" aria-expanded="${popKey === k ? "true" : "false"}"${name}><span>${pillLabel(k, sel)}</span>${icon("chevron")}</button></span>`;
+  });
   const chips = chipKeys(s.f).flatMap((k) => s.f[k].map((v) => html`<span class="chip"><span>${FACET_BY_KEY[k].label}: ${v}</span><button type="button" data-act="rm" data-facet="${k}" data-v="${v}" data-k="chip-${k}-${v}" aria-label="Remove ${FACET_BY_KEY[k].label}: ${v}">×</button></span>`));
-  return html`${tier}${s.side ? chips : pills}${n || s.q ? html`<button type="button" class="linkbtn" data-act="clear-all" data-k="clear-all">Clear all</button>` : ""}<button type="button" class="pill sbtn" data-act="side" data-k="side" aria-pressed="${s.side ? "true" : "false"}">${icon("filter", 14)}<span>Filter panel</span>${n ? html`<span class="badge">${n}</span>` : ""}</button>`;
+  const panelName = "Filter panel" + (n ? ", " + n + (n === 1 ? " filter" : " filters") : "");
+  return html`${pills}${s.side ? chips : ""}${n || s.q ? html`<button type="button" class="linkbtn clr" data-act="clear-all" data-k="clear-all">Clear all</button>` : ""}<button type="button" class="pill sbtn" data-act="side" data-k="side" aria-pressed="${s.side ? "true" : "false"}" aria-label="${panelName}" data-tip="${panelName}">${icon("filter", 14)}${n ? html`<span class="badge">${n}</span>` : ""}</button>`;
 }
 
 /** The toolbar's static frame: the views slot, the search box, and the region that is redrawn. */
@@ -164,7 +181,6 @@ export function mountFilters(root) {
     const act = b.getAttribute("data-act");
     const s = store.get();
     if (act === "open") openFacet(b.getAttribute("data-facet"), b);
-    else if (act === "tier") { const v = b.getAttribute("data-v"); setF(toggled(s.f, "tier", v, (s.f.tier || []).indexOf(v) < 0)); }
     else if (act === "rm") setF(toggled(s.f, b.getAttribute("data-facet"), b.getAttribute("data-v"), false));
     else if (act === "clear-all") clearAll();
     else if (act === "side") setSide(!s.side);

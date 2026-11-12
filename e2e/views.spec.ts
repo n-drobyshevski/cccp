@@ -22,7 +22,9 @@ async function ready(page: Page, query = "") {
 }
 
 async function tier1(page: Page) {
-  await page.getByRole("button", { name: "T1", exact: true }).click();
+  await page.locator('[data-k="pill-tier"]').click();
+  await page.locator('[data-k="pop-tier-T1"]').check();
+  await page.keyboard.press("Escape");
 }
 
 async function saveView(page: Page, name: string, share = false) {
@@ -48,7 +50,9 @@ test.describe("personal views", () => {
     await expect(selected(page)).toHaveText("Tier one");
     await expect(page.locator("[data-cue]")).toHaveCount(0);
     // Change the filters: the cue appears, Update stores them.
-    await page.getByRole("button", { name: "T2", exact: true }).click();
+    await page.locator('[data-k="pill-tier"]').click();
+    await page.locator('[data-k="pop-tier-T2"]').check();
+    await page.keyboard.press("Escape");
     await expect(page.locator("[data-cue]")).toHaveText("Filters changed · Update view");
     await page.getByRole("button", { name: "Update view" }).click();
     await expect(page.locator("[data-cue]")).toHaveCount(0);
@@ -62,7 +66,7 @@ test.describe("personal views", () => {
     expect(await visible(page)).toBe(all);
     await page.getByRole("tab", { name: "Tier one" }).click();
     expect(urlParam(page, "tier")).toContain("T1");
-    await expect(page.getByRole("button", { name: "T1", exact: true })).toHaveAttribute("aria-pressed", "true");
+    await expect(page.locator('[data-k="pill-tier"]')).toHaveText("Tier: 1, 2");
     expect(bad).toEqual([]);
   });
 
@@ -146,7 +150,7 @@ test.describe("shared views", () => {
     await v.getByRole("tab", { name: "Tier one for all" }).click();
     await expect(v.getByRole("button", { name: /Copy link/ })).toBeVisible();
     await expect(v.getByRole("button", { name: /Delete/ })).toHaveCount(0);
-    await expect(v.getByRole("button", { name: "T1", exact: true })).toHaveAttribute("aria-pressed", "true");
+    await expect(v.locator('[data-k="pill-tier"]')).toHaveText("Tier: 1");
     // A viewer cannot share: no checkbox in the save form.
     await v.getByRole("button", { name: "Save view" }).click();
     await expect(v.getByLabel("Share with everyone")).toHaveCount(0);

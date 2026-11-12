@@ -176,7 +176,9 @@ test("publishing a shared view keeps an unsaved settings draft", async ({ page }
   await expect(page.locator(".savebar")).toContainText("1 unsaved change");
   await page.getByRole("button", { name: "List", exact: true }).first().click();
   await expect(page.locator("table[data-table=list]")).toBeVisible();
-  await page.getByRole("button", { name: "T1", exact: true }).click();
+  await page.locator('[data-k="pill-tier"]').click();
+  await page.locator('[data-k="pop-tier-T1"]').check();
+  await page.keyboard.press("Escape");
   await page.getByRole("button", { name: "Save view" }).click();
   await page.getByLabel("View name").fill("Draft survivor");
   await page.getByLabel("Share with everyone").check();

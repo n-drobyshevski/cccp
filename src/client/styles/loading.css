@@ -53,8 +53,6 @@ body[data-boot] .shell { min-height: 100vh; justify-content: center; padding-blo
 .ld-search { flex: 1 1 240px; display: flex; align-items: center; gap: 8px; min-width: 0; border: 1px solid var(--line); background: var(--surface2); border-radius: var(--r); padding: 7px 10px; color: var(--muted); }
 .ld-search svg { width: 15px; height: 15px; flex: none; }
 .ld-search span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.ld-tiers { display: inline-flex; border: 1px solid var(--line); border-radius: var(--r); overflow: hidden; color: var(--muted); }
-.ld-tiers span { padding: 5px 10px; }
 .ld .pill { color: var(--muted); }
 
 /* results table (list and heatmap) */

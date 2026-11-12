@@ -42,7 +42,7 @@ test("the metric switch recolours, the legend follows it and the address keeps i
   await ready(page);
   await expect(pressed(page)).toHaveText("Worst status");
   await expect(page.locator(".lgd")).toContainText("Needs attention");
-  await page.getByRole("button", { name: "Tier", exact: true }).click();
+  await page.locator(".segs").getByRole("button", { name: "Tier", exact: true }).click();
   await expect(pressed(page)).toHaveText("Tier");
   await expect(page.locator(".lgd")).toContainText("No tier");
   await expect(page.locator(".lgd")).not.toContainText("Needs attention");

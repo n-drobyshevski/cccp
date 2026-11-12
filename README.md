@@ -50,12 +50,18 @@ node tools/vendor.mjs sync --from /home/user/sidekick --commit <sha>
 
 ## Deploy
 
-1. `clasp login` as the OWNER, who needs view access to the register Sheet.
-2. `clasp create --type webapp --title CCCP --rootDir dist`.
+0. In the cloned `cccp` folder, with Node 22 or newer: `npm ci`. This installs `tsc`, `clasp`,
+   `esbuild` and the rest into `node_modules`. None of them is global, so outside `npm run` call
+   them through `npx`.
+1. `npx clasp login` as the OWNER, who needs view access to the register Sheet.
+2. `npx clasp create --type webapp --title CCCP --rootDir dist`.
 3. `npm run push` (runs check, then `clasp push`).
 4. In the Apps Script editor run `setup('<sheet url>')` and grant the 4 scopes.
 5. `npm run deploy:new` once; record the DEPLOYMENT_ID and the `/exec` URL.
 6. Open the URL as the owner and configure Settings.
 7. Later releases: `DEPLOYMENT_ID=... npm run deploy` (updates in place).
-8. Rollback: `clasp deploy -i <DEPLOYMENT_ID> -V <previous version>`.
+8. Rollback: `npx clasp deploy -i <DEPLOYMENT_ID> -V <previous version>`.
 9. Run `deploymentDiagnostic` after each deploy, then work through the live checklist in `VERIFY.md`.
+
+If it fails: `tsc: command not found` or `clasp: command not found` means step 0 was not run in
+this folder. `npm run push` runs the full check first, so a failing test blocks the push by design.

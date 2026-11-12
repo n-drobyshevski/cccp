@@ -69,7 +69,7 @@ describe("cleanSettings", () => {
     expect(s.rules.version).toBe(1);
     expect(s.rules.rules["ct.drpMissing"]!.tiers).toEqual([1, 2, 4]);
     expect("not.a.rule" in s.rules.rules).toBe(false);
-    expect(s.display).toEqual({ opensOn: "overview", theme: "system", hidePrefix: "", hideEol: false });
+    expect(s.display).toEqual({ opensOn: "overview", theme: "light", hidePrefix: "", hideEol: false });
   });
 
   it("is idempotent", () => {

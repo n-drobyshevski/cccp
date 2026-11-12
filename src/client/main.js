@@ -72,7 +72,7 @@ function start() {
   const main = document.getElementById("main");
   if (!bar || !main) return;
   initTip();
-  theme.init("system");
+  theme.init("light");
   mountAppbar(bar);
   startRouter(main, { retry: () => boot() });
   boot();

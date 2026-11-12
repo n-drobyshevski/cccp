@@ -9,8 +9,8 @@
 (function () {
   try {
     var t = window.localStorage.getItem('cccp.theme');
-    if (t === 'light' || t === 'dark') document.documentElement.setAttribute('data-theme', t);
-  } catch (e) {}
+    document.documentElement.setAttribute('data-theme', t === 'dark' ? 'dark' : 'light');
+  } catch (e) { document.documentElement.setAttribute('data-theme', 'light'); }
 })();
 </script>
 <link rel="preconnect" href="https://fonts.googleapis.com">

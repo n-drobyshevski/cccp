@@ -80,7 +80,7 @@ describe("draft and patch", () => {
 
 describe("tab marks, bar and problems", () => {
   it("each tab is dirty only for its own fields; Access is never dirty", () => {
-    const s = edit(edit(session(), "fields.owner", "Owner"), "display.theme", "light");
+    const s = edit(edit(session(), "fields.owner", "Owner"), "display.theme", "system");
     const m = tabMarks(s, {});
     expect(Object.keys(m)).toEqual(["source", "fields", "rules", "access", "display"]);
     expect(m.fields.dirty).toBe(true);

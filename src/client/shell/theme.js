@@ -1,6 +1,6 @@
 // Light and dark. The choice lives on <html data-theme> and in localStorage 'cccp.theme'; the
-// pre-paint script in index.html applies a stored choice before first paint. With no stored
-// choice the Display default applies; 'system' leaves the attribute off so the media query in
+// pre-paint script in index.html applies a stored choice before first paint, else light (the
+// default theme). With no stored choice the Display default applies; 'system' leaves the attribute off so the media query in
 // tokens.css decides.
 import * as storage from "../lib/storage.js";
 

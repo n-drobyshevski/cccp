@@ -107,9 +107,10 @@ test.describe("app bar", () => {
 test.describe("theme", () => {
   test("the choice persists across a reload and both themes draw", async ({ page }) => {
     const bad = watchConsole(page);
-    await page.emulateMedia({ colorScheme: "light" });
+    // Light is the default, even when the OS prefers dark.
+    await page.emulateMedia({ colorScheme: "dark" });
     await page.goto("/");
-    await expect(page.locator("html")).not.toHaveAttribute("data-theme", /.+/);
+    await expect(page.locator("html")).toHaveAttribute("data-theme", "light");
     await page.getByRole("button", { name: "Switch to dark theme" }).click();
     await expect(page.locator("html")).toHaveAttribute("data-theme", "dark");
     const bg = await page.evaluate(() => getComputedStyle(document.body).backgroundColor);

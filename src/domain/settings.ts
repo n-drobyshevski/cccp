@@ -72,7 +72,7 @@ export function makeDefaultSettings(): Settings {
     source: { sheetId: "", cacheMinutes: CACHE_MINUTES_DEFAULT, tabs: defaultTabs() },
     fields: defaultFields(),
     rules: defaultRules(),
-    display: { opensOn: "overview", theme: "system", hidePrefix: "", hideEol: false },
+    display: { opensOn: "overview", theme: "light", hidePrefix: "", hideEol: false },
   };
 }
 

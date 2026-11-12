@@ -22,7 +22,7 @@ describe("loadSettings", () => {
   it("gives defaults for a section that is not stored and cleans a stored one", () => {
     PropertiesService.getScriptProperties().setProperty("CFG_DISPLAY", JSON.stringify({ opensOn: "bogus", hideEol: true, junk: 1 }));
     const s = loadSettings();
-    expect(s.display).toEqual({ opensOn: "overview", theme: "system", hidePrefix: "", hideEol: true });
+    expect(s.display).toEqual({ opensOn: "overview", theme: "light", hidePrefix: "", hideEol: true });
     expect(s.rules.rules["co.review"]).toEqual({ months: 12 });
   });
 });
@@ -117,7 +117,7 @@ describe("saveSettings", () => {
 
   it("does not bump anything when nothing changed", () => {
     as("admin@example.com");
-    const res = api.saveSettings({ patch: { display: { theme: "system" } }, baseGen: 0 });
+    const res = api.saveSettings({ patch: { display: { theme: "light" } }, baseGen: 0 });
     expect(res).toMatchObject({ ok: true, data: { cfgGen: 0 } });
     expect(prop("CFG_GEN")).toBeNull();
   });

@@ -93,3 +93,26 @@ describe.each(ZONES)("normalize under %s", (tz) => {
     expect(N.isBlank(0)).toBe(false);
   });
 });
+
+describe("negations (review fixes)", () => {
+  it("reads a negated pass as a failed DRP test", () => {
+    for (const v of ["Not OK", "Non réussi", "Not successful", "Pas OK", "Not passed"]) expect(N.drpResult(v), v).toBe("failed");
+    for (const v of ["OK", "Réussi", "Successful"]) expect(N.drpResult(v), v).toBe("passed");
+  });
+  it("counts a stated none as zero findings", () => {
+    const c = (t: string, w: string) => N.findingCount(t, w);
+    expect(c("No high or critical findings", "critical")).toBe(0);
+    expect(c("No high or critical findings", "high")).toBe(0);
+    expect(c("No critical or high findings", "high")).toBe(0);
+    expect(c("Critical: none", "critical")).toBe(0);
+    expect(c("High: none", "high")).toBe(0);
+    expect(c("critical - 0", "critical")).toBe(0);
+    expect(c("2 non-critical findings", "critical")).toBe(0);
+    expect(c("Critical: 0, High: none", "high")).toBe(0);
+    // controls
+    expect(c("critical: 2", "critical")).toBe(2);
+    expect(c("1 critical and 3 high", "high")).toBe(3);
+    expect(c("No critical, 2 high", "high")).toBe(2);
+    expect(c("critical", "critical")).toBe(1);
+  });
+});

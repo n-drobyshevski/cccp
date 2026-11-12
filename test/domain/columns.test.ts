@@ -30,3 +30,15 @@ describe("column registry", () => {
     expect(visibleColumnDefs([], "h").map((c) => c.key)).toContain("h");
   });
 });
+
+describe("one lifecycle key (review fix)", () => {
+  it("treats a hyphenated lifecycle like the underscore and spaced forms", async () => {
+    const { lifecycleLabel } = await import("../../src/domain/facets");
+    const { lifecycleIndex } = await import("../../src/domain/columns");
+    for (const v of ["End-of-life", "End of life", "END_OF_LIFE"]) {
+      expect(lifecycleLabel(v), v).toBe("End of life");
+      expect(lifecycleIndex(v), v).toBe(lifecycleIndex("END_OF_LIFE"));
+    }
+    expect(lifecycleIndex("END_OF_LIFE")).toBeLessThan(9);
+  });
+});

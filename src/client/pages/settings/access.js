@@ -229,8 +229,8 @@ export function createAccess({ el, redraw }) {
     state.busy = true;
     redraw();
     try {
-      if (pending.users) await rpc.call("saveAccess", { users: state.users.join(", ") });
-      if (pending.admins) await rpc.call("saveAdmins", { admins: state.admins.join(", ") });
+      if (pending.users) await rpc.call("saveAccess", { users: state.users.join(", "), base: baseline.users.join(", ") });
+      if (pending.admins) await rpc.call("saveAdmins", { admins: state.admins.join(", "), base: baseline.admins.join(", ") });
       // Re-read rather than trust the local lists: the owner is written back in, and the server
       // is what decides what was kept.
       const fresh = await rpc.call("getAccess");

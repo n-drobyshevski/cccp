@@ -41,7 +41,7 @@ export async function runExport(kind, ctx) {
   try {
     const res = await rpc.call("exportToSheet", { ids: rows.map((r) => r.app.id), columns: cols.map((c) => c.key), title: ctx.title });
     wait.close();
-    toast("Google Sheet created, shared with you.", { link: { href: res.url, label: "Open Sheet" }, ms: 20000 });
+    toast(res.shared ? "Google Sheet created, shared with you." : "Google Sheet created.", { link: { href: res.url, label: "Open Sheet" }, ms: 20000 });
   } catch (e) {
     wait.close();
     toast(e && e.message ? e.message : "The Google Sheet could not be created.", { kind: "err", ms: 9000 });

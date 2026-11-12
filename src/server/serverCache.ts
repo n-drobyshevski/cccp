@@ -6,7 +6,7 @@
 // 60..21600 seconds.
 //
 //   register key  cccp:<EPOCH>:<DATA_VERSION>:register
-//   core key      cccp:<EPOCH>:<DATA_VERSION>.<CFG_GEN>:core
+//   core key      cccp:<EPOCH>:<DATA_VERSION>.<CFG_GEN>.<VIEWS_GEN>:core
 //
 // Invalidation is version-in-key: a bump makes every older entry unreachable and it ages out
 // by TTL. Nothing per-viewer is EVER cached: keys carry no identity and callers cache only
@@ -39,9 +39,20 @@ export function dataVersion(): number {
   return counter(PROP_KEYS.dataVersion);
 }
 
-/** The settings generation. Bumped by every settings or shared-view save. */
+/** The settings generation, the save base of api_saveSettings. Bumped by every settings save. */
 export function cfgGen(): number {
   return counter(PROP_KEYS.cfgGen);
+}
+
+/** The shared-views generation: part of the core key, but not the settings save base. */
+export function viewsGen(): number {
+  return counter(PROP_KEYS.viewsGen);
+}
+
+export function bumpViewsGen(): number {
+  const n = viewsGen() + 1;
+  setProp(PROP_KEYS.viewsGen, String(n));
+  return n;
 }
 
 export function bumpDataVersion(): number {
@@ -62,7 +73,7 @@ export function paramsHash(params: unknown): string {
 }
 
 export function cacheKey(name: string, params: unknown, scope: CacheScope = "data"): string {
-  const v = scope === "cfg" ? dataVersion() + "." + cfgGen() : String(dataVersion());
+  const v = scope === "cfg" ? dataVersion() + "." + cfgGen() + "." + viewsGen() : String(dataVersion());
   return KEY_PREFIX + ":" + v + ":" + name + (params === undefined ? "" : ":" + paramsHash(params));
 }
 

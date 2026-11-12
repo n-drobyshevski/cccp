@@ -106,14 +106,18 @@ test("recently viewed keeps 8 and leaves out the current application", async ({ 
   await expect(page.locator(".lxwrap")).toHaveAttribute("data-app-id", list[9]!);
 });
 
-test("copy link gives ?app= and open row in sheet uses the Sheet url", async ({ page, context }) => {
-  await context.grantPermissions(["clipboard-read", "clipboard-write"]).catch(() => undefined);
+test("copy link gives ?app= and open row in sheet uses the Sheet url", async ({ page }) => {
+  // Capture what is copied instead of depending on clipboard permissions.
+  await page.addInitScript(() => {
+    (window as unknown as { __copied: string }).__copied = "";
+    Object.defineProperty(navigator, "clipboard", { configurable: true, value: { writeText: (t: string) => { (window as unknown as { __copied: string }).__copied = t; return Promise.resolve(); } } });
+  });
   const [id] = await ids(page);
   await open(page, id!);
   await page.locator("[data-act=copy]").click();
-  await expect(page.locator(".toast")).toContainText(/Link copied|Copy blocked/);
-  const copied = await page.evaluate(() => navigator.clipboard.readText().catch(() => ""));
-  if (copied) expect(new URL(copied).search).toBe("?app=" + id);
+  await expect(page.locator(".toast")).toContainText("Link copied");
+  const copied = await page.evaluate(() => (window as unknown as { __copied: string }).__copied);
+  expect(new URL(copied).search).toBe("?app=" + id);
   const href = await page.locator("a[data-act=sheet]").getAttribute("href");
   expect(href).toMatch(/^https:/);
   expect(href).toMatch(/#gid=\d+&range=A\d+$/);

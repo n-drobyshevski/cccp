@@ -25,7 +25,8 @@ export const MONTHS_MIN = 1;
 export const MONTHS_MAX = 120;
 
 const NAME_MAX = 100;
-const HEADER_MAX = 120;
+/** A Sheet header can be long; the 8000-byte section cap is the real limit. */
+const HEADER_MAX = 1000;
 const PREFIX_MAX = 100;
 const SHEET_ID_MAX = 100;
 
@@ -227,6 +228,9 @@ export function sectionBytes(section: unknown): number {
 
 // ------------------------------------------------------------------------------------ validate
 
+/** The tab names used in validation sentences (the client maps them back to a key). */
+export const TAB_NAMES: Readonly<Record<TabKey, string>> = { apps: "Applications", ciat: "CIAT", aud: "Audits", drp: "DRP", plat: "Platform" };
+
 /** Sentences for what is wrong. Empty means the settings can be saved. */
 export function validateSettings(s: Settings): string[] {
   const errors: string[] = [];
@@ -234,7 +238,7 @@ export function validateSettings(s: Settings): string[] {
   if (tabs.apps.name === "") errors.push("The Applications tab needs a name: it holds the list of applications.");
   for (const k of TAB_KEYS) {
     if (tabs[k].name !== "" && tabs[k].joinOn === "id" && k !== "apps" && tabs[k].joinColumn === "")
-      errors.push("The " + k + " tab joins on the application id, so it needs the name of its id column.");
+      errors.push("The " + TAB_NAMES[k] + " tab joins on the application id, so it needs the name of its id column.");
   }
   if (s.fields.id.header === "" && tabs.apps.name !== "") errors.push("The Application id field needs a column: applications are identified by it.");
   if (s.fields.name.header === "" && tabs.apps.name !== "") errors.push("The Name field needs a column: every application is shown by its name.");

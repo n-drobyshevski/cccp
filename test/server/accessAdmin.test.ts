@@ -125,3 +125,26 @@ describe("a save cannot strand the owner or store junk", () => {
     expect(prop("ALLOWED_USERS")).toContain("d@x.com");
   });
 });
+
+describe("concurrent edits (review fix)", () => {
+  it("refuses a whole-list write based on a list that has since changed", () => {
+    as("owner@example.com");
+    const base = (getAccess().data as { users: string[] }).users.join(", ");
+    expect(saveAccess({ users: base + ", bob@example.com", base }).ok).toBe(true);
+    const stale = saveAccess({ users: base + ", alice@example.com", base });
+    expect(stale.ok).toBe(false);
+    expect(stale.errorKind).toBe("conflict");
+    expect(prop("ALLOWED_USERS")).toContain("bob@example.com");
+    expect(prop("ALLOWED_USERS")).not.toContain("alice@example.com");
+  });
+  it("does not count the owner, which the panel shows apart from the list", () => {
+    as("owner@example.com");
+    expect(saveAccess({ users: "viewer@example.com, c@example.com", base: "viewer@example.com" }).ok).toBe(true);
+  });
+  it("refuses a stale admins write the same way", () => {
+    as("owner@example.com");
+    const base = (getAccess().data as { admins: string[] }).admins.join(", ");
+    expect(saveAdmins({ admins: base + ", a2@example.com", base }).ok).toBe(true);
+    expect(saveAdmins({ admins: base + ", a3@example.com", base })).toMatchObject({ ok: false, errorKind: "conflict" });
+  });
+});

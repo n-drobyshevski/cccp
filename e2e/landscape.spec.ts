@@ -61,10 +61,9 @@ test("unknown values are hatched tiles and the legend says so", async ({ page })
   await ready(page, "&metric=tier");
   const hatched = await page.locator("button.tl.ls-none").count();
   const sample = page.locator("button.tl.ls-none").first();
-  if (hatched) {
-    const bg = await sample.evaluate((e) => getComputedStyle(e).backgroundImage);
-    expect(bg).toContain("repeating-linear-gradient");
-  }
+  expect(hatched).toBeGreaterThan(0);
+  const bg = await sample.evaluate((e) => getComputedStyle(e).backgroundImage);
+  expect(bg).toContain("repeating-linear-gradient");
   await expect(page.locator(".lgd")).toContainText("No tier");
 });
 
@@ -89,7 +88,9 @@ test("1,125-scale render is fast", async ({ page }) => {
     const btn = Array.from(document.querySelectorAll<HTMLButtonElement>(".segs button")).find((b) => b.textContent === "Tier")!;
     const t0 = performance.now();
     btn.click();
-    await new Promise((r) => requestAnimationFrame(() => r(null)));
+    // After style and layout: a frame, then a task.
+    await new Promise((r) => requestAnimationFrame(() => setTimeout(() => r(null), 0)));
+    void document.body.offsetHeight;
     return performance.now() - t0;
   });
   const n = await tiles(page).count();

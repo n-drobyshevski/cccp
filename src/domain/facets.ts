@@ -46,7 +46,7 @@ export interface FacetDef {
 
 /** 'END_OF_LIFE' becomes 'End of life'. */
 export function lifecycleLabel(v: string): string {
-  const t = v.trim().replace(/_/g, " ");
+  const t = v.trim().replace(/[\s_-]+/g, " ");
   return t.charAt(0).toUpperCase() + t.slice(1).toLowerCase();
 }
 

@@ -5,7 +5,7 @@
   "description": "CCCP (Cyber, Compliance, Continuity, Platform): a view-only application register as a Google Apps Script web app",
   "type": "module",
   "scripts": {
-    "test": "vitest run",
+    "test": "vitest run --project domain --project server --project client",
     "test:watch": "vitest",
     "typecheck": "tsc --noEmit",
     "lint": "eslint .",

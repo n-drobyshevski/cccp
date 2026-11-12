@@ -168,3 +168,23 @@ test("display counts are live", async ({ page }) => {
   await page.locator(".savebar").getByRole("button", { name: "Save changes" }).click();
   await expect(page.locator(".toast")).toContainText("Settings saved");
 });
+
+test("publishing a shared view keeps an unsaved settings draft", async ({ page }) => {
+  await page.goto("/?r=settings&tab=display&as=admin@example.com");
+  await expect(page.locator("[data-page=settings]")).toBeVisible();
+  await page.locator("input[data-key='display.hidePrefix']").fill("zzz");
+  await expect(page.locator(".savebar")).toContainText("1 unsaved change");
+  await page.getByRole("button", { name: "List", exact: true }).first().click();
+  await expect(page.locator("table[data-table=list]")).toBeVisible();
+  await page.getByRole("button", { name: "T1", exact: true }).click();
+  await page.getByRole("button", { name: "Save view" }).click();
+  await page.getByLabel("View name").fill("Draft survivor");
+  await page.getByLabel("Share with everyone").check();
+  await page.getByRole("button", { name: "Save", exact: true }).click();
+  await expect(page.locator(".vtabs [role=tab]").last()).toHaveText("Draft survivor");
+  await page.getByRole("button", { name: "Settings", exact: true }).click();
+  await expect(page.locator("[data-page=settings]")).toBeVisible();
+  await page.getByRole("tab", { name: /Display/ }).click();
+  await expect(page.locator("input[data-key='display.hidePrefix']")).toHaveValue("zzz");
+  await expect(page.locator(".savebar")).toContainText("1 unsaved change");
+});

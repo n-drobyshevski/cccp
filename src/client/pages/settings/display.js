@@ -1,7 +1,7 @@
 // Display tab: which view opens, the default theme, and the two ways to hide applications, each
 // with a live count of how many applications it hides now. A pure view.
 import { html } from "../../lib/html.js";
-import { num } from "../../lib/format.js";
+import { num, plural } from "../../lib/format.js";
 import { switchView } from "../../components/switch.js";
 import { isHidden } from "../../state/register.js";
 
@@ -21,7 +21,7 @@ export function hideCounts(rows, draft) {
 }
 
 function aff(name, n) {
-  return html`<span class="aff" data-cnt="${name}"><b>${num(n)}</b> apps</span>`;
+  return html`<span class="aff" data-cnt="${name}"><b>${num(n)}</b> ${plural(n, "app", "apps")}</span>`;
 }
 
 function segs(key, value, options, label) {

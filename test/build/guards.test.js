@@ -1,5 +1,5 @@
 import { execFileSync } from "node:child_process";
-import { existsSync, mkdtempSync, readFileSync, readdirSync } from "node:fs";
+import { existsSync, mkdtempSync, readFileSync, readdirSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { describe, expect, it } from "vitest";
@@ -50,17 +50,21 @@ describe("entry drift guard", () => {
 describe("build", () => {
   it("writes the six dist files with the stamp", () => {
     const out = mkdtempSync(join(tmpdir(), "cccp-dist-"));
-    const log = execFileSync("node", [join(root, "build/esbuild.config.mjs")], {
-      env: { ...process.env, CCCP_DIST: out },
-      encoding: "utf8",
-    });
-    expect(readdirSync(out).sort()).toEqual(
-      ["appsscript.json", "entry.js", "index.html", "js_app.html", "server.js", "styles.html"],
-    );
-    const stamp = /stamp (\w+)/.exec(log)[1];
-    expect(stamp).toMatch(/^[0-9a-f]{12}$/);
-    expect(readFileSync(join(out, "server.js"), "utf8")).toContain(stamp);
-    expect(existsSync(join(out, "js_app.html"))).toBe(true);
-    expect(readFileSync(join(out, "js_app.html"), "utf8")).not.toContain("`");
+    try {
+      const log = execFileSync("node", [join(root, "build/esbuild.config.mjs")], {
+        env: { ...process.env, CCCP_DIST: out },
+        encoding: "utf8",
+      });
+      expect(readdirSync(out).sort()).toEqual(
+        ["appsscript.json", "entry.js", "index.html", "js_app.html", "server.js", "styles.html"],
+      );
+      const stamp = /stamp (\w+)/.exec(log)[1];
+      expect(stamp).toMatch(/^[0-9a-f]{12}$/);
+      expect(readFileSync(join(out, "server.js"), "utf8")).toContain(stamp);
+      expect(existsSync(join(out, "js_app.html"))).toBe(true);
+      expect(readFileSync(join(out, "js_app.html"), "utf8")).not.toContain("`");
+    } finally {
+      rmSync(out, { recursive: true, force: true });
+    }
   });
 });

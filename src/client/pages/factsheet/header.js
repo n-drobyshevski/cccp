@@ -27,7 +27,7 @@ export function headerView(h, from, sheetEnabled) {
       <div class="acts">${sealView(h.seal)}
         <button type="button" class="icon-btn" data-act="copy" data-k="fs-copy" aria-label="Copy link" data-tip="Copy link">${icon("link")}</button>
         ${h.sheetLink && sheetEnabled !== false ? html`<a class="icon-btn" data-act="sheet" data-k="fs-sheet" href="${h.sheetLink}" target="_blank" rel="noopener noreferrer" aria-label="Open row in the Sheet. Needs access to the Sheet." data-tip="Open row in the Sheet. Needs access to the Sheet.">${icon("sheet")}</a>` : ""}</div></div>
-    <div class="r1">${typeBadge()}<span class="lcline">${icon("check")}Lifecycle: <b>${h.lifecycle ? h.lifecycle.label : html`<span class="mut">–</span>`}</b></span>${tagsView(h.tier, h.tags)}</div>
+    <div class="r1">${typeBadge()}<span class="lcline">${icon("check")}Lifecycle: <b>${h.lifecycle ? h.lifecycle.label : html`<span class="mut" aria-hidden="true">—</span><span class="sr-only">Not set</span>`}</b></span>${tagsView(h.tier, h.tags)}</div>
     <div class="r3"><p class="desc">${h.subline}</p>
       <div class="pstat">${h.statuses.map((s) => html`<button type="button" class="stag ${s.status}" data-act="jump" data-sx="${s.section}" data-k="fs-st-${s.section}" data-tip="${s.why}" aria-label="${s.label + ": " + s.word + ". " + s.why + ". Jump to the section"}">${dot(s.status)}${s.label}</button>`)}</div></div>
   </div>`;

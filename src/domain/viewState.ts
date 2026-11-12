@@ -32,6 +32,8 @@ export function defaultState(route = ""): ViewState {
 }
 
 const cap = (s: string, n = STRING_MAX): string => (s.length > n ? s.slice(0, n) : s);
+/** An application id is free sheet text: any printable text up to 200 characters is a lookup key. */
+const APP_ID_RE = /^[^\u0000-\u001f\u007f]{1,200}$/;
 const ID_RE = /^[A-Za-z0-9_-]{1,64}$/;
 const TAB_RE = /^[a-z]{1,20}$/;
 
@@ -170,7 +172,7 @@ export function fromParams(params: ParamMap): ParsedLink {
   if (metric && METRICS.includes(metric)) state.metric = metric;
   const out: ParsedLink = { state };
   const app = one(params.app);
-  if (app && ID_RE.test(app)) out.app = app;
+  if (app && APP_ID_RE.test(app)) out.app = app;
   const view = one(params.view);
   if (view && ID_RE.test(view)) out.view = view;
   const tab = one(params.tab);

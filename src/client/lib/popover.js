@@ -55,7 +55,17 @@ export function openPopover(anchor, safe, opts) {
   const cur = {
     pop, anchor, onClose: o.onClose,
     onDown: (ev) => { if (!pop.contains(ev.target) && !cur.anchor.contains(ev.target)) closePopovers(false); },
-    onKey: (ev) => { if (ev.key === "Escape") { ev.stopPropagation(); closePopovers(true); } },
+    onKey: (ev) => {
+      if (ev.key === "Escape") { ev.stopPropagation(); closePopovers(true); return; }
+      if (ev.key !== "Tab") return;
+      // Keep Tab inside the panel: wrap at the ends instead of leaving it open behind the focus.
+      const items = [...pop.querySelectorAll('input:not([disabled]),button:not([disabled]),a[href],select:not([disabled]),[tabindex]:not([tabindex="-1"])')];
+      if (items.length === 0) { ev.preventDefault(); return; }
+      const first = items[0], last = items[items.length - 1];
+      const at = document.activeElement;
+      if (ev.shiftKey && (at === first || !pop.contains(at))) { ev.preventDefault(); last.focus(); }
+      else if (!ev.shiftKey && (at === last || !pop.contains(at))) { ev.preventDefault(); first.focus(); }
+    },
     onResize: () => place(pop, cur.anchor, o.align),
   };
   open = cur;

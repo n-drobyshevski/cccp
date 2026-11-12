@@ -27,6 +27,7 @@ export const PROP_KEYS = {
   sharedViews: "SHARED_VIEWS",
   // Cache epochs: the settings generation and the data version.
   cfgGen: "CFG_GEN",
+  viewsGen: "VIEWS_GEN",
   dataVersion: "DATA_VERSION",
 } as const;
 

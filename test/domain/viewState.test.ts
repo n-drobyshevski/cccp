@@ -26,7 +26,7 @@ describe("URL round trip", () => {
   });
 
   it("drops unknown keys and invalid values", () => {
-    const p = fromParams({ r: "nowhere", q: "x", evil: "1", sort: "bogus", metric: "zzz", cols: "-n,-zzz,+h", dom: "A,B", app: "bad id!", tab: "X/Y", desc: "1" });
+    const p = fromParams({ r: "nowhere", q: "x", evil: "1", sort: "bogus", metric: "zzz", cols: "-n,-zzz,+h", dom: "A,B", app: "bad\u0007id", tab: "X/Y", desc: "1" });
     expect(p.state).toEqual({ route: "", q: "x", f: { dom: ["A", "B"] }, sort: "n", desc: true, cols: ["+h"], metric: "worst" });
     expect(p.app).toBeUndefined();
     expect(p.tab).toBeUndefined();
@@ -89,5 +89,19 @@ describe("saved views", () => {
     const fat = { ...view, state: { ...view.state, f: { dom: Array.from({ length: 40 }, (_, i) => "d".repeat(150) + i) } } };
     expect(validateSharedViews([fat, fat]).some((e) => /too large/.test(e))).toBe(true);
     expect(validateSharedViews("x")).toEqual(["Shared views must be a list."]);
+  });
+});
+
+describe("fact-sheet ids round trip (review fix)", () => {
+  it("reads back any printable application id it wrote", () => {
+    for (const id of ["APP.001", "APP 001", "ÉCO-1", "a:b/c", "x".repeat(70)]) {
+      const q = toQuery(defaultState("app")) + "&app=" + encodeURIComponent(id);
+      const params = Object.fromEntries(new URLSearchParams(q));
+      expect(fromParams(params).app, id).toBe(id);
+    }
+  });
+  it("still refuses control characters and over-long ids", () => {
+    expect(fromParams({ app: "a\u0000b" }).app).toBeUndefined();
+    expect(fromParams({ app: "x".repeat(201) }).app).toBeUndefined();
   });
 });

@@ -1,5 +1,6 @@
 // Boot. 1) read the bootstrap the page carried, else ask for it; 2) theme; 3) the register:
 // inline, else fetched behind a skeleton; 4) the address. Then the router draws the page.
+import { isNoSource } from "./state/noSource.js";
 import { initTip } from "./lib/tip.js";
 import * as rpc from "./lib/rpc.js";
 import { homeRoute, mountAppbar } from "./shell/appbar.js";
@@ -26,11 +27,6 @@ export function inlineBootstrap() {
   } catch (e) { return null; }
 }
 
-/** The source has never been connected: the server answers with an empty, titleless meta. */
-export function isNoSource(core) {
-  const m = core.sourceMeta;
-  return m.title === "" && m.url === "" && m.loadedAt !== "";
-}
 
 function failure(e) {
   if (e && e.kind === "forbidden") {

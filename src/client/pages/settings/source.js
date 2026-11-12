@@ -40,7 +40,7 @@ function statusOf(ctx, k) {
 function connection(ctx) {
   const { meta, ui, rows } = ctx;
   const connected = meta.title !== "";
-  const missing = !!(meta.issues && meta.issues.missingTabs && meta.issues.missingTabs.length);
+  const missing = !!(meta.issues && meta.issues.missingTabs && meta.issues.missingTabs.length) || (meta.tabs || []).some((t) => t.missingHeaders && t.missingHeaders.length);
   const when = ui.reloadedAt ? "just now" : meta.loadedAt ? stamp(meta.loadedAt) : "never";
   return html`<div class="conn" data-region="conn"><div><b>${dot(connected && !missing ? "ok" : "warn")}${connected ? html`Connected to “${meta.title}”` : "No Sheet connected"}</b><small data-loaded>Last loaded ${when} · ${count(rows.length, "application")}</small></div>
     <button type="button" class="btn" data-act="s-reload" data-k="reload"${ui.reloadBusy || !connected ? html` disabled` : ""}>${ui.reloadBusy ? html`<span class="spin" aria-hidden="true"></span>Loading…` : "Reload data"}</button></div>`;
@@ -80,11 +80,11 @@ function tabsTable(ctx) {
       const st = statusOf(ctx, k);
       const t = meta.tabs.find((x) => x.key === k);
       const same = cur === saved[key];
-      const unmatched = same && t && t.unmatched ? html`<small class="mut"> · ${count(t.unmatched, "row")} match no application</small>` : "";
+      const unmatched = same && t && t.unmatched ? html`<small class="mut"> · ${count(t.unmatched, "row")} ${t.unmatched === 1 ? "matches" : "match"} no application</small>` : "";
       return html`<tr data-tab-row="${k}"><td>${TAB_LABEL[k]}</td>
         <td><select class="sel" data-key="${key}" data-type="text" data-k="tab-${k}" aria-label="${TAB_LABEL[k]} tab">${k === "apps" ? "" : html`<option value=""${cur === "" ? html` selected` : ""}>Not used</option>`}${names.map((n) => html`<option value="${n}"${n === cur ? html` selected` : ""}>${n}</option>`)}</select></td>
         <td class="num" data-rows>${same && t && cur !== "" ? num(t.rows) : "—"}</td>
-        <td>${st.cls ? html`<span class="res ${st.cls}"${st.tip ? html` tabindex="0" data-tip="${st.tip}"` : ""}>${st.word}</span>` : html`<span class="mut">${st.word}</span>`}${unmatched}</td></tr>`;
+        <td>${st.cls ? html`<span class="res ${st.cls}"${st.tip ? html` tabindex="0" data-tip="${st.tip}" aria-label="${st.word + ": " + st.tip}"` : ""}>${st.word}</span>` : html`<span class="mut">${st.word}</span>`}${unmatched}</td></tr>`;
     })}
   </tbody></table></div></div>`;
 }

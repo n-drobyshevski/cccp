@@ -39,6 +39,16 @@ test.describe("export", () => {
     expect(bad).toEqual([]);
   });
 
+  test("Tab inside the menu wraps and never leaves the popover open behind lost focus", async ({ page }) => {
+    await ready(page);
+    await openMenu(page);
+    for (let i = 0; i < 4; i++) await page.keyboard.press("Tab");
+    await expect(page.getByRole("dialog", { name: "Export" })).toBeVisible();
+    expect(await page.evaluate(() => !!document.activeElement?.closest(".pop"))).toBe(true);
+    await page.keyboard.press("Shift+Tab");
+    expect(await page.evaluate(() => !!document.activeElement?.closest(".pop"))).toBe(true);
+  });
+
   test("CSV downloads every filtered row, not the drawn page, with BOM and CRLF", async ({ page }) => {
     const bad = watchConsole(page);
     await ready(page, "&tier=T1,T2,T3");

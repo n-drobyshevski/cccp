@@ -24,7 +24,7 @@ function pillarBar(p) {
 
 function domainRow(d) {
   const step = pctStep(d.completeness);
-  return html`<tr data-domain="${d.name}"><td><button type="button" class="lk" data-act="go" data-go="${go(d.target)}" data-k="dom-${d.name}"><b>${d.name}</b></button></td><td class="num">${num(d.apps)}</td><td class="num"><button type="button" class="lk gapn" data-act="go" data-go="${go(d.gapTarget)}" aria-label="${count(d.gaps, "application") + " with a gap in " + d.name}">${num(d.gaps)}</button></td><td><span class="qcell"><span class="qbar" aria-hidden="true"><i class="${step}" style="width:${d.completeness}%"></i></span><small>${d.completeness}%</small></span></td></tr>`;
+  return html`<tr data-domain="${d.name}"><td><button type="button" class="lk" data-act="go" data-go="${go(d.target)}" data-k="dom-${d.name}"><b>${d.name}</b></button></td><td class="num">${num(d.apps)}</td><td class="num"><button type="button" class="lk gapn" data-act="go" data-go="${go(d.gapTarget)}" data-k="domgap-${d.name}" aria-label="${count(d.gaps, "application") + " with a gap in " + d.name}">${num(d.gaps)}</button></td><td><span class="qcell"><span class="qbar" aria-hidden="true"><i class="${step}" style="width:${d.completeness}%"></i></span><small>${d.completeness}%</small></span></td></tr>`;
 }
 
 /** The whole page for a model. Pure. */
@@ -57,7 +57,16 @@ export const overviewPage = {
       try { f = JSON.parse(b.getAttribute("data-go") || "{}"); } catch (e) { return; }
       navigate(listPatch(f), "push");
     });
-    return () => { offReg(); off(); };
+    // The whole domain row opens the List, as the name button does; the buttons keep their own click.
+    const offRow = delegate(el, "click", "tr[data-domain]", (ev, row) => {
+      if (ev.target.closest && ev.target.closest("button")) return;
+      const b = row.querySelector("[data-act=go]");
+      if (!b) return;
+      let f = {};
+      try { f = JSON.parse(b.getAttribute("data-go") || "{}"); } catch (e) { return; }
+      navigate(listPatch(f), "push");
+    });
+    return () => { offReg(); off(); offRow(); };
   },
 };
 

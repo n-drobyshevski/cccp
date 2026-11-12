@@ -119,15 +119,25 @@ export function lifecycleSteps(lifecycle: string | null): LifecycleStep[] {
 }
 
 /** The tone of a free-text result (audit or findings): none and passed are fine, major or critical are not. */
-export function resultTone(t: string | null): FsTone {
+export function resultTone(t: string | null, counts?: { critical?: number | null; high?: number | null; major?: number | null }): FsTone {
   if (t === null) return "";
+  // The parsed counts are what the rules use, so the colour follows them when they are known.
+  if (counts) {
+    const known = [counts.critical, counts.high, counts.major].filter((c) => c != null) as number[];
+    if (known.length > 0) {
+      if ((counts.critical ?? 0) > 0 || (counts.major ?? 0) > 0) return "bad";
+      if ((counts.high ?? 0) > 0) return "warn";
+      // Counted and none of them is severe: a keyword in the text ('0 major') is not a finding.
+      if (/critical|major|high/i.test(t) && !/failed|passed|none/i.test(t) && known.every((c) => c === 0)) return "ok";
+    }
+  }
   if (/passed|none/i.test(t)) return "ok";
   if (/critical|major|failed/i.test(t)) return "bad";
   if (/high/i.test(t)) return "warn";
   return "";
 }
 
-const res = (label: string, value: string | null): FsRow => ({ label, kind: "res", value, tone: resultTone(value) });
+const res = (label: string, value: string | null, counts?: Parameters<typeof resultTone>[1]): FsRow => ({ label, kind: "res", value, tone: resultTone(value, counts) });
 const plain = (label: string, value: string | null): FsRow => ({ label, kind: "text", value });
 const flag = (label: string, v: boolean | null, risk = false): FsRow => ({ label, kind: "yn", value: yn(v), risk: v === true && risk });
 const date = (label: string, v: string | null, today: string): FsRow => {
@@ -213,7 +223,7 @@ export function factsheetModel(row: Row, ctx: FsContext): FactSheet {
     ],
     cyber: [
       sub("exposure", "Exposure", [flag("Front exposed on internet", a.exposed, !filled(a.lastPentest)), plain("External users", text(a.externalUsers))]),
-      sub("testing", "Testing", [date("Last pentest", a.lastPentest, ctx.today), res("Open findings", text(a.findingsText))]),
+      sub("testing", "Testing", [date("Last pentest", a.lastPentest, ctx.today), res("Open findings", text(a.findingsText), { critical: a.findingsCritical, high: a.findingsHigh })]),
       sub("ownership", "Ownership", [
         security === null ? { label: "Security officer", kind: "res", value: "None assigned", tone: "bad" } : { label: "Security officer", kind: "person", value: security },
       ]),
@@ -222,7 +232,7 @@ export function factsheetModel(row: Row, ctx: FsContext): FactSheet {
       sub("classification", "Classification", [], { type: "ciat", levels: classified ? CIAT_LABELS.map(([key, label]) => ({ key, label, level: a.ciat[key.toLowerCase() as "c" | "i" | "a" | "t"] })) : null }),
       sub("data", "Data", [flag("Personal data", a.personalData), flag("Personal sensitive data", a.personalSensitive), flag("Company sensitive data", a.companySensitive)]),
       sub("review", "Review", [date("Date of security check", a.securityCheck, ctx.today), validated]),
-      sub("audit", "Audit", [date("Last audit", a.lastAudit, ctx.today), res("Audit result", text(a.auditResult))]),
+      sub("audit", "Audit", [date("Last audit", a.lastAudit, ctx.today), res("Audit result", text(a.auditResult), { major: a.auditMajor })]),
     ],
     continuity: [
       sub("recovery", "Recovery objectives", [hours("Max tolerable downtime", a.mtd), hours("Recovery time objective", a.rto), hours("Recovery point objective", a.rpo)],

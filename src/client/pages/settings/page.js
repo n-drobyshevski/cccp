@@ -18,6 +18,7 @@ import { registerPage } from "../../shell/router.js";
 import * as theme from "../../shell/theme.js";
 import { onlyAdmins, skeleton } from "../../shell/states.js";
 import * as register from "../../state/register.js";
+import { isNoSource } from "../../state/noSource.js";
 import { store } from "../../state/store.js";
 import { navigate } from "../../state/url.js";
 import {
@@ -50,8 +51,7 @@ const metaUrl = () => {
 async function refreshData() {
   const data = await rpc.call("bootstrap");
   const { core, live } = data;
-  const m = core.sourceMeta;
-  const noSource = m.title === "" && m.url === "" && m.loadedAt !== "";
+  const noSource = isNoSource(core);
   const context = { rules: core.publicSettings.rules, display: core.publicSettings.display, today: live.today };
   if (!noSource) register.load(data.register || (await rpc.call("getRegister")), context);
   store.set({ core, live, boot: { status: noSource ? "nosource" : "ready", message: "" } });
@@ -151,8 +151,13 @@ export const settingsPage = {
         if (!alive || !ctx.current()) return;
         const fresh = newSession(resp, metaUrl());
         const old = sessionOf();
-        const keep = old && isDirty(old) && old.baseGen === resp.cfgGen;
-        store.set({ settingsDraft: keep ? { ...fresh, draft: old.draft } : fresh });
+        if (old && isDirty(old)) {
+          // Unsaved edits are never dropped silently. If the settings moved meanwhile, keep the
+          // session as it was (so a save reports the conflict) and say so.
+          if (old.baseGen !== resp.cfgGen) banner = { kind: "conflict", text: "The settings were changed by someone else since you opened them. Your unsaved changes are kept; saving will reload the current settings." };
+        } else {
+          store.set({ settingsDraft: fresh });
+        }
       } catch (e) {
         if (!alive || !ctx.current()) return;
         renderRegion(el, html`<section class="state error" role="alert"><h1>The settings could not be opened</h1><p>${e.message}</p><p class="state-act"><button type="button" class="btn" data-act="s-retry" data-k="retry">Retry</button></p></section>`, { keepFocus: false, keepScroll: false });

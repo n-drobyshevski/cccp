@@ -81,7 +81,7 @@ describe("url.js", () => {
   });
 
   it("falls back to the default route for an empty, junk or app-less address", async () => {
-    location = { parameter: { r: "nonsense", app: "bad id!" } };
+    location = { parameter: { r: "nonsense", app: "bad\u0007id" } };
     await url.init({ fallbackRoute: "heatmap" });
     expect(store.get().route).toBe("heatmap");
     expect(store.get().app).toBeNull();

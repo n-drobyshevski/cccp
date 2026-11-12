@@ -37,6 +37,8 @@ describe("diagnostics report", () => {
     expect(r.register.rows).toBe(r.source!.tabs[0]!.rows);
     expect(r.register.warnings).toEqual([]);
     expect(r.propertyBytes["ALLOWED_ADMINS"]).toBeGreaterThan(0);
+    // The vendored log keeps its entries under RECENT_ERRORS, and that is what is measured.
+    expect(r.propertyBytes["RECENT_ERRORS"]).toBeGreaterThan(0);
     expect(r.recentErrors[0]).toMatchObject({ op: "saveSettings", message: "boom" });
   });
 

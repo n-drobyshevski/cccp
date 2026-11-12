@@ -70,3 +70,20 @@ describe("find and recent", () => {
     expect(pushRecent([1, null] as unknown[], "z")).toEqual(["z"]);
   });
 });
+
+describe("review fixes", () => {
+  it("colours findings and audit text from the same counts the rules use", () => {
+    const tone = (over: Parameters<typeof rowOf>[0], label: string) => {
+      const m = factsheetModel(rowOf(over), ctx);
+      return m.sections.flatMap((s) => s.subsections.flatMap((u) => u.rows)).find((r) => r.label === label)!.tone;
+    };
+    const f = (text: string, c: number, h: number) => tone({ findingsText: text, findingsCritical: c, findingsHigh: h }, "Open findings");
+    expect(f("0 critical, 0 high", 0, 0)).toBe("ok");
+    expect(f("No critical, 2 high", 0, 2)).toBe("warn");
+    expect(f("2 critical", 2, 0)).toBe("bad");
+    expect(tone({ auditResult: "No major findings", auditMajor: 0 }, "Audit result")).toBe("ok");
+    expect(tone({ auditResult: "0 major", auditMajor: 0 }, "Audit result")).toBe("ok");
+    expect(tone({ auditResult: "2 major findings", auditMajor: 2 }, "Audit result")).toBe("bad");
+    expect(tone({ auditResult: "1 minor finding", auditMajor: 0 }, "Audit result")).toBe("");
+  });
+});

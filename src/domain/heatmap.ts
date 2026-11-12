@@ -48,8 +48,10 @@ export function heatmapModel(rows: readonly Row[]): Heatmap {
 }
 
 /** The groups open on first sight: every one for a small register, else the largest. */
+export const isOpenAll = (m: Heatmap): boolean => m.total <= OPEN_ALL_MAX || m.groups.length === 1;
+
 export function defaultOpen(m: Heatmap): string[] {
   if (!m.groups.length) return [];
-  if (m.groups.length === 1 || m.total <= OPEN_ALL_MAX) return m.groups.map((g) => g.name);
+  if (isOpenAll(m)) return m.groups.map((g) => g.name);
   return [m.groups[0]!.name];
 }

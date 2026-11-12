@@ -1,7 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import * as access from "../../src/server/access";
 import * as api from "../../src/server/api";
-import { cfgGen } from "../../src/server/serverCache";
+import { cfgGen, viewsGen } from "../../src/server/serverCache";
 import { listSharedViews } from "../../src/server/sharedViews";
 import { useGasEnv } from "../gasEnv";
 
@@ -32,7 +32,9 @@ describe("saveSharedView", () => {
     expect(v!.at).toMatch(/^\d{4}-\d{2}-\d{2}$/);
     expect(res.data!.id).toBe(v!.id);
     expect(listSharedViews()).toEqual(res.data!.views);
-    expect(cfgGen()).toBe(1);
+    // The views have their own generation: the settings save base (CFG_GEN) does not move.
+    expect(viewsGen()).toBe(1);
+    expect(cfgGen()).toBe(0);
   });
 
   it("replaces a view with the same id instead of adding one", () => {
@@ -49,12 +51,12 @@ describe("saveSharedView", () => {
       const r = api.saveSharedView({ view: view("v" + i, { state: { q: "", f: {}, sort: "n", cols: [], metric: "worst" } }) });
       expect(r.ok, "view " + i + ": " + r.error).toBe(true);
     }
-    const gen = cfgGen();
+    const gen = viewsGen();
     const res = api.saveSharedView({ view: view("one too many") });
     expect(res).toMatchObject({ ok: false });
     expect(res.error).toMatch(/At most 40/);
     expect(listSharedViews().length).toBe(40);
-    expect(cfgGen()).toBe(gen);
+    expect(viewsGen()).toBe(gen);
   });
 
   it("refuses an oversize view and an oversize list", () => {
@@ -82,7 +84,7 @@ describe("saveSharedView", () => {
       expect(api.deleteSharedView({ id: "abc" })).toMatchObject({ ok: false, errorKind: "forbidden" });
     }
     expect(prop("SHARED_VIEWS")).toBeNull();
-    expect(cfgGen()).toBe(0);
+    expect(viewsGen()).toBe(0);
   });
 
   it("is busy while the lock is held", () => {
@@ -97,10 +99,12 @@ describe("deleteSharedView", () => {
     as("admin@example.com");
     const id = api.saveSharedView({ view: view("A") }).data!.id;
     api.saveSharedView({ view: view("B") });
-    const gen = cfgGen();
+    const gen = viewsGen();
+    const cfg = cfgGen();
     const res = api.deleteSharedView({ id });
     expect(res.data!.views.map((v) => v.name)).toEqual(["B"]);
-    expect(cfgGen()).toBe(gen + 1);
+    expect(viewsGen()).toBe(gen + 1);
+    expect(cfgGen()).toBe(cfg);
     expect(api.deleteSharedView({ id }).ok).toBe(false);
     expect(api.deleteSharedView({}).ok).toBe(false);
   });
@@ -118,5 +122,21 @@ describe("what viewers see", () => {
     expect(listSharedViews().map((v) => v.name)).toEqual(["Good"]);
     PropertiesService.getScriptProperties().setProperty("SHARED_VIEWS", "{oops");
     expect(listSharedViews()).toEqual([]);
+  });
+});
+
+describe("shared views and the settings save base (review fix)", () => {
+  it("publishing a view does not invalidate an open settings draft", () => {
+    as("admin@example.com");
+    const opened = api.getSettings().data!.cfgGen;
+    expect(api.saveSharedView({ view: view("Mine") }).ok).toBe(true);
+    const res = api.saveSettings({ patch: { display: { theme: "dark" } }, baseGen: opened });
+    expect(res.ok, res.error).toBe(true);
+  });
+  it("still moves the cached core key, so the new list is served", () => {
+    as("admin@example.com");
+    const before = api.bootstrap().data!.core.sharedViews.length;
+    api.saveSharedView({ view: view("Another") });
+    expect(api.bootstrap().data!.core.sharedViews.length).toBe(before + 1);
   });
 });

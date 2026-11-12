@@ -26,6 +26,7 @@ const MARKUP_SINKS = [
   { selector: "MemberExpression[property.name='insertAdjacentHTML']", message: "insertAdjacentHTML is only allowed in src/client/lib/dom.js (renderRegion)." },
   { selector: "Literal[value=/\\stitle\\s*=/]", message: "No title attributes: use data-tip (lib/tip.js)." },
   { selector: "TemplateElement[value.raw=/\\stitle\\s*=/]", message: "No title attributes: use data-tip (lib/tip.js)." },
+  { selector: "MemberExpression[computed=true][property.value=/^(innerHTML|outerHTML|insertAdjacentHTML)$/]", message: "Computed access to a markup sink is banned: use renderRegion (lib/dom.js)." },
 ];
 
 export default [
@@ -38,7 +39,7 @@ export default [
   {
     // The one place allowed to write markup.
     files: ["src/client/lib/dom.js"],
-    rules: { "no-restricted-syntax": ["error", MARKUP_SINKS[3], MARKUP_SINKS[4]] },
+    rules: { "no-restricted-syntax": ["error", MARKUP_SINKS[1], MARKUP_SINKS[2], MARKUP_SINKS[3], MARKUP_SINKS[4]] },
   },
   {
     // Classic scripts loaded in order by the dev page; they share window globals.

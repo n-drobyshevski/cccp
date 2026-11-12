@@ -81,7 +81,7 @@ describe("cleanSettings", () => {
 
   it("caps long strings and strips control characters", () => {
     const s = cleanSettings({ fields: { name: { header: "a\u0000b" + "x".repeat(500) } } });
-    expect(s.fields.name.header.length).toBeLessThanOrEqual(120);
+    expect(s.fields.name.header.length).toBeLessThanOrEqual(1000);
     expect(s.fields.name.header).not.toMatch(/\u0000/);
   });
 
@@ -203,5 +203,18 @@ describe("sectionBytes", () => {
     expect(sectionBytes("é")).toBe(4);
     expect(sectionBytes("€")).toBe(5);
     expect(sectionBytes("😀")).toBe(6);
+  });
+});
+
+describe("review fixes", () => {
+  it("keeps a long Sheet header whole so it still matches", () => {
+    const h = "Owner Name - " + "x".repeat(110);
+    expect(cleanSettings({ fields: { owner: { header: h } } }).fields.owner.header).toBe(h);
+  });
+  it("names a tab in words, not by its key", () => {
+    const s = cleanSettings({ source: { tabs: { aud: { name: "Audits", joinColumn: "" } } } });
+    const errs = validateSettings(s);
+    expect(errs.some((e) => e.startsWith("The Audits tab joins on"))).toBe(true);
+    expect(errs.join(" ")).not.toMatch(/The aud tab/);
   });
 });

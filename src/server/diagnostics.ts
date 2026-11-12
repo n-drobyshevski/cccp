@@ -87,7 +87,7 @@ export function diagnosticsReport(): DiagnosticsReport {
   if (registerRows !== null && registerRows > REGISTER_WARN_ROWS) warnings.push("The register has " + registerRows + " rows: above " + REGISTER_WARN_ROWS + ".");
 
   const propertyBytes: Record<string, number | null> = {};
-  const keys = [PROP_KEYS.allowedUsers, PROP_KEYS.allowedAdmins, ...Object.values(SECTION_PROPS), PROP_KEYS.sharedViews, "ERROR_LOG"];
+  const keys = [PROP_KEYS.allowedUsers, PROP_KEYS.allowedAdmins, ...Object.values(SECTION_PROPS), PROP_KEYS.sharedViews, "RECENT_ERRORS"];
   for (const k of keys) propertyBytes[k] = safe("prop " + k, () => utf8ByteLength(getProp(k) ?? ""), null as number | null);
 
   return {

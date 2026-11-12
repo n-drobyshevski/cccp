@@ -1,6 +1,6 @@
 // Shared saved views: the SHARED_VIEWS Script Property, at most 40 views and 8000 bytes,
 // written only by admins (api.ts re-checks the role; the endpoint table gates it first).
-// Each write is under the script lock and bumps CFG_GEN, because the bootstrap core carries
+// Each write is under the script lock and bumps VIEWS_GEN (not CFG_GEN, the settings save base), because the bootstrap core carries
 // the list. Personal views never come here: they live in the viewer's own localStorage.
 
 import { ApiError } from "./errors";
@@ -9,7 +9,7 @@ import { cleanView, validateSharedViews, validateView } from "../domain/viewStat
 import type { SavedView } from "../domain/types";
 import { withScriptLock } from "./locks";
 import { getJsonProp, PROP_KEYS, putJsonProp } from "./props";
-import { bumpCfgGen } from "./serverCache";
+import { bumpViewsGen } from "./serverCache";
 
 export const MAX_VIEWS = 40;
 
@@ -48,7 +48,7 @@ export function saveSharedView(input: unknown, actor: string): { views: SavedVie
     const problems = validateSharedViews(next);
     if (problems.length) throw new ApiError("error", problems.join(" "));
     putJsonProp(PROP_KEYS.sharedViews, next);
-    bumpCfgGen();
+    bumpViewsGen();
     console.log(JSON.stringify({ sharedView: "saved", actor, id: view.id, name: view.name }));
     return { views: next, id: view.id };
   });
@@ -61,7 +61,7 @@ export function deleteSharedView(id: unknown, actor: string): { views: SavedView
     const next = list.filter((v) => v.id !== id);
     if (next.length === list.length) throw new ApiError("error", "That shared view no longer exists.");
     putJsonProp(PROP_KEYS.sharedViews, next);
-    bumpCfgGen();
+    bumpViewsGen();
     console.log(JSON.stringify({ sharedView: "deleted", actor, id }));
     return { views: next };
   });

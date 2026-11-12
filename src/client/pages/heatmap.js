@@ -19,13 +19,13 @@ import { navigate, queryFor } from "../state/url.js";
 import { PILLARS } from "../../domain/types";
 import { PILLAR_LABEL, STATUS_WORD } from "../../domain/facets";
 import { runQuery } from "../../domain/query";
-import { HEAT_STACK, OPEN_ALL_MAX, heatmapModel } from "../../domain/heatmap";
+import { HEAT_STACK, heatmapModel, isOpenAll } from "../../domain/heatmap";
 
 let open = null;
 let closedSmall = new Set();
 let memo = null;
 
-const isSmall = (m) => m.total <= OPEN_ALL_MAX || m.groups.length === 1;
+const isSmall = isOpenAll;
 
 const tierMark = (a) => a.tier
   ? html`<span class="tier t${a.tier}">T${a.tier}</span>`

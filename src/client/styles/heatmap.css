@@ -25,3 +25,5 @@
 .sb i.none { background: var(--line2); }
 .sbw small { font: 600 11px var(--mono); color: var(--bad); min-width: 18px; text-align: right; }
 .hint { font-size: 12px; }
+
+@media (prefers-reduced-motion: reduce) { .gb svg { transition: none; } }

@@ -14,6 +14,7 @@ import { exportToSheet as exportSheet, type ExportResult } from "./exportSheet";
 import { diagnosticsReport, type DiagnosticsReport } from "./diagnostics";
 import { ApiError, recordError, type ErrorKind } from "./errors";
 import { PROP_KEYS, setProp } from "./props";
+import { withScriptLock } from "./locks";
 import { getRegisterPayload, reloadRegister } from "./registerStore";
 import { requireRole } from "./roles";
 import { sheetIdFrom } from "../domain/settings";
@@ -88,11 +89,28 @@ export function getAccess(_p?: unknown): ApiResult<Record<string, unknown>> {
 }
 
 /** Add or remove people. Owner or admin. Re-checks: the panel is not the boundary. */
-export function saveAccess(p?: { users?: unknown }): ApiResult<{ users: string[] }> {
+export function saveAccess(p?: { users?: unknown; base?: unknown }): ApiResult<{ users: string[] }> {
   return run("saveAccess", () => {
     if (!access.canEditUsers()) throw new Error("Only the owner or an admin can change access.");
-    const before = access.currentUsers();
     const list = access.validateAddresses(p?.users);
+    return withScriptLock(() => saveUsersLocked(list, p?.base));
+  });
+}
+
+/** A list the client read earlier must still be the stored one, or its whole-list write would revoke someone else's edit. */
+function checkBase(base: unknown, current: string[], what: string, ignore = ""): void {
+  if (base === undefined) return;
+  // The panel shows the owner apart from the list, so the owner never counts as a difference.
+  const norm = (l: string[]): string => l.filter((e) => e !== ignore).sort().join(",");
+  if (norm(access.validateAddresses(base)) !== norm(current)) {
+    throw new ApiError("conflict", "Someone else changed the " + what + " since you opened them. Reload to see their changes, then save again.");
+  }
+}
+
+function saveUsersLocked(list: string[], base: unknown): { users: string[] } {
+  {
+    const before = access.currentUsers();
+    checkBase(base, before, "access list", access.ownerEmail().trim().toLowerCase());
     // The owner is always written in: redundant with the identity rule, but it keeps the
     // property self-documenting for whoever opens Project Settings.
     const owner = access.ownerEmail().trim().toLowerCase();
@@ -100,18 +118,21 @@ export function saveAccess(p?: { users?: unknown }): ApiResult<{ users: string[]
     setProp(PROP_KEYS.allowedUsers, withOwner.join(", "));
     logAccessChange("users", access.check().email, before, withOwner);
     return { users: withOwner };
-  });
+  }
 }
 
 /** Add or remove admins. OWNER ONLY: this check is what keeps the admin tier real. */
-export function saveAdmins(p?: { admins?: unknown }): ApiResult<{ admins: string[] }> {
+export function saveAdmins(p?: { admins?: unknown; base?: unknown }): ApiResult<{ admins: string[] }> {
   return run("saveAdmins", () => {
     if (!access.canEditAdmins()) throw new Error("Only the owner can change admins.");
-    const before = access.currentAdmins();
     const list = access.validateAddresses(p?.admins);
-    setProp(PROP_KEYS.allowedAdmins, list.join(", "));
-    logAccessChange("admins", access.check().email, before, list);
-    return { admins: list };
+    return withScriptLock(() => {
+      const before = access.currentAdmins();
+      checkBase(p?.base, before, "admins");
+      setProp(PROP_KEYS.allowedAdmins, list.join(", "));
+      logAccessChange("admins", access.check().email, before, list);
+      return { admins: list };
+    });
   });
 }
 

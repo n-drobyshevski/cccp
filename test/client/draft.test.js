@@ -128,7 +128,7 @@ describe("tab marks, bar and problems", () => {
   });
 
   it("keyForSentence maps the domain sentences", () => {
-    expect(keyForSentence("The ciat tab joins on the application id, so it needs the name of its id column.")).toBe("source.tabs.ciat.joinColumn");
+    expect(keyForSentence("The CIAT tab joins on the application id, so it needs the name of its id column.")).toBe("source.tabs.ciat.joinColumn");
     expect(keyForSentence("“Owner” is mapped to a column of a tab that is not used. Choose a tab.")).toBe("fields.owner");
     expect(keyForSentence("The display settings are too large to save")).toBe("display.opensOn");
     expect(keyForSentence("Something else")).toBeNull();

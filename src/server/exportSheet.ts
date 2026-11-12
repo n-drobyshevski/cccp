@@ -30,7 +30,7 @@ export const SHEET_TAB = "Applications";
 const TITLE_MAX = 80;
 
 export interface ExportParams { ids?: unknown; columns?: unknown; title?: unknown }
-export interface ExportResult { id: string; url: string; rows: number }
+export interface ExportResult { id: string; url: string; rows: number; shared: boolean }
 
 const clean = (v: unknown): string => String(v == null ? "" : v).replace(/[\u0000-\u001f\u007f]+/g, " ").replace(/\s+/g, " ").trim();
 
@@ -133,9 +133,10 @@ export function exportToSheet(p?: ExportParams): ExportResult {
 
   // The deployer owns the file already; sharing it with themselves is refused by Drive.
   const owner = access.ownerEmail().trim().toLowerCase();
-  if (email !== "" && email.trim().toLowerCase() !== owner) {
+  const share = email !== "" && email.trim().toLowerCase() !== owner;
+  if (share) {
     Drive!.Permissions!.create({ type: "user", role: "writer", emailAddress: email }, id, { sendNotificationEmail: false });
   }
   console.log(JSON.stringify({ export: "sheet", actor: email, rows: rows.length, columns: columns.map((c) => c.key), id }));
-  return { id, url: String(created.spreadsheetUrl || ""), rows: rows.length };
+  return { id, url: String(created.spreadsheetUrl || ""), rows: rows.length, shared: share };
 }

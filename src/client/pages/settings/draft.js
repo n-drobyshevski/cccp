@@ -14,7 +14,7 @@ import { settingsForm } from "gas_shared/ui/settingsForm.js";
 import { guardUnsaved } from "gas_shared/ui/accessSave.js";
 import { FIELDS } from "../../../domain/fields";
 import { RULE_BY_ID } from "../../../domain/rules";
-import { RULE_PARAMS, applyPatch, sheetIdFrom, validateSettings } from "../../../domain/settings";
+import { RULE_PARAMS, TAB_NAMES, applyPatch, sheetIdFrom, validateSettings } from "../../../domain/settings";
 import { TAB_KEYS } from "../../../domain/types";
 
 export const SETTINGS_TABS = [
@@ -169,7 +169,10 @@ export function keyForSentence(sentence) {
   let m = /^The Applications tab needs a name/.exec(sentence);
   if (m) return "source.tabs.apps.name";
   m = /^The (\w+) tab joins on/.exec(sentence);
-  if (m && TAB_KEYS.indexOf(m[1]) >= 0) return "source.tabs." + m[1] + ".joinColumn";
+  if (m) {
+    const tk = TAB_KEYS.find((k) => TAB_NAMES[k] === m[1]);
+    if (tk) return "source.tabs." + tk + ".joinColumn";
+  }
   if (/^The Application id field/.test(sentence)) return "fields.id";
   if (/^The Name field/.test(sentence)) return "fields.name";
   m = /^“(.+)” is mapped to a column of a tab that is not used/.exec(sentence);

@@ -99,10 +99,14 @@ export function drpResult(v: unknown): DrpResult | null {
   if (t === null) return null;
   const k = t.toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g, "");
   if (/\b(fail|failed|failure|ko|ech\w*|not passed|unsuccessful)\b/.test(k)) return "failed";
+  // A negated pass word is a failure, not a pass: 'not ok', 'non reussi', 'pas valide'.
+  if (/\b(not|non|pas|no)\s+(?:\w+\s+)?(pass\w*|ok|success\w*|reussi\w*|valide\w*)\b/.test(k)) return "failed";
   if (/\b(pass|passed|ok|success|successful|reussi\w*|valide\w*)\b/.test(k)) return "passed";
   return null;
 }
 
+const CONJ = new Set(["or", "and", "ou", "et", "/", "&"]);
+const SEVERITIES = new Set(["critical", "critique", "critiques", "high", "major", "majeur", "majeure", "medium", "low", "minor", "mineur"]);
 const NEGATIONS = new Set(["no", "none", "zero", "without", "aucun", "aucune", "sans", "non", "nil"]);
 
 /**
@@ -113,7 +117,7 @@ const NEGATIONS = new Set(["no", "none", "zero", "without", "aucun", "aucune", "
 export function findingCount(textValue: unknown, word: string): number | null {
   const t = text(textValue);
   if (t === null) return null;
-  const s = t.toLowerCase();
+  const s = t.toLowerCase().replace(/\bnon-/g, "non ");
   const w = word.toLowerCase();
   const re = new RegExp("\\b" + w.replace(/[.*+?^${}()|[\]\\]/g, "\\$&") + "\\b", "g");
   let total = 0;
@@ -122,13 +126,21 @@ export function findingCount(textValue: unknown, word: string): number | null {
     const before = s.slice(0, m.index).trimEnd().split(/\s+/).slice(-2);
     const prev = before[before.length - 1] ?? "";
     const prev2 = before.length > 1 ? before[0]! : "";
-    const after = /^\s*[:=(]\s*(\d+)/.exec(s.slice(m.index + w.length));
+    const after = /^\s*[:=(\u2013-]\s*(\d+|none|no|zero|nil|aucun\w*)\b/.exec(s.slice(m.index + w.length));
+    // A negation carries across a run of 'or'/'and' joined severities: 'no high or critical'.
+    const carried = (): boolean => {
+      const toks = s.slice(0, m!.index).split(/[\s,]+/).filter(Boolean);
+      let i = toks.length - 1;
+      if (!CONJ.has(toks[i] ?? "")) return false;
+      while (i >= 0 && (CONJ.has(toks[i]!) || SEVERITIES.has(toks[i]!))) i--;
+      return i >= 0 && i < toks.length - 1 && NEGATIONS.has(toks[i]!);
+    };
     const num = (x: string) => (/^\d+$/.test(x) ? Number(x) : /^x?(\d+)x?$/.test(x) ? Number(/(\d+)/.exec(x)![1]) : null);
     let n: number | null = null;
-    if (NEGATIONS.has(prev) || (prev === "x" && NEGATIONS.has(prev2))) n = 0;
+    if (NEGATIONS.has(prev) || (prev === "x" && NEGATIONS.has(prev2)) || carried()) n = 0;
     else if (num(prev) !== null) n = num(prev);
     else if (prev === "x" && prev2 && num(prev2) !== null) n = num(prev2);
-    else if (after) n = Number(after[1]);
+    else if (after) n = /^\d/.test(after[1]!) ? Number(after[1]) : 0;
     else n = 1;
     total += n ?? 1;
   }

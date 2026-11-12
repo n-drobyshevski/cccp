@@ -44,7 +44,7 @@ export function statusKey(r: Row): number {
 const LIFECYCLE_ORDER = ["ALPHA", "BETA", "EARLY_ACCESS", "GENERAL_AVAILABILITY", "PRODUCTION", "END_OF_GROWTH", "DECOMMISSIONING", "END_OF_SUPPORT", "END_OF_LIFE"];
 export function lifecycleIndex(v: string | null): number | null {
   if (v == null || v.trim() === "") return null;
-  const i = LIFECYCLE_ORDER.indexOf(v.trim().toUpperCase().replace(/\s+/g, "_"));
+  const i = LIFECYCLE_ORDER.indexOf(v.trim().toUpperCase().replace(/[\s-]+/g, "_"));
   return i < 0 ? LIFECYCLE_ORDER.length : i;
 }
 

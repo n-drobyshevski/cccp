@@ -21,13 +21,14 @@ import type { SourceMeta } from "../domain/payload";
 import { BUILD_ID } from "../vendor/gas_shared/server/buildInfo";
 import * as access from "./access";
 import { peekRegisterEntry, registerEntry } from "./registerStore";
-import { cached, cfgGen } from "./serverCache";
+import { cached, cfgGen, TTL_MIN_SEC } from "./serverCache";
 import { listSharedViews } from "./sharedViews";
 import { loadSettings } from "./settingsStore";
 
 const CORE = "core";
 
-const DEGRADED_TTL_SEC = 30;
+// The cache clamps every TTL to its minimum, so a degraded core is kept for that long.
+const DEGRADED_TTL_SEC = TTL_MIN_SEC;
 
 function unreachableMeta(): SourceMeta {
   const issues: Issues = { missingHeaders: [], missingTabs: TAB_KEYS.slice(), unmatched: [], duplicateIds: [], unparseable: [], unmapped: [] };
@@ -63,6 +64,11 @@ function buildCore(): { core: BootstrapCore; ttlSec: number } {
 
 /** The viewer-free core, from the cache when warm. */
 export function getCore(): BootstrapCore {
+  return coreWithWarm().core;
+}
+
+/** The core and the register entry peeked once after it (building the core may have primed it). */
+function coreWithWarm(): { core: BootstrapCore; warm: ReturnType<typeof peekRegisterEntry> } {
   let ttl = 600;
   const core = cached<BootstrapCore>(CORE, undefined, () => {
     const b = buildCore();
@@ -71,7 +77,7 @@ export function getCore(): BootstrapCore {
   }, () => ttl, "cfg");
   // The two entries expire on their own; the freshest source facts win.
   const warm = peekRegisterEntry();
-  return warm && core.sourceMeta.title !== "" ? { ...core, sourceMeta: warm.meta } : core;
+  return { core: warm && core.sourceMeta.title !== "" ? { ...core, sourceMeta: warm.meta } : core, warm };
 }
 
 export function todayIn(tz: string): string {
@@ -103,9 +109,8 @@ export function getLive(core: BootstrapCore): BootstrapLive {
 }
 
 export function getBootstrap(): BootstrapResponse {
-  const core = getCore();
+  const { core, warm } = coreWithWarm();
   const res: BootstrapResponse = { core, live: getLive(core) };
-  const warm = peekRegisterEntry();
   if (warm && payloadBytes(warm.register) <= REGISTER_INLINE_MAX_BYTES) res.register = warm.register;
   return res;
 }

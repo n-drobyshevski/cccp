@@ -29,6 +29,8 @@ export function dots(status) {
 }
 
 /** The C C C P column head that goes with the dots. */
+export const dotsLegend = () => "Status: " + PILLARS.map((p) => PILLAR_LABEL[p]).join(" · ");
+
 export function dotsHead() {
   return html`<span class="dhead" aria-hidden="true">${PILLARS.map((p) => html`<span data-tip="${PILLAR_LABEL[p]}">${PILLAR_LETTER[p]}</span>`)}</span>`;
 }

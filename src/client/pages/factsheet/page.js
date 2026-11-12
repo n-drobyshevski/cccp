@@ -15,6 +15,7 @@ import { store } from "../../state/store.js";
 import { linkFor, navigate } from "../../state/url.js";
 import { SECTION_KEYS, factsheetModel, findInSections, pushRecent, recentFor, reviewMonthsOf } from "../../../domain/factsheet";
 import { headerView, tabsView } from "./header.js";
+import { tabKeys } from "../../lib/tabKeys.js";
 import { barView, sectionsView } from "./sections.js";
 import { peopleView } from "./people.js";
 import { sidebarView } from "./dqSidebar.js";
@@ -74,7 +75,7 @@ export const factsheetPage = {
     let collapsed = sidebarCollapsed();
     let model = modelFor(row, store.get());
 
-    renderRegion(el, html`<div class="lxwrap${collapsed ? " sbc" : ""}" data-page="app" data-app-id="${id}"><article class="panel fs lxs"><div data-region="fshead"></div><div data-region="fsbody"></div></article><div data-region="fsside"></div></div>`, { keepFocus: false, keepScroll: false });
+    renderRegion(el, html`<div class="lxwrap${collapsed ? " sbc" : ""}" data-page="app" data-app-id="${id}"><article class="panel fs lxs"><div data-region="fshead"></div><div data-region="fsbody" id="fs-panel" role="tabpanel"></div></article><div data-region="fsside"></div></div>`, { keepFocus: false, keepScroll: false });
     const wrap = qs(el, ".lxwrap");
     const head = qs(el, '[data-region="fshead"]');
     const body = qs(el, '[data-region="fsbody"]');
@@ -116,6 +117,7 @@ export const factsheetPage = {
     };
 
     const offs = [];
+    offs.push(tabKeys(el));
     offs.push(delegate(el, "click", "[data-act]", (ev, b) => {
       const act = b.getAttribute("data-act");
       if (act === "fs-back") navigate({ route: cameFrom, app: null, tab: null, view: null }, "push");

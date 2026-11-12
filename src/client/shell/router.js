@@ -108,17 +108,29 @@ function render(el) {
 // The settings page switches its own tabs, so a tab change there is not a new page.
 const keyOf = (s) => [s.route, s.app, s.route === "settings" ? "" : s.tab, s.boot.status, s.boot.message].join("|");
 
+// Keyboard focus follows the route: into a fact sheet it lands on the title, and back out of one it
+// returns to the control that opened it (the name button, or the landscape tile), if it is drawn.
+function restoreFocus(el, s, p) {
+  let target = null;
+  if (s.route === "app") target = '[data-k="fs-title"]';
+  else if (p.route === "app" && p.app) target = '[data-k="open-' + p.app + '"],[data-k="tile-' + p.app + '"]';
+  if (!target) return;
+  const b = el.querySelector(target);
+  if (b && typeof b.focus === "function") b.focus({ preventScroll: true });
+}
+
 /** Mount the router in `el`. hooks: {retry}. Returns a stop function. */
 export function startRouter(el, h) {
   hooks = h || {};
   let last = keyOf(store.get());
   render(el);
-  const off = store.subscribe((s) => {
+  const off = store.subscribe((s, p) => {
     const k = keyOf(s);
     if (k === last) return;
     const routeChanged = k.split("|")[0] !== last.split("|")[0];
     last = k;
     render(el);
+    if (routeChanged && p) restoreFocus(el, s, p);
     if (routeChanged && typeof window !== "undefined" && window.scrollTo) window.scrollTo(0, 0);
   });
   const offClick = delegate(el, "click", "[data-act]", (ev, b) => {

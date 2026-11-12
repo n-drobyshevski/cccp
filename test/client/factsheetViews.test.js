@@ -1,7 +1,8 @@
 import { describe, expect, it } from "vitest";
 import { headerView, tabsView } from "../../src/client/pages/factsheet/header.js";
 import { peopleView } from "../../src/client/pages/factsheet/people.js";
-import { barView, sectionsView } from "../../src/client/pages/factsheet/sections.js";
+import { tagsView, tierBadge } from "../../src/client/components/tags.js";
+import { barView, sectionsView, valueView } from "../../src/client/pages/factsheet/sections.js";
 import { sidebarView } from "../../src/client/pages/factsheet/dqSidebar.js";
 import { factsheetModel } from "../../src/domain/factsheet";
 import { linkFor } from "../../src/client/state/url.js";
@@ -19,6 +20,25 @@ const m = factsheetModel(evil, ctx);
 /** Markup with every quoted attribute value blanked, so only real attribute names remain. */
 const bare = (h) => h.replace(/"[^"]*"/g, '""').replace(/>[^<]*</g, "><");
 const all = () => s(headerView(m.header, "list", true)) + s(tabsView("sheet", 3)) + s(barView(EVIL)) + s(sectionsView(m.sections, new Set(), false)) + s(peopleView(m.people)) + s(sidebarView(m.dq, [{ id: "r1", name: EVIL, status: evil.status }], false));
+
+describe("fact sheet no-tier badge", () => {
+  it("the header keeps the dashed no-tier badge, and Identity > Tier draws it too", () => {
+    const h = s(tagsView(null, []));
+    expect(h).toContain('class="tier t0"');
+    expect(h).toContain("No tiering set");
+    expect(s(valueView({ kind: "tier", value: null }))).toContain("No tiering set");
+    expect(s(valueView({ kind: "tier", value: 2 }))).toContain("T2");
+  });
+  it("the badge is focusable so the tip works from the keyboard", () => {
+    expect(s(tierBadge(null))).toContain('tabindex="0"');
+  });
+  it("the fact sheet tabs use roving tabindex with aria-controls", () => {
+    const out = s(tabsView("people", 2));
+    expect(out.match(/tabindex="0"/g)).toHaveLength(1);
+    expect(out).toContain('id="fs-tab-people" aria-controls="fs-panel" tabindex="0"');
+    expect(out).toContain('tabindex="-1"');
+  });
+});
 
 describe("fact sheet views: XSS battery", () => {
   it("escapes every hostile value", () => {

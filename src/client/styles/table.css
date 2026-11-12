@@ -25,10 +25,14 @@ th .sh:hover { color: var(--fg); }
 th .sh svg { width: 10px; height: 10px; opacity: 0.35; flex: none; }
 th .sh.on svg { opacity: 1; color: var(--accent); }
 td { line-height: 1.2; padding: 10px 14px; border-bottom: 1px solid var(--line); white-space: nowrap; }
-tbody tr { cursor: pointer; }
-tbody tr:hover td, tbody tr:focus-within td { background: var(--surface2); }
+/* Only rows that open something look clickable: the List and the Overview domains. */
+table[data-table="list"] tbody tr, table[data-table="domains"] tbody tr { cursor: pointer; }
+table[data-table="list"] tbody tr:hover td, table[data-table="list"] tbody tr:focus-within td,
+table[data-table="domains"] tbody tr:hover td, table[data-table="domains"] tbody tr:focus-within td { background: var(--surface2); }
 tbody tr:last-child td { border-bottom: 0; }
-.nm { display: block; max-width: 300px; overflow: hidden; text-overflow: ellipsis; font-weight: 500; border: 0; background: none; padding: 0; text-align: left; }
+.ell { display: block; max-width: 170px; overflow: hidden; text-overflow: ellipsis; }
+td[data-col="o"] .ell, td[data-col="so"] .ell { max-width: 150px; }
+.nm { display: block; max-width: 260px; overflow: hidden; text-overflow: ellipsis; font-weight: 500; border: 0; background: none; padding: 0; text-align: left; }
 tr:hover .nm, .nm:focus-visible { color: var(--accent); }
 .more { display: flex; justify-content: center; padding: 12px; border-top: 1px solid var(--line); }
 .empty { padding: 48px 16px; display: flex; flex-direction: column; align-items: center; gap: 10px; text-align: center; color: var(--muted); }

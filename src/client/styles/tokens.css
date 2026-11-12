@@ -83,9 +83,10 @@
    warning fill: darker than --warn in light so white text on it reaches 4.5:1. */
 :root {
   --violet: oklch(0.5 0.17 300);
-  --teal: oklch(0.5 0.1 190);
+  --teal: oklch(0.45 0.1 190);
   --title: oklch(0.38 0.08 265);
-  --warn-strong: #9a5f00;
+  --warn-strong: #8c5800;
+  --ok-text: #17714a;
 }
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme="light"]) {
@@ -93,6 +94,7 @@
     --teal: oklch(0.8 0.09 190);
     --title: oklch(0.85 0.05 265);
     --warn-strong: #e2a03a;
+    --ok-text: #4bc088;
   }
 }
 :root[data-theme="dark"] {
@@ -100,4 +102,5 @@
   --teal: oklch(0.8 0.09 190);
   --title: oklch(0.85 0.05 265);
   --warn-strong: #e2a03a;
+  --ok-text: #4bc088;
 }

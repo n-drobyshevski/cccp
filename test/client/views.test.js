@@ -207,6 +207,20 @@ describe("the tab row view", () => {
     expect(out).toContain("Update view");
   });
 
+  it("keeps the cue while the name form is open, as the mockup does", () => {
+    const own = { id: "p1", name: "Mine", scope: "personal", route: "list", state: body() };
+    const out = s(viewTabsView(model({ currentViewId: "p1", q: "x" }, { saving: true }, { personal: [own] })));
+    expect(out).toContain("data-cue");
+    expect(out).toContain('data-k="vname"');
+  });
+
+  it("only the open view is in the tab order", () => {
+    const out = s(viewTabsView(model({})));
+    expect(out).toMatch(/data-k="vt-[^"]*" aria-selected="true"/);
+    expect((out.match(/tabindex="0"/g) || []).length).toBe(1);
+    expect(out).toContain('tabindex="-1"');
+  });
+
   it("a viewer who edits a shared view is offered Save as view, not Update", () => {
     const out = s(viewTabsView(model({ currentViewId: "sh1", f: { tier: ["T2"] } })));
     expect(out).toContain("Save as view");

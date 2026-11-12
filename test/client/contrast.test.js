@@ -6,11 +6,13 @@ import { describe, expect, it } from "vitest";
 const css = readFileSync(resolve(__dirname, "../../src/client/styles/tokens.css"), "utf8").replace(/\/\*[\s\S]*?\*\//g, "");
 
 function block(open) {
-  const i = css.indexOf(open);
-  if (i < 0) throw new Error("no block " + open);
-  const end = css.indexOf("}", i);
   const out = {};
-  for (const m of css.slice(css.indexOf("{", i) + 1, end).matchAll(/--([\w-]+)\s*:\s*([^;]+);/g)) out[m[1]] = m[2].trim();
+  let i = css.indexOf(open);
+  if (i < 0) throw new Error("no block " + open);
+  for (; i >= 0; i = css.indexOf(open, i + 1)) {
+    const end = css.indexOf("}", i);
+    for (const m of css.slice(css.indexOf("{", i) + 1, end).matchAll(/--([\w-]+)\s*:\s*([^;]+);/g)) out[m[1]] = m[2].trim();
+  }
   return out;
 }
 
@@ -61,6 +63,18 @@ for (const [name, t] of [["light", light], ["dark", dark]]) {
     });
     it("status colours reach 3:1 on cards", () => {
       for (const s of ["ok", "warn", "bad", "none"]) expect(ratio(t[s], t.surface), s).toBeGreaterThanOrEqual(3);
+    });
+    it("small status text (the changed cue, result pills, tags) reaches 4.5:1", () => {
+      const mix = (a, b, pct) => {
+        const [x, y] = [rgbOf(a), rgbOf(b)];
+        return "#" + x.map((c, i) => Math.round((c * pct + y[i] * (1 - pct)) * 255).toString(16).padStart(2, "0")).join("");
+      };
+      for (const bg of ["surface", "surface2"]) {
+        expect(ratio(t["warn-strong"], t[bg]), "warn-strong on " + bg).toBeGreaterThanOrEqual(4.5);
+        expect(ratio(t["ok-text"], t[bg]), "ok-text on " + bg).toBeGreaterThanOrEqual(4.5);
+      }
+      expect(ratio(t.teal, mix(t.teal, t.surface, 0.16))).toBeGreaterThanOrEqual(4.5);
+      expect(ratio(t["warn-strong"], mix(t.warn, t.surface, 0.18))).toBeGreaterThanOrEqual(4.5);
     });
     it("the tooltip text reads on its background", () => {
       expect(ratio(t["tip-fg"], t["tip-bg"])).toBeGreaterThanOrEqual(4.5);

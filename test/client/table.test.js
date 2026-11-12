@@ -47,6 +47,18 @@ describe("sortable headers", () => {
     expect(out).toContain("dhead");
     expect(out).toContain('<span class="sr-only">Status</span>');
   });
+  it("the status header button carries the pillar legend as its tip, so focus shows it", () => {
+    expect(s(headCell(col("st"), "n", false))).toContain('data-tip="Status: Cyber · Compliance · Continuity · Platform"');
+    expect(s(headCell(col("n"), "n", false))).not.toContain("data-tip");
+  });
+  it("long domain, owner and officer values are cut in the cell and keep the full text in the tip", () => {
+    const r = rows[0];
+    for (const k of ["d", "o", "so"]) {
+      const out = s(cell(col(k), { ...r, app: { ...r.app, domain: "Long domain", owner: "Long owner", securityOfficer: "Long officer" } }));
+      expect(out).toContain('class="ell"');
+      expect(out).toMatch(/data-tip="Long (domain|owner|officer)"/);
+    }
+  });
   it("a first click follows the column's own direction, a second reverses it", () => {
     expect(sortAfter("n", false, col("d"))).toEqual({ sort: "d", desc: false });
     expect(sortAfter("n", false, col("st"))).toEqual({ sort: "st", desc: true });

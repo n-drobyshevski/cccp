@@ -4,6 +4,7 @@
 // storage is refused the Save control hides (an admin can still publish a shared view). The
 // view of the row is pure (viewTabsView); mountViewTabs wires it to the store.
 import { delegate, qs, renderRegion } from "../lib/dom.js";
+import { tabKeys } from "../lib/tabKeys.js";
 import { confirmDialog } from "../lib/confirm.js";
 import { copyText } from "../lib/clipboard.js";
 import { html } from "../lib/html.js";
@@ -43,10 +44,10 @@ export function modelOf(s, local, env) {
 }
 
 export function viewTabsView(m) {
-  const tab = (v) => html`<button type="button" role="tab" class="vt" data-act="view" data-id="${v.id}" data-k="vt-${v.id}" aria-selected="${v.id === m.current ? "true" : "false"}">${v.scope === "shared" ? icon("share") : ""}<span>${v.name}</span></button>`;
+  const tab = (v) => html`<button type="button" role="tab" class="vt" tabindex="${v.id === m.current ? "0" : "-1"}" data-act="view" data-id="${v.id}" data-k="vt-${v.id}" aria-selected="${v.id === m.current ? "true" : "false"}">${v.scope === "shared" ? icon("share") : ""}<span>${v.name}</span></button>`;
   const form = html`<span class="vform"><input class="inp" type="text" data-k="vname" maxlength="${VIEW_NAME_MAX}" placeholder="View name" aria-label="View name" value="${m.name}" autocomplete="off">${m.canShare ? (m.shareOnly ? html`<span class="vshare">Shared with everyone</span>` : html`<label class="vshare"><input type="checkbox" data-act="vshare" data-k="vshare"${m.share ? html` checked` : ""}><span>Share with everyone</span></label>`) : ""}<button type="button" class="btn primary sm" data-act="vsave" data-k="vsave">Save</button><button type="button" class="btn sm" data-act="vcancel" data-k="vcancel">Cancel</button>${m.error ? html`<span class="vfail" role="alert">${m.error}</span>` : ""}</span>`;
   const add = m.saving ? form : m.canSave ? html`<button type="button" class="add" data-act="vnew" data-k="vnew">${icon("plus")}<span>Save view</span></button>` : "";
-  const cue = m.modified && !m.saving
+  const cue = m.modified
     ? html`<span class="modnote" data-cue>Filters changed<span class="dotsep" aria-hidden="true"> · </span><button type="button" data-act="vupdate" data-k="vupdate">${m.canUpdate ? "Update view" : "Save as view"}</button></span>`
     : "";
   const cur = m.currentView;
@@ -137,6 +138,7 @@ export function mountViewTabs(slot) {
   }
 
   const offs = [];
+  offs.push(tabKeys(slot));
   offs.push(delegate(slot, "click", "[data-act]", (ev, b) => {
     const act = b.getAttribute("data-act");
     const m = model();

@@ -23,7 +23,7 @@ export function headerView(h, from, sheetEnabled) {
   return html`<div class="top"><button type="button" class="backbtn" data-act="fs-back" data-k="fs-back" aria-label="${"Back to " + back.toLowerCase()}">${icon("arrowleft")}Back</button>
     <nav class="crumbs" aria-label="Breadcrumb"><button type="button" data-act="fs-back" data-k="fs-crumb-back">${back}</button><span aria-hidden="true">/</span><button type="button" data-act="crumb-domain" data-dom="${h.domain}" data-k="fs-crumb-dom">${h.domain}</button><span aria-hidden="true">/</span><span aria-current="page">${h.name}</span></nav></div>
   <div class="hx">
-    <div class="r1"><h1>${h.name}</h1><span class="big ${LEVEL_CLASS[h.completeness.level]}" data-fs="pct" tabindex="0" role="img" aria-label="${big + " complete. " + bigTip}" data-tip="${bigTip}">${big}</span>
+    <div class="r1"><h1 tabindex="-1" data-k="fs-title">${h.name}</h1><span class="big ${LEVEL_CLASS[h.completeness.level]}" data-fs="pct" tabindex="0" role="img" aria-label="${big + " complete. " + bigTip}" data-tip="${bigTip}">${big}</span>
       <div class="acts">${sealView(h.seal)}
         <button type="button" class="icon-btn" data-act="copy" data-k="fs-copy" aria-label="Copy link" data-tip="Copy link">${icon("link")}</button>
         ${h.sheetLink && sheetEnabled !== false ? html`<a class="icon-btn" data-act="sheet" data-k="fs-sheet" href="${h.sheetLink}" target="_blank" rel="noopener noreferrer" aria-label="Open row in the Sheet. Needs access to the Sheet." data-tip="Open row in the Sheet. Needs access to the Sheet.">${icon("sheet")}</a>` : ""}</div></div>
@@ -35,5 +35,5 @@ export function headerView(h, from, sheetEnabled) {
 
 /** The Fact sheet | People tabs; the count is the people with a name. */
 export function tabsView(tab, peopleCount) {
-  return html`<div class="ftabs" role="tablist" aria-label="Fact sheet pages"><button type="button" role="tab" data-act="tab" data-v="sheet" data-k="fs-tab-sheet" aria-selected="${tab === "sheet" ? "true" : "false"}">Fact sheet</button><button type="button" role="tab" data-act="tab" data-v="people" data-k="fs-tab-people" aria-selected="${tab === "people" ? "true" : "false"}">People<small>${peopleCount}</small></button></div>`;
+  return html`<div class="ftabs" role="tablist" aria-label="Fact sheet pages"><button type="button" role="tab" id="fs-tab-sheet" aria-controls="fs-panel" tabindex="${tab === "sheet" ? "0" : "-1"}" data-act="tab" data-v="sheet" data-k="fs-tab-sheet" aria-selected="${tab === "sheet" ? "true" : "false"}">Fact sheet</button><button type="button" role="tab" id="fs-tab-people" aria-controls="fs-panel" tabindex="${tab === "people" ? "0" : "-1"}" data-act="tab" data-v="people" data-k="fs-tab-people" aria-selected="${tab === "people" ? "true" : "false"}">People<small>${peopleCount}</small></button></div>`;
 }

@@ -15,12 +15,12 @@ export const unknown = () => html`<span class="mut" aria-hidden="true">—</span
 
 /** One value, by kind. A null value is the dash whatever the kind. */
 export function valueView(r) {
+  if (r.kind === "tier") return tierBadge(r.value === "" ? null : r.value);
   if (r.value === null || r.value === undefined || r.value === "") return unknown();
   switch (r.kind) {
     case "yn": return html`<span class="yn ${r.value === "Yes" ? "yes" : ""} ${r.risk ? "risk" : ""}">${r.value}</span>`;
     case "date": return html`<span class="num">${r.value}</span>${r.age ? html`<span class="age">${r.age}</span>` : ""}`;
     case "res": return html`<span class="res ${r.tone || ""}">${r.value}</span>`;
-    case "tier": return tierBadge(r.value);
     case "hours": return html`<span class="num">${r.value} h</span>`;
     case "person": return personView(r.value);
     case "lc": return lifecycleMark({ key: String(r.value), label: String(r.value) });

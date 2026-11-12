@@ -4,7 +4,7 @@
 import { html, raw } from "../lib/html.js";
 import { nextSort } from "../../vendor/gas_shared/ui/tableModel";
 import { lifecycleLabel } from "../../domain/facets";
-import { dots, dotsHead } from "./dots.js";
+import { dots, dotsHead, dotsLegend } from "./dots.js";
 import { num } from "../lib/format.js";
 
 export const PAGE_STEP = 50;
@@ -37,6 +37,8 @@ export function sortAfter(sort, desc, col) {
 const blank = (v) => v == null || String(v).trim() === "";
 const dash = () => html`<span class="mut" aria-hidden="true">—</span><span class="sr-only">Not set</span>`;
 const plain = (v) => (blank(v) ? dash() : v);
+/** A long text value, cut with an ellipsis in the cell; the full text stays in the DOM and in the tip. */
+const ell = (v) => (blank(v) ? dash() : html`<span class="ell" data-tip="${v}">${v}</span>`);
 
 /** The body cell of one column for one row. */
 export function cell(col, r) {
@@ -44,15 +46,15 @@ export function cell(col, r) {
   switch (col.key) {
     case "n":
       return html`<button type="button" class="nm" data-k="open-${a.id}" data-tip="${a.name}">${a.name}</button>`;
-    case "d": return plain(a.domain);
-    case "sd": return plain(a.subdomain);
-    case "g": return blank(a.supportGroup) ? dash() : html`<span class="mut">${a.supportGroup}</span>`;
+    case "d": return ell(a.domain);
+    case "sd": return ell(a.subdomain);
+    case "g": return blank(a.supportGroup) ? dash() : html`<span class="mut ell" data-tip="${a.supportGroup}">${a.supportGroup}</span>`;
     case "t":
       return a.tier ? html`<span class="tier t${a.tier}">T${a.tier}</span>` : html`<span class="tier t0" data-tip="No tiering set">–<span class="sr-only">No tiering set</span></span>`;
     case "lc":
       return blank(a.lifecycle) ? dash() : html`<span class="lc ${lifecycleClass(a.lifecycle)}">${lifecycleLabel(a.lifecycle)}</span>`;
-    case "o": return plain(a.owner);
-    case "so": return blank(a.securityOfficer) ? html`<span class="mut">None assigned</span>` : a.securityOfficer;
+    case "o": return ell(a.owner);
+    case "so": return blank(a.securityOfficer) ? html`<span class="mut">None assigned</span>` : ell(a.securityOfficer);
     case "ty": return plain(a.typology);
     case "h": return plain(a.hosting);
     case "q":
@@ -68,7 +70,7 @@ export function headCell(col, sort, desc) {
   const dir = on ? (desc ? "descending" : "ascending") : "";
   const icon = on ? (desc ? SORT_ICONS.desc : SORT_ICONS.asc) : SORT_ICONS.none;
   const label = col.key === "st" ? html`${dotsHead()}<span class="sr-only">Status</span>` : col.label;
-  return html`<th scope="col"${dir ? html` aria-sort="${dir}"` : ""}><button type="button" class="sh${on ? " on" : ""}" data-act="sort" data-col="${col.key}" data-k="sort-${col.key}">${label}${raw(icon)}</button></th>`;
+  return html`<th scope="col"${dir ? html` aria-sort="${dir}"` : ""}><button type="button" class="sh${on ? " on" : ""}" data-act="sort" data-col="${col.key}" data-k="sort-${col.key}"${col.key === "st" ? html` data-tip="${dotsLegend()}"` : ""}>${label}${raw(icon)}</button></th>`;
 }
 
 /** The table: `cols` are Column defs, `rows` the rows to draw (already cut to the limit). */

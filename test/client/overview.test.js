@@ -50,19 +50,20 @@ describe("overview views", () => {
     expect(head).not.toContain("Completeness");
     for (const p of ["cyber", "compliance", "continuity", "platform"]) expect(head).toContain(`pc-${p}`);
     const row = h.slice(h.indexOf("<tbody>"), h.indexOf("</tr>", h.indexOf("<tbody>")));
-    expect((row.match(/class="gl /g) || []).length).toBe(4);
-    expect(row).toMatch(/Cyber: (Gap|Needs attention|OK|No data)/);
+    expect((row.match(/data-pillar="/g) || []).length).toBe(4);
+    expect(row).toMatch(/with a Cyber gap in |No Cyber gap in /);
+    expect(row).not.toContain('class="gl ');
   });
-  it("each domain's glyph is the worst status among its applications", () => {
-    for (const d of m.domains) for (const p of ["cyber", "compliance", "continuity", "platform"]) {
-      const rs = fixtureRows().filter((r) => (r.app.domain || "").trim() === d.name || (!r.app.domain && d.name === "NO DOMAIN"));
-      const order = ["bad", "warn", "none", "ok"];
-      const want = order.find((x) => rs.some((r) => r.status[p].status === x)) || "ok";
-      expect(d.worst[p]).toBe(want);
-    }
+  it("each pillar cell is the domain's gap count, a link when above zero and a muted dash at zero", () => {
+    const pg = (n) => ({ n, target: { dom: ["D"], gap: ["Cyber"] } });
+    const one = { ...m, domains: [{ name: "D", apps: 9, gaps: 3, completeness: 50, pillarGaps: { cyber: pg(3), compliance: pg(0), continuity: pg(12), platform: pg(0) }, target: { dom: ["D"] }, gapTarget: {} }] };
+    const h = s(overviewView(one, 0, ""));
+    expect(h).toContain('aria-label="3 applications with a Cyber gap in D"');
+    expect(h).toContain('aria-label="No Compliance gap in D"');
+    expect((h.match(/class="lk pgap"/g) || []).length).toBe(2);
   });
   it("escapes hostile domain names", () => {
-    const bad = { ...m, domains: [{ name: "<img src=x onerror=1>", apps: 1, gaps: 0, completeness: 50, worst: { cyber: "bad", compliance: "ok", continuity: "none", platform: "warn" }, target: { dom: ["x"] }, gapTarget: {} }] };
+    const bad = { ...m, domains: [{ name: "<img src=x onerror=1>", apps: 1, gaps: 0, completeness: 50, pillarGaps: { cyber: { n: 1, target: { dom: ["x"] } }, compliance: { n: 0, target: { dom: ["x"] } }, continuity: { n: 0, target: { dom: ["x"] } }, platform: { n: 0, target: { dom: ["x"] } } }, target: { dom: ["x"] }, gapTarget: {} }] };
     expect(s(overviewView(bad, 0, ""))).not.toContain("<img");
   });
 });

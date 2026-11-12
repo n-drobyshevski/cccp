@@ -8,7 +8,6 @@ import { PILLARS } from "./types";
 import type { Row } from "./facets";
 import { GAP_ORDER, NONE_ASSIGNED, PILLAR_LABEL, TIER_ORDER } from "./facets";
 import { filterRows } from "./query";
-import { worst } from "./rules";
 
 export type Target = Partial<Record<FacetKey, string[]>>;
 
@@ -50,8 +49,8 @@ export interface DomainRow {
   gaps: number;
   /** Mean completeness, whole percent. */
   completeness: number;
-  /** The worst status among the domain's applications, per pillar (bad > warn > none > ok). */
-  worst: Record<Pillar, Status>;
+  /** Per pillar: how many of the domain's applications have a gap there, and the filter for them. */
+  pillarGaps: Record<Pillar, { n: number; target: Target }>;
   /** Reproduces `apps`. */
   target: Target;
   /** Reproduces `gaps`. */
@@ -107,7 +106,10 @@ export function overviewModel(rows: readonly Row[]): Overview {
       apps: n(target),
       gaps: n(gapTarget),
       completeness: Math.round(rs.reduce((s, r) => s + r.pct, 0) / rs.length),
-      worst: Object.fromEntries(PILLARS.map((p) => [p, worst(rs.map((r) => r.status[p].status))])) as Record<Pillar, Status>,
+      pillarGaps: Object.fromEntries(PILLARS.map((p) => {
+        const t: Target = { dom: [name], gap: [PILLAR_LABEL[p]] };
+        return [p, { n: n(t), target: t }];
+      })) as Record<Pillar, { n: number; target: Target }>,
       target,
       gapTarget,
     };

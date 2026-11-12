@@ -72,20 +72,28 @@ test("the title line, four mono figures with Open in inventory, and the pillar n
   await expect(page.locator(".legend span")).toHaveText(["OK", "Needs attention", "Gap", "No data"]);
 });
 
-test("the domains table has four glyph columns; the glyph is the worst status in the domain; a row opens the Inventory on that domain", async ({ page }) => {
+test("the domains table has four pillar gap-count columns; a row opens the Inventory on that domain", async ({ page }) => {
   await page.goto("/?r=overview");
   const head = page.locator("table[data-table=domains] thead th");
   await expect(head).toHaveText(["Domain", "Apps", "With a gap", /CY/, /CO/, /CT/, /PL/]);
   const first = page.locator("table[data-table=domains] tbody tr").first();
-  await expect(first.locator("td.p .gl")).toHaveCount(4);
+  await expect(first.locator("td.p")).toHaveCount(4);
   const name = (await first.locator("button.lk b").first().innerText()).trim();
   const apps = num(await first.locator("td.num").first().innerText());
-  const worstCyber = (await first.locator('td[data-pillar=cyber] .sr-only').innerText()).replace(/^Cyber: /, "");
-  expect(["Gap", "Needs attention", "OK", "No data"]).toContain(worstCyber);
   await first.locator("td").first().click();
   await expect(page.locator("table[data-table=list]")).toBeVisible();
   expect(decodeURIComponent(new URL(page.url()).searchParams.get("dom") || "")).toBe(name);
   expect(num(await page.locator("[data-count=visible]").innerText())).toBe(apps);
+});
+
+test("a pillar gap count opens the Inventory on that domain and pillar, with that many applications", async ({ page }) => {
+  await page.goto("/?r=overview");
+  const cell = page.locator("table[data-table=domains] button.pgap").first();
+  const n = num(await cell.innerText());
+  await cell.click();
+  await expect(page.locator("table[data-table=list]")).toBeVisible();
+  expect(num(await page.locator("[data-count=visible]").innerText())).toBe(n);
+  expect(new URL(page.url()).searchParams.get("gap")).not.toBeNull();
 });
 
 test("'With a gap' opens the Inventory on that domain's gaps", async ({ page }) => {

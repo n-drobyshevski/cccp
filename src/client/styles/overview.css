@@ -42,6 +42,7 @@
 .lk b { font-weight: 600; letter-spacing: 0.02em; text-transform: uppercase; font-size: 14px; }
 .lk:hover { color: var(--accent); }
 .lk.gapn { color: var(--fg); }
+.lk.pgap { color: var(--bad); font-weight: 600; }
 .ov .note { font-size: 13.5px; padding-top: 10px; }
 @media (max-width: 1023px) {
   .two { grid-template-columns: minmax(0, 1fr); gap: 28px; }

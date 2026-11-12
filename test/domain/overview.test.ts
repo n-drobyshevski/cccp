@@ -55,14 +55,18 @@ describe("overview model", () => {
     }
   });
 
-  it("each domain carries the worst status of each pillar among its applications", () => {
-    const order = ["bad", "warn", "none", "ok"] as const;
+  it("each domain counts, per pillar, its applications with a gap there, and the filter reproduces it", () => {
     for (const d of m.domains) {
       const rs = rows.filter((r) => (r.app.domain && r.app.domain.trim() ? r.app.domain.trim() : "NO DOMAIN") === d.name);
       for (const p of ["cyber", "compliance", "continuity", "platform"] as const) {
-        expect(d.worst[p]).toBe(order.find((x) => rs.some((r) => r.status[p].status === x)) ?? "ok");
+        expect(d.pillarGaps[p].n).toBe(rs.filter((r) => r.status[p].status === "bad").length);
+        expect(d.pillarGaps[p].target.dom).toEqual([d.name]);
+        expect(d.pillarGaps[p].target.gap).toHaveLength(1);
       }
     }
+    // Unlike a worst-status glyph, the counts tell domains apart.
+    const cells = m.domains.flatMap((d) => Object.values(d.pillarGaps).map((g) => g.n));
+    expect(new Set(cells).size).toBeGreaterThan(2);
   });
 
   it("stacks bars OK, Attention, Gap, No data", () => {

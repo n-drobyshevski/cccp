@@ -24,8 +24,12 @@ export function initialState() {
     currentViewId: null,
     fs: { tab: "sheet", find: "" },
     settingsDraft: null,
-    // Boot: idle, loading, ready, denied, nosource or error.
+    // Boot: idle, loading (step: access, apps or status), ready, denied, nosource or error.
     boot: { status: "idle", message: "" },
+    // True once the first boot has ended, however it ended: later waits get a page skeleton, not
+    // the splash. refreshing: data is reloading under a page that keeps showing the old data.
+    booted: false,
+    refreshing: false,
     // What the server says about the viewer and the source, set once at boot.
     core: null,
     live: null,

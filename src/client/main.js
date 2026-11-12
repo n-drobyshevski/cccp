@@ -1,5 +1,5 @@
 // Boot. 1) read the bootstrap the page carried, else ask for it; 2) theme; 3) the register:
-// inline, else fetched behind a skeleton; 4) the address. Then the router draws the page.
+// inline, else fetched behind the splash; 4) the address. Then the router draws the page.
 import { isNoSource } from "./state/noSource.js";
 import { initTip } from "./lib/tip.js";
 import * as rpc from "./lib/rpc.js";
@@ -37,25 +37,33 @@ function failure(e) {
 
 let ran = 0;
 
+// A timer, not a frame callback: a hidden tab never runs those, and the boot must not wait on one.
+const paint = () => new Promise((resolve) => setTimeout(resolve, 40));
+
 export async function boot() {
   const mine = ++ran;
-  store.set({ boot: { status: "loading", message: "" } });
+  store.set({ boot: { status: "loading", message: "", step: "access" } });
   try {
     const data = inlineBootstrap() || (await rpc.call("bootstrap"));
     if (mine !== ran) return;
     const { core, live } = data;
     theme.init(core.publicSettings.display.theme);
-    store.set({ core, live });
+    store.set({ core, live, boot: { status: "loading", message: "", step: "apps" } });
     const noSource = isNoSource(core);
     const context = { rules: core.publicSettings.rules, display: core.publicSettings.display, today: live.today };
     const located = url.init({ fallbackRoute: homeRoute(store.get()) });
-    if (!noSource) await Promise.all([register.ready(context, data.register), located]);
+    const onPayload = () => {
+      if (mine !== ran) return undefined;
+      store.set({ boot: { status: "loading", message: "", step: "status" } });
+      return paint();
+    };
+    if (!noSource) await Promise.all([register.ready(context, data.register, onPayload), located]);
     else await located;
     if (mine !== ran) return;
-    store.set({ boot: { status: noSource ? "nosource" : "ready", message: "" } });
+    store.set({ booted: true, boot: { status: noSource ? "nosource" : "ready", message: "" } });
   } catch (e) {
     if (mine !== ran) return;
-    store.set({ boot: failure(e) });
+    store.set({ booted: true, boot: failure(e) });
   }
 }
 

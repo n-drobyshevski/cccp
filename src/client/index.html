@@ -17,9 +17,9 @@
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap">
 <?!= include('styles'); ?>
 </head>
-<body>
+<body data-boot="splash">
 <header class="appbar" id="appbar"></header>
-<main class="shell" id="main"></main>
+<main class="shell" id="main"><section class="boot" data-splash role="status" aria-busy="true"><div class="boot-in"><span class="boot-mark" aria-hidden="true"><i></i><i></i><i></i><i></i></span><b class="boot-name">CCCP</b><span class="sr-only">Opening the CCCP register</span><div data-slot="line"><p class="boot-line">Checking who you are…</p></div><div data-slot="steps"><ol class="boot-steps" aria-label="Progress"><li data-step="access" data-state="active" aria-current="step">Checking access</li><li data-step="apps" data-state="todo">Loading applications</li><li data-step="status" data-state="todo">Working out status</li></ol></div><div data-slot="slow"></div></div></section></main>
 <script type="application/json" id="boot-data"><?!= bootJson ?></script>
 <?!= include('js_app'); ?>
 </body>

@@ -7,6 +7,9 @@ import { PILLARS } from "./types";
 import type { Row } from "./facets";
 import { facetValuesOf } from "./facets";
 
+/** The two fixed column heads that lead the heatmap, shared with its loading skeleton. */
+export const HEATMAP_LEAD_HEADS = ["Domain / application", "Tier"] as const;
+
 /** At this many applications or fewer every group starts open. */
 export const OPEN_ALL_MAX = 40;
 /** Stacked bar order: worst first. */

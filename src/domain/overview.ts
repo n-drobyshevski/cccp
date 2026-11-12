@@ -62,6 +62,9 @@ export interface Overview {
   domains: DomainRow[];
 }
 
+/** The two panel titles of the Overview, shared with its loading skeleton. */
+export const OVERVIEW_TITLES = { pillars: "Status by pillar", domains: "Domains with the most gaps" } as const;
+
 const pctOf = (n: number, d: number): number => (d > 0 ? Math.round((n / d) * 100) : 0);
 const anyGap = (): string[] => GAP_ORDER.slice();
 

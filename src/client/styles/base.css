@@ -83,15 +83,6 @@ a { color: var(--accent); }
 .state-ico { display: inline-grid; place-items: center; width: 40px; height: 40px; border-radius: 50%; background: var(--accent-soft); color: var(--accent); }
 .state.error .state-ico { color: var(--bad); }
 .state-act { margin-top: 6px; }
-.skel { align-items: stretch; width: min(100%, 720px); }
-.sk-line, .sk-row { display: block; border-radius: 6px; background: var(--line); animation: sk-pulse 1.4s ease-in-out infinite; }
-.sk-line { height: 14px; }
-.sk-line.w40 { width: 40%; }
-.sk-line.w70 { width: 70%; }
-.sk-block { display: flex; flex-direction: column; gap: 8px; margin-top: 8px; }
-.sk-row { height: 34px; }
-@keyframes sk-pulse { 50% { opacity: 0.5; } }
-@media (prefers-reduced-motion: reduce) { .sk-line, .sk-row { animation: none; } }
 
 /* ---------- placeholder pages (until each page ships) ---------- */
 .ph { display: flex; flex-direction: column; align-items: flex-start; gap: 8px; }

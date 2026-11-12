@@ -16,9 +16,10 @@ import { savebar } from "../../components/savebar.js";
 import { homeRoute } from "../../shell/appbar.js";
 import { registerPage } from "../../shell/router.js";
 import * as theme from "../../shell/theme.js";
-import { onlyAdmins, skeleton } from "../../shell/states.js";
+import { armSlow, onlyAdmins, skeleton } from "../../shell/states.js";
 import * as register from "../../state/register.js";
 import { isNoSource } from "../../state/noSource.js";
+import { withRefresh } from "../../state/refresh.js";
 import { store } from "../../state/store.js";
 import { navigate } from "../../state/url.js";
 import {
@@ -48,14 +49,17 @@ const metaUrl = () => {
 };
 
 /** The register and the bootstrap again, after a change that alters what the Sheet yields. */
-async function refreshData() {
-  const data = await rpc.call("bootstrap");
-  const { core, live } = data;
-  const noSource = isNoSource(core);
-  const context = { rules: core.publicSettings.rules, display: core.publicSettings.display, today: live.today };
-  if (!noSource) register.load(data.register || (await rpc.call("getRegister")), context);
-  store.set({ core, live, boot: { status: noSource ? "nosource" : "ready", message: "" } });
-  theme.init(core.publicSettings.display.theme);
+// The page keeps its old data on screen meanwhile, under the thin refresh bar.
+function refreshData() {
+  return withRefresh(async () => {
+    const data = await rpc.call("bootstrap");
+    const { core, live } = data;
+    const noSource = isNoSource(core);
+    const context = { rules: core.publicSettings.rules, display: core.publicSettings.display, today: live.today };
+    if (!noSource) register.load(data.register || (await rpc.call("getRegister")), context);
+    store.set({ core, live, boot: { status: noSource ? "nosource" : "ready", message: "" } });
+    theme.init(core.publicSettings.display.theme);
+  });
 }
 
 /** The server's saved settings become the page's: rules and display are public to all viewers. */
@@ -144,10 +148,16 @@ export const settingsPage = {
       if (s) store.set({ settingsDraft: edit(s, key, value) });
     }
 
+    let stopSlow = null;
+    const endWait = () => { if (stopSlow) stopSlow(); stopSlow = null; };
+
     async function load() {
-      renderRegion(el, skeleton("Opening the settings"), { keepFocus: false, keepScroll: false });
+      endWait();
+      renderRegion(el, skeleton("settings", "Opening the settings"), { keepFocus: false, keepScroll: false });
+      stopSlow = armSlow(el);
       try {
         const resp = await rpc.call("getSettings");
+        endWait();
         if (!alive || !ctx.current()) return;
         const fresh = newSession(resp, metaUrl());
         const old = sessionOf();
@@ -159,6 +169,7 @@ export const settingsPage = {
           store.set({ settingsDraft: fresh });
         }
       } catch (e) {
+        endWait();
         if (!alive || !ctx.current()) return;
         renderRegion(el, html`<section class="state error" role="alert"><h1>The settings could not be opened</h1><p>${e.message}</p><p class="state-act"><button type="button" class="btn" data-act="s-retry" data-k="retry">Retry</button></p></section>`, { keepFocus: false, keepScroll: false });
         return;
@@ -192,8 +203,10 @@ export const settingsPage = {
       ui.reloadBusy = true;
       draw();
       try {
-        await rpc.call("reloadData");
-        await refreshData();
+        await withRefresh(async () => {
+          await rpc.call("reloadData");
+          await refreshData();
+        });
         ui.reloadedAt = true;
         toast("Data reloaded · " + register.allRows().length + " applications");
       } catch (e) {
@@ -298,7 +311,7 @@ export const settingsPage = {
     }));
 
     load();
-    return () => { alive = false; offs.forEach((f) => f()); accessCtl.dispose(); };
+    return () => { alive = false; endWait(); offs.forEach((f) => f()); accessCtl.dispose(); };
   },
 };
 

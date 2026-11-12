@@ -75,11 +75,16 @@ export function rederive(context) {
 
 /**
  * Get the register: the inline payload when the page carried one, else api_getRegister (the
- * caller shows a skeleton meanwhile). Resolves the derived register.
+ * caller shows a splash meanwhile). `onPayload`, when given, is awaited between the fetch and
+ * the derive, so the caller can paint "working out status" before the thread is busy. Resolves
+ * the derived register.
  */
-export function ready(context, inlinePayload) {
+export function ready(context, inlinePayload, onPayload) {
   if (inlinePayload) return Promise.resolve(load(inlinePayload, context));
-  return rpc.call("getRegister").then((p) => load(p, context));
+  return rpc.call("getRegister").then(async (p) => {
+    if (onPayload) await onPayload();
+    return load(p, context);
+  });
 }
 
 export const isLoaded = () => loaded;

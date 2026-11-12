@@ -1,7 +1,9 @@
 // The cards that stand in for a page: loading skeleton, no access, error with Retry, empty,
 // no source yet, admins only. Each is a pure function returning SafeHtml.
+import { renderRegion } from "../lib/dom.js";
 import { html } from "../lib/html.js";
 import { icon } from "../lib/icons.js";
+import { SLOW_AFTER_MS, SLOW_TEXT } from "./skeletons.js";
 
 const MAILTO = /^mailto:[^\s<>"']+$/i;
 
@@ -14,14 +16,19 @@ function card(kind, glyph, title, body, extra) {
   </section>`;
 }
 
-/** Loading placeholder shaped like a page: a heading line and a block of rows. */
-export function skeleton(label) {
-  const rows = [0, 1, 2, 3, 4, 5].map(() => html`<i class="sk-row"></i>`);
-  return html`<section class="state skel" aria-busy="true" aria-live="polite">
-    <span class="sr-only">${label || "Loading the register"}</span>
-    <i class="sk-line w40"></i><i class="sk-line w70"></i>
-    <div class="sk-block">${rows}</div>
-  </section>`;
+export { skeleton } from "./skeletons.js";
+
+/**
+ * After SLOW_AFTER_MS draw one calm line into the [data-slot="slow"] of `el` (the splash and
+ * every skeleton carry one). Returns the cancel function; the caller runs it when the wait
+ * ends, on a route change and on teardown, so a late timer never writes into another page.
+ */
+export function armSlow(el, ms) {
+  const id = setTimeout(() => {
+    const slot = el.querySelector('[data-slot="slow"]');
+    if (slot) renderRegion(slot, html`<p class="ld-slow">${SLOW_TEXT}</p>`, { keepFocus: false, keepScroll: false });
+  }, ms === undefined ? SLOW_AFTER_MS : ms);
+  return () => clearTimeout(id);
 }
 
 /** The viewer has no access: the sentence from the server and a mailto to the owner. */

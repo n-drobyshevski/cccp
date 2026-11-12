@@ -21,7 +21,7 @@ import type { SourceMeta } from "../domain/payload";
 import { BUILD_ID } from "../vendor/gas_shared/server/buildInfo";
 import * as access from "./access";
 import { peekRegisterEntry, registerEntry } from "./registerStore";
-import { cached, cfgGen, TTL_MIN_SEC } from "./serverCache";
+import { cached, cfgGen, peekCached, TTL_MIN_SEC } from "./serverCache";
 import { listSharedViews } from "./sharedViews";
 import { loadSettings } from "./settingsStore";
 
@@ -75,7 +75,11 @@ function coreWithWarm(): { core: BootstrapCore; warm: ReturnType<typeof peekRegi
     ttl = b.ttlSec;
     return b.core;
   }, () => ttl, "cfg");
-  // The two entries expire on their own; the freshest source facts win.
+  return withFreshestMeta(core);
+}
+
+/** The two entries expire on their own; the freshest source facts win. */
+function withFreshestMeta(core: BootstrapCore): { core: BootstrapCore; warm: ReturnType<typeof peekRegisterEntry> } {
   const warm = peekRegisterEntry();
   return { core: warm && core.sourceMeta.title !== "" ? { ...core, sourceMeta: warm.meta } : core, warm };
 }
@@ -110,6 +114,16 @@ export function getLive(core: BootstrapCore): BootstrapLive {
 
 export function getBootstrap(): BootstrapResponse {
   const { core, warm } = coreWithWarm();
+  const res: BootstrapResponse = { core, live: getLive(core) };
+  if (warm && payloadBytes(warm.register) <= REGISTER_INLINE_MAX_BYTES) res.register = warm.register;
+  return res;
+}
+
+/** The bootstrap only when the core is already in the cache; null on a miss. Never reads the Sheet. */
+export function bootstrapIfWarm(): BootstrapResponse | null {
+  const hit = peekCached(CORE, undefined, "cfg") as BootstrapCore | undefined;
+  if (!hit) return null;
+  const { core, warm } = withFreshestMeta(hit);
   const res: BootstrapResponse = { core, live: getLive(core) };
   if (warm && payloadBytes(warm.register) <= REGISTER_INLINE_MAX_BYTES) res.register = warm.register;
   return res;

@@ -16,6 +16,7 @@ import { registerPage } from "../shell/router.js";
 import * as register from "../state/register.js";
 import { store } from "../state/store.js";
 import { navigate, queryFor } from "../state/url.js";
+import { HEATMAP_LEAD_HEADS } from "../../domain/heatmap";
 import { PILLARS } from "../../domain/types";
 import { PILLAR_LABEL, STATUS_WORD } from "../../domain/facets";
 import { runQuery } from "../../domain/query";
@@ -57,7 +58,7 @@ function groupRows(g, isOpen) {
 
 /** The table for a model and the set of open group names. Pure. */
 export function heatTable(m, openSet) {
-  return html`<div class="tw"><table class="heat" data-table="heatmap"><thead><tr><th>Domain / application</th><th>Tier</th>${PILLARS.map((p) => html`<th>${PILLAR_LABEL[p]}</th>`)}</tr></thead><tbody>${m.groups.map((g) => groupRows(g, openSet.has(g.name)))}</tbody></table></div>`;
+  return html`<div class="tw"><table class="heat" data-table="heatmap"><thead><tr><th>${HEATMAP_LEAD_HEADS[0]}</th><th>${HEATMAP_LEAD_HEADS[1]}</th>${PILLARS.map((p) => html`<th>${PILLAR_LABEL[p]}</th>`)}</tr></thead><tbody>${m.groups.map((g) => groupRows(g, openSet.has(g.name)))}</tbody></table></div>`;
 }
 
 /** The results panel: count, legend, then the table or the empty state. Pure. */

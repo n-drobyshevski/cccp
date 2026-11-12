@@ -13,11 +13,13 @@ import * as register from "../state/register.js";
 import { store } from "../state/store.js";
 import { navigate } from "../state/url.js";
 import { homeRoute } from "./appbar.js";
-import { accessCard, errorState, noSource, notFound, onlyAdmins, skeleton } from "./states.js";
+import { splashView, hasSplash, updateSplash } from "./splash.js";
+import { accessCard, armSlow, errorState, noSource, notFound, onlyAdmins, skeleton } from "./states.js";
 
 const pages = new Map();
 let seq = 0;
 let teardown = null;
+let cancelSlow = null;
 let hooks = {};
 
 export function registerPage(route, page) {
@@ -70,7 +72,21 @@ function placeholder(route) {
   };
 }
 
+// The app bar hides while the splash shows (body[data-boot], also set by index.html).
+function markBoot(on) {
+  if (typeof document === "undefined" || !document.body) return;
+  if (on) document.body.setAttribute("data-boot", "splash");
+  else document.body.removeAttribute("data-boot");
+}
+
+function stopSlow() {
+  const c = cancelSlow;
+  cancelSlow = null;
+  if (c) c();
+}
+
 function runTeardown() {
+  stopSlow();
   const t = teardown;
   teardown = null;
   if (typeof t === "function") {
@@ -89,7 +105,20 @@ function render(el) {
   closeTips();
   const s = store.get();
   const b = s.boot;
-  if (b.status === "idle" || b.status === "loading") { show(el, skeleton()); return; }
+  if (b.status === "idle" || b.status === "loading") {
+    // The first open gets the splash; any later wait (Retry) gets the skeleton of the route.
+    markBoot(!s.booted);
+    if (!s.booted && hasSplash(el)) {
+      // The copy index.html shipped is already on screen: move its steps, keep its dots pulsing.
+      updateSplash(el, b.step);
+      if (!cancelSlow) cancelSlow = armSlow(el);
+      return;
+    }
+    show(el, s.booted ? skeleton(s.route) : splashView(b.step));
+    cancelSlow = armSlow(el);
+    return;
+  }
+  markBoot(false);
   if (b.status === "denied") { show(el, accessCard(b)); return; }
   if (b.status === "error") { show(el, errorState({ message: b.message })); return; }
   const canSettings = !!(s.live && s.live.viewer && s.live.viewer.canEditSettings);
@@ -106,7 +135,7 @@ function render(el) {
 }
 
 // The settings page switches its own tabs, so a tab change there is not a new page.
-const keyOf = (s) => [s.route, s.app, s.route === "settings" ? "" : s.tab, s.boot.status, s.boot.message].join("|");
+const keyOf = (s) => [s.route, s.app, s.route === "settings" ? "" : s.tab, s.boot.status, s.boot.message, s.boot.step || ""].join("|");
 
 // Keyboard focus follows the route: into a fact sheet it lands on the title, and back out of one it
 // returns to the control that opened it (the name button, or the landscape tile), if it is drawn.
@@ -145,6 +174,7 @@ export function startRouter(el, h) {
 
 /** Test seam: the pages that were registered. */
 export function __resetRouterForTest() {
+  stopSlow();
   pages.clear();
   seq = 0;
   teardown = null;

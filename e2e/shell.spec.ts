@@ -24,10 +24,10 @@ test.describe("boot", () => {
     expect(bad).toEqual([]);
   });
 
-  test("a cold cache fetches the register behind a skeleton", async ({ page }) => {
+  test("a cold cache fetches the register behind the splash", async ({ page }) => {
     const bad = watchConsole(page);
     await page.goto("/?coldcache&slow=700&r=list");
-    await expect(page.locator(".skel[aria-busy=true]")).toBeVisible();
+    await expect(page.locator(".boot[aria-busy=true]")).toBeVisible();
     await expect(page.locator("[data-page=list]")).toBeVisible();
     expect(await rpcLog(page)).toContain("getRegister");
     expect(bad).toEqual([]);

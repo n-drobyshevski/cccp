@@ -21,7 +21,7 @@ import { mountViewTabs } from "./viewTabs.js";
 /** The facets that have a pill (and a panel section). Tier is the toggle group. */
 export const PILL_FACETS = ["dom", "lc", "so", "gap"];
 export const SEARCH_DEBOUNCE_MS = 120;
-const SEARCH_PLACEHOLDER = "Search name, team, owner, officer";
+export const SEARCH_PLACEHOLDER = "Search name, team, owner, officer";
 
 /** 'Domain', or 'Domain: X' or 'Domain: X +2'. */
 export function pillLabel(key, selected) {

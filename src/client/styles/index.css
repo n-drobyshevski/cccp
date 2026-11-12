@@ -1,6 +1,7 @@
 /* Stylesheet entry. Later work packages add @import lines for the views. */
 @import "./tokens.css";
 @import "./base.css";
+@import "./loading.css";
 @import "./appbar.css";
 @import "./toolbar.css";
 @import "./views.css";

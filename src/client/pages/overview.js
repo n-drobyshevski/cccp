@@ -12,7 +12,7 @@ import { pctStep } from "../components/table.js";
 import { registerPage } from "../shell/router.js";
 import * as register from "../state/register.js";
 import { navigate } from "../state/url.js";
-import { overviewModel } from "../../domain/overview";
+import { OVERVIEW_TITLES, overviewModel } from "../../domain/overview";
 
 const go = (t) => JSON.stringify(t);
 
@@ -33,8 +33,8 @@ export function overviewView(m, hidden, loadedAt) {
     <div class="ovh"><div><h1>Overview</h1><p>${count(m.total, "application")}${loadedAt ? html` · data loaded ${loadedAt}` : ""}${hidden ? html` · ${count(hidden, "application")} hidden by the display settings` : ""}</p></div></div>
     <div class="kpis">${m.kpis.map(kpiTile)}</div>
     <div class="two">
-      <section class="panel card2" aria-label="Status by pillar"><h2>Status by pillar</h2><div class="pbars">${m.pillars.map(pillarBar)}</div>${legend()}</section>
-      <section class="panel card2" aria-label="Domains with the most gaps"><h2>Domains with the most gaps</h2><div class="tw"><table class="dt" data-table="domains"><thead><tr><th>Domain</th><th>Apps</th><th>With a gap</th><th>Completeness</th></tr></thead><tbody>${m.domains.map(domainRow)}</tbody></table></div></section>
+      <section class="panel card2" aria-label="${OVERVIEW_TITLES.pillars}"><h2>${OVERVIEW_TITLES.pillars}</h2><div class="pbars">${m.pillars.map(pillarBar)}</div>${legend()}</section>
+      <section class="panel card2" aria-label="${OVERVIEW_TITLES.domains}"><h2>${OVERVIEW_TITLES.domains}</h2><div class="tw"><table class="dt" data-table="domains"><thead><tr><th>Domain</th><th>Apps</th><th>With a gap</th><th>Completeness</th></tr></thead><tbody>${m.domains.map(domainRow)}</tbody></table></div></section>
     </div>
   </div>`;
 }

@@ -87,6 +87,8 @@
   --title: oklch(0.38 0.08 265);
   --warn-strong: #8c5800;
   --ok-text: #17714a;
+  --sk: #e4e8ee;
+  --sk-hi: #f3f5f8;
 }
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme="light"]) {
@@ -95,6 +97,8 @@
     --title: oklch(0.85 0.05 265);
     --warn-strong: #e2a03a;
     --ok-text: #4bc088;
+    --sk: #232934;
+    --sk-hi: #2e3542;
   }
 }
 :root[data-theme="dark"] {
@@ -103,4 +107,6 @@
   --title: oklch(0.85 0.05 265);
   --warn-strong: #e2a03a;
   --ok-text: #4bc088;
+  --sk: #232934;
+  --sk-hi: #2e3542;
 }

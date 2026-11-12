@@ -41,7 +41,7 @@ export function appbarView(s, mode) {
     ${nav}
     ${gear}
     <button type="button" class="icon-btn" data-act="theme" data-k="theme" aria-label="${label}" data-tip="${label}">${icon(dark ? "sun" : "moon")}</button>
-  </div>`;
+  </div>${s.refreshing ? html`<div class="refresh-bar" role="progressbar" aria-label="Reloading data"></div>` : ""}`;
 }
 
 /** Where the brand goes: the Display default view. */
@@ -55,7 +55,7 @@ export function mountAppbar(el) {
   const draw = () => renderRegion(el, appbarView(store.get(), theme.effective()));
   draw();
   const offStore = store.subscribe((s, prev) => {
-    if (s.route !== prev.route || s.live !== prev.live || s.boot !== prev.boot || s.core !== prev.core) draw();
+    if (s.route !== prev.route || s.live !== prev.live || s.boot !== prev.boot || s.core !== prev.core || s.refreshing !== prev.refreshing) draw();
   });
   const offTheme = theme.onChange(draw);
   const offClick = delegate(el, "click", "[data-act]", (ev, b) => {

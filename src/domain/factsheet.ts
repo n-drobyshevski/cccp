@@ -3,14 +3,14 @@
 // Whatever is unknown stays null and the view draws it as a muted dash; nothing is coerced.
 // Ported from the approved lx2.ext.html Sections page with data quality on.
 
-import type { Level, Pillar, Status } from "./types";
+import type { AppRecord, Level, Pillar, Status } from "./types";
 import { PILLARS } from "./types";
 import type { Row } from "./facets";
-import { PILLAR_LABEL, STATUS_WORD, lifecycleLabel } from "./facets";
+import { PILLAR_LABEL, STATUS_WORD, lifecycleLabel, makeRow } from "./facets";
 import { relativeAge } from "./dates";
 import { completeness, qualityLevel, reviewSeal } from "./quality";
 import type { Completeness, QualityLevel, ReviewSeal } from "./quality";
-import { DEFAULT_RULES } from "./rules";
+import { DEFAULT_RULES, evaluateAll } from "./rules";
 import type { RulesSettings } from "./types";
 
 /** What the model needs besides the row: the clock, the review interval and the Sheet link. */
@@ -148,6 +148,29 @@ const hours = (label: string, v: number | null): FsRow => ({ label, kind: "hours
 const sub = (key: string, title: string, rows: FsRow[], widget: FsWidget | null = null): FsSubsection => ({ key, title, widget, rows });
 
 const CIAT_LABELS: ReadonlyArray<["C" | "I" | "A" | "T", string]> = [["C", "Confidentiality"], ["I", "Integrity"], ["A", "Availability"], ["T", "Traceability"]];
+
+/** The title of the data-quality side panel, shared with the loading skeleton. */
+export const DQ_TITLE = "Data quality";
+
+/**
+ * The fixed words of a fact sheet, section by section and field by field, read off the model of
+ * a blank application so the loading skeleton can never drift from the real page.
+ */
+export function factsheetOutline(): { key: SectionKey; title: string; labels: string[] }[] {
+  const blank = {
+    id: "", name: "", domain: "", subdomain: null, supportGroup: null, owner: null, backupOwner: null,
+    securityOfficer: null, lifecycle: null, typology: null, tier: null, exposed: null, lastPentest: null,
+    findingsText: null, findingsCritical: null, findingsHigh: null, ciat: { c: null, i: null, a: null, t: null },
+    personalData: null, personalSensitive: null, companySensitive: null, securityCheck: null, lastAudit: null,
+    auditResult: null, auditMajor: null, mtd: null, rto: null, rpo: null, lastDrpTest: null, drpResult: null,
+    hosting: null, sso: null, internalUsers: null, externalUsers: null, _row: {},
+  } as AppRecord;
+  const today = "2000-01-01";
+  const row = makeRow(blank, evaluateAll([blank], DEFAULT_RULES, today)[0]!, 0);
+  return factsheetModel(row, { today, reviewMonths: reviewMonthsOf(DEFAULT_RULES) }).sections.map((s) => ({
+    key: s.key, title: s.title, labels: s.subsections.flatMap((u) => u.rows.map((r) => r.label)),
+  }));
+}
 
 /** The review interval of the rules, in months. */
 export function reviewMonthsOf(rules: RulesSettings | null | undefined): number {

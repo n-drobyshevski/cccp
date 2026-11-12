@@ -1,7 +1,7 @@
 import { expect, test, type Page } from "@playwright/test";
 import { mkdirSync } from "node:fs";
 
-// The filter toolbar stays on one line with a heavy filter state (Tier 1+2, five domains, one long
+// The pill toolbar of the Heatmap and the Landscape stays on one line with a heavy filter state (Tier 1+2, five domains, one long
 // security officer: 8 selected values), at 1280, 1024 and 820 px in both themes; it may wrap at phone
 // width but never scrolls the page sideways. Popovers open and close by keyboard. Set
 // TOOLBAR_SHOTS to a folder to save screenshots of the toolbar.
@@ -27,7 +27,7 @@ async function tick(page: Page, k: string, pick: (values: string[]) => string[])
 
 /** The mockup's filter state, applied through the popovers. */
 async function heavy(page: Page) {
-  await page.goto("/?r=list");
+  await page.goto("/?r=heatmap");
   await expect(page.locator(".toolbar")).toBeVisible();
   await tick(page, "tier", () => ["T1", "T2"]);
   await tick(page, "dom", (v) => v.slice(0, 5));
@@ -38,7 +38,7 @@ async function heavy(page: Page) {
 async function oneRow(page: Page) {
   const tops = await page.locator(".toolbar .row").evaluate((row) => {
     const out: { name: string; mid: number }[] = [];
-    row.querySelectorAll<HTMLElement>(".search, .pill, .sbtn, .clr").forEach((el) => {
+    row.querySelectorAll<HTMLElement>(".pill, .sbtn, .clr").forEach((el) => {
       const r = el.getBoundingClientRect();
       if (r.width > 0 && r.height > 0) out.push({ name: el.className + ":" + (el.textContent || "").trim().slice(0, 20), mid: r.top + r.height / 2 });
     });
@@ -111,7 +111,7 @@ test("active values are cut short, with the full list in the tip and the name", 
 
 test("the tier pill and the panel button work by keyboard", async ({ page }) => {
   const bad = watchConsole(page);
-  await page.goto("/?r=list");
+  await page.goto("/?r=heatmap");
   await expect(page.locator(".toolbar")).toBeVisible();
   await expect(page.getByRole("button", { name: "Filter panel", exact: true })).toBeVisible();
   const tier = pill(page, "tier");
@@ -131,16 +131,4 @@ test("the tier pill and the panel button work by keyboard", async ({ page }) => 
   await expect(pill(page, "tier")).toBeVisible();
   await expect(pill(page, "dom")).toHaveCount(0);
   expect(bad).toEqual([]);
-});
-
-test("below 1024 px the search is an icon that opens on focus and stays reachable by Tab", async ({ page }) => {
-  await page.setViewportSize({ width: 820, height: 800 });
-  await page.goto("/?r=list");
-  const box = page.getByRole("searchbox", { name: "Search applications" });
-  await expect(box).toBeVisible();
-  expect((await box.boundingBox())!.width).toBeLessThan(60);
-  await page.keyboard.press("Tab");
-  for (let i = 0; i < 12 && !(await box.evaluate((e) => e === document.activeElement)); i++) await page.keyboard.press("Tab");
-  await expect(box).toBeFocused();
-  expect((await box.boundingBox())!.width).toBeGreaterThan(200);
 });

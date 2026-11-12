@@ -5,9 +5,9 @@ describe("column registry", () => {
   it("matches the lx3 COLDEF keys, labels and order", () => {
     expect(COLUMNS.map((c) => [c.key, c.label])).toEqual([
       ["n", "Application"], ["d", "Domain"], ["sd", "Subdomain"], ["g", "Support group"], ["t", "Tier"], ["lc", "Lifecycle"],
-      ["o", "Owner"], ["so", "Security officer"], ["ty", "Typology"], ["h", "Hosting"], ["q", "Completeness"], ["st", "Status"],
+      ["o", "Owner"], ["so", "Security officer"], ["ty", "Typology"], ["h", "Hosting"], ["st", "Status"], ["q", "Completeness"],
     ]);
-    expect(DEFAULT_COLUMN_KEYS).toEqual(["n", "d", "t", "lc", "o", "so", "q", "st"]);
+    expect(DEFAULT_COLUMN_KEYS).toEqual(["n", "d", "t", "lc", "o", "so", "st"]);
   });
 
   it("fixes Application so it cannot be hidden", () => {
@@ -19,7 +19,7 @@ describe("column registry", () => {
 
   it("applies signed deviations", () => {
     expect(visibleColumnDefs([]).map((c) => c.key)).toEqual(DEFAULT_COLUMN_KEYS);
-    expect(visibleColumnDefs(["-d", "+h"]).map((c) => c.key)).toEqual(["n", "t", "lc", "o", "so", "h", "q", "st"]);
+    expect(visibleColumnDefs(["-d", "+h"]).map((c) => c.key)).toEqual(["n", "t", "lc", "o", "so", "h", "st"]);
     expect(toggleColumnKey([], "h")).toEqual(["+h"]);
     expect(toggleColumnKey(["+h"], "h")).toEqual([]);
     expect(toggleColumnKey([], "d")).toEqual(["-d"]);

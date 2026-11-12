@@ -1,7 +1,7 @@
 import { expect, test, type Page } from "@playwright/test";
 
-// The toolbar, the pill popovers and the right filter panel on the list route, against the dev
-// server: pill labels, counts, find, focus handling, panel placement and persistence, the
+// The pill toolbar, its popovers and the right filter panel (the Heatmap and the Landscape carry
+// them; the Inventory has its own left panel, see inventory.spec.ts), against the dev server: pill labels, counts, find, focus handling, panel placement and persistence, the
 // count, Clear all and hostile values.
 
 function watchConsole(page: Page): string[] {
@@ -34,7 +34,7 @@ async function rowsOf(scope: ReturnType<Page["locator"]>) {
 test.describe("pills and popovers", () => {
   test("a pill opens its checklist; the label shows the first value and +n", async ({ page }) => {
     const bad = watchConsole(page);
-    await page.goto("/?r=list");
+    await page.goto("/?r=heatmap");
     await expect(page.locator(".toolbar")).toBeVisible();
     await expect(page.locator(".pill[data-act=open] > span")).toHaveText(["Tier", "Domain", "Lifecycle", "Security officer", "Gap in"]);
     await open(page, "lc");
@@ -51,7 +51,7 @@ test.describe("pills and popovers", () => {
   });
 
   test("counts skip the facet's own selection; zero rows are muted but listed", async ({ page }) => {
-    await page.goto("/?r=list");
+    await page.goto("/?r=heatmap");
     await expect(page.locator(".toolbar")).toBeVisible();
     await open(page, "lc");
     const before = await rowsOf(pop(page));
@@ -77,7 +77,7 @@ test.describe("pills and popovers", () => {
   });
 
   test("Domain and Security officer have find; Lifecycle does not", async ({ page }) => {
-    await page.goto("/?r=list");
+    await page.goto("/?r=heatmap");
     await expect(page.locator(".toolbar")).toBeVisible();
     await open(page, "lc");
     await expect(pop(page).locator("input.find")).toHaveCount(0);
@@ -103,7 +103,7 @@ test.describe("pills and popovers", () => {
   });
 
   test("Escape closes the popover and returns focus to the pill", async ({ page }) => {
-    await page.goto("/?r=list");
+    await page.goto("/?r=heatmap");
     await expect(page.locator(".toolbar")).toBeVisible();
     await pill(page, "so").focus();
     await page.keyboard.press("Enter");
@@ -116,7 +116,7 @@ test.describe("pills and popovers", () => {
   });
 
   test("Escape still returns focus to the pill after a selection re-rendered it", async ({ page }) => {
-    await page.goto("/?r=list");
+    await page.goto("/?r=heatmap");
     await open(page, "lc");
     await pop(page).locator(".ck input").nth(0).check();
     await expect(pill(page, "lc")).toHaveClass(/\bon\b/);
@@ -125,21 +125,21 @@ test.describe("pills and popovers", () => {
   });
 
   test("an outside click closes it, and so does a route change", async ({ page }) => {
-    await page.goto("/?r=list");
+    await page.goto("/?r=heatmap");
     await expect(page.locator(".toolbar")).toBeVisible();
     await open(page, "dom");
-    await page.locator("[data-page=list] .rhead").click();
+    await page.locator("[data-page=heatmap] .rhead").click();
     await expect(pop(page)).toHaveCount(0);
-    await page.locator('[data-k="nav-heatmap"]').click();
-    await expect(page.locator("[data-page=heatmap]")).toBeVisible();
+    await page.locator('[data-k="nav-landscape"]').click();
+    await expect(page.locator("[data-page=landscape]")).toBeVisible();
     await open(page, "dom");
     await page.goBack();
-    await expect(page.locator("[data-page=list]")).toBeVisible();
+    await expect(page.locator("[data-page=heatmap]")).toBeVisible();
     await expect(pop(page)).toHaveCount(0);
   });
 
   test("a pill toggles its popover, and opening another replaces it", async ({ page }) => {
-    await page.goto("/?r=list");
+    await page.goto("/?r=heatmap");
     await open(page, "dom");
     await pill(page, "dom").click();
     await expect(pop(page)).toHaveCount(0);
@@ -152,7 +152,7 @@ test.describe("pills and popovers", () => {
   });
 
   test("checkbox focus survives the re-render, by keyboard", async ({ page }) => {
-    await page.goto("/?r=list");
+    await page.goto("/?r=heatmap");
     await open(page, "lc");
     const box = pop(page).locator(".ck input").nth(1);
     const key = await box.getAttribute("data-k");
@@ -169,7 +169,7 @@ test.describe("pills and popovers", () => {
   });
 
   test("the popover list keeps its scroll while a value is ticked", async ({ page }) => {
-    await page.goto("/?r=list");
+    await page.goto("/?r=heatmap");
     await open(page, "dom");
     const list = pop(page).locator(".plist");
     const n = await pop(page).locator(".ck").count();
@@ -182,8 +182,8 @@ test.describe("pills and popovers", () => {
 });
 
 test.describe("search, tiers, count, Clear all", () => {
-  test("tier toggles and search update the count and the address; Clear all resets", async ({ page }) => {
-    await page.goto("/?r=list");
+  test("tier toggles update the count and the address; Clear all resets", async ({ page }) => {
+    await page.goto("/?r=heatmap");
     await expect(page.locator(".toolbar")).toBeVisible();
     const total = await visible(page);
     await expect(page.getByRole("button", { name: "Clear all" })).toHaveCount(0);
@@ -202,13 +202,9 @@ test.describe("search, tiers, count, Clear all", () => {
     await expect(pill(page, "tier")).toHaveText("Tier: 1, 2");
     await page.keyboard.press("Escape");
     await expect.poll(() => visible(page)).toBeGreaterThan(afterTier);
-    await page.getByRole("searchbox", { name: "Search applications" }).fill("zzzzqqqq");
-    await expect.poll(() => visible(page)).toBe(0);
-    expect(urlParam(page, "q")).toBe("zzzzqqqq");
     await expect(page.locator(".badge")).toHaveText("2");
     await page.getByRole("button", { name: "Clear all", exact: true }).click();
     await expect.poll(() => visible(page)).toBe(total);
-    await expect(page.getByRole("searchbox", { name: "Search applications" })).toHaveValue("");
     await expect(pill(page, "tier")).toHaveText("Tier");
     await expect(page.getByRole("button", { name: "Clear all" })).toHaveCount(0);
     await expect(page.locator(".badge")).toHaveCount(0);
@@ -216,26 +212,8 @@ test.describe("search, tiers, count, Clear all", () => {
     await expect(page.locator(".pill[data-act=open].on")).toHaveCount(0);
   });
 
-  test("search is debounced: typing fast sends one update", async ({ page }) => {
-    await page.goto("/?r=list");
-    await expect(page.locator(".toolbar")).toBeVisible();
-    await page.evaluate(() => {
-      const w = window as any;
-      w.__writes = 0;
-      const h = w.google.script.history;
-      const r = h.replace;
-      h.replace = (...a: unknown[]) => { w.__writes++; return r.apply(h, a); };
-    });
-    const box = page.getByRole("searchbox", { name: "Search applications" });
-    await box.click();
-    await page.keyboard.type("abcdef", { delay: 10 });
-    await expect.poll(() => urlParam(page, "q")).toBe("abcdef");
-    expect(await page.evaluate(() => (window as any).__writes)).toBe(1);
-    await expect(box).toBeFocused();
-  });
-
   test("a filter in the address is shown by the toolbar on load", async ({ page }) => {
-    await page.goto("/?r=list&tier=T1&q=a");
+    await page.goto("/?r=heatmap&tier=T1&q=a");
     await expect(pill(page, "tier")).toHaveText("Tier: 1");
     await expect(page.getByRole("searchbox", { name: "Search applications" })).toHaveValue("a");
     await expect(page.getByRole("button", { name: "Clear all" })).toBeVisible();
@@ -245,7 +223,7 @@ test.describe("search, tiers, count, Clear all", () => {
 test.describe("the right filter panel", () => {
   test("at 1280 px it sits to the right of the content and is remembered in cccp.side", async ({ page }) => {
     await page.setViewportSize({ width: 1280, height: 800 });
-    await page.goto("/?r=list");
+    await page.goto("/?r=heatmap");
     await expect(page.locator(".side")).toHaveCount(0);
     const btn = page.locator('[data-k="side"]');
     await expect(btn).toHaveAttribute("aria-pressed", "false");
@@ -272,7 +250,7 @@ test.describe("the right filter panel", () => {
   test("below 820 px the panel stacks above the content", async ({ page }) => {
     await page.setViewportSize({ width: 800, height: 900 });
     await page.addInitScript(() => localStorage.setItem("cccp.side", "1"));
-    await page.goto("/?r=list");
+    await page.goto("/?r=heatmap");
     await expect(page.locator(".side")).toBeVisible();
     const s = (await page.locator(".side").boundingBox())!;
     const c = (await page.locator("[data-region=content]").boundingBox())!;
@@ -282,14 +260,14 @@ test.describe("the right filter panel", () => {
   test("at exactly 820 px the panel is on the right", async ({ page }) => {
     await page.setViewportSize({ width: 820, height: 900 });
     await page.addInitScript(() => localStorage.setItem("cccp.side", "1"));
-    await page.goto("/?r=list");
+    await page.goto("/?r=heatmap");
     const s = (await page.locator(".side").boundingBox())!;
     const c = (await page.locator("[data-region=content]").boundingBox())!;
     expect(s.x).toBeGreaterThanOrEqual(c.x + c.width - 1);
   });
 
   test("chips replace the pills, and the panel and pills stay in sync", async ({ page }) => {
-    await page.goto("/?r=list");
+    await page.goto("/?r=heatmap");
     await expect(page.locator(".toolbar")).toBeVisible();
     await open(page, "lc");
     const first = (await rowsOf(pop(page)))[0].value;
@@ -319,7 +297,7 @@ test.describe("the right filter panel", () => {
   });
 
   test("the panel's find narrows its own list and keeps focus while typing", async ({ page }) => {
-    await page.goto("/?r=list");
+    await page.goto("/?r=heatmap");
     await page.locator('[data-k="side"]').click();
     const find = page.locator('input.find[data-k="find-side-so"]');
     await expect(find).toBeVisible();
@@ -334,7 +312,7 @@ test.describe("the right filter panel", () => {
   });
 
   test("panel counts match the pill popover counts", async ({ page }) => {
-    await page.goto("/?r=list&tier=T1");
+    await page.goto("/?r=heatmap&tier=T1");
     await page.locator('[data-k="side"]').click();
     const panel = await rowsOf(page.locator(".side fieldset").nth(1));
     await page.locator('[data-k="side"]').click();
@@ -344,7 +322,7 @@ test.describe("the right filter panel", () => {
 
   test("the toggle works for the session when storage is refused", async ({ page }) => {
     await page.addInitScript(() => { Object.defineProperty(window, "localStorage", { get() { throw new Error("blocked"); } }); });
-    await page.goto("/?r=list");
+    await page.goto("/?r=heatmap");
     await page.locator('[data-k="side"]').click();
     await expect(page.locator(".side")).toBeVisible();
   });
@@ -366,7 +344,7 @@ test.describe("hostile values", () => {
       })();`;
       await route.fulfill({ response: res, body });
     });
-    await page.goto("/?r=list");
+    await page.goto("/?r=heatmap");
     await expect(page.locator(".toolbar")).toBeVisible();
     for (const k of ["dom", "so", "lc"]) {
       await open(page, k);
@@ -385,10 +363,12 @@ test.describe("hostile values", () => {
     await expect(pill(page, "dom")).toContainText("<img src=x");
     await page.locator('[data-k="side"]').click();
     await expect(page.locator(".chip")).toContainText("<img src=x");
-    await page.getByRole("searchbox", { name: "Search applications" }).fill(BAD);
+    const box = page.getByRole("searchbox", { name: "Search applications" });
+    await box.fill(BAD);
+    await box.press("Enter");
     await expect.poll(() => urlParam(page, "q")).toBe(BAD);
     await page.reload();
-    await expect(page.locator(".toolbar")).toBeVisible();
+    await expect(page.locator("[data-page=list]")).toBeVisible();
     await expect(page.getByRole("searchbox", { name: "Search applications" })).toHaveValue(BAD);
     await expect(page.locator(".toolbar img, .side img, .chip img, .pill img, script:not([src])")).toHaveCount(await page.locator("script:not([src])").count());
     expect(await page.evaluate(() => (window as any).__xss)).toBeUndefined();

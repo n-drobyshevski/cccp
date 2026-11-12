@@ -2,10 +2,11 @@
 // facets, AND across search terms. A facet's own counts ignore that facet's selection so the
 // reader can see what adding a value would bring.
 
-import type { FacetKey, ViewState } from "./types";
+import type { FacetKey, Pillar, ViewState } from "./types";
+import { PILLARS } from "./types";
 import { sortRows as sortWith } from "../vendor/gas_shared/ui/tableModel";
 import type { Row } from "./facets";
-import { FACETS, FACET_KEYS, facetValues, facetValuesOf, fold } from "./facets";
+import { FACETS, FACET_KEYS, PILLAR_LABEL, facetValues, facetValuesOf, fold } from "./facets";
 import { COLUMN_BY_KEY, DEFAULT_SORT } from "./columns";
 
 export type Selection = Partial<Record<FacetKey, string[]>>;
@@ -71,4 +72,39 @@ export function sortRows(rows: readonly Row[], key: string, desc: boolean): Row[
 /** The filtered and sorted rows for a view state. */
 export function runQuery(rows: readonly Row[], s: Pick<ViewState, "q" | "f" | "sort" | "desc">): Row[] {
   return sortRows(filterRows(rows, s), s.sort || DEFAULT_SORT, s.desc);
+}
+
+/** Pillar tabs over the Inventory: 'all' or one pillar. A tab is the "Gap in" facet with one value. */
+export type PillarTab = "all" | Pillar;
+
+/** Which tab a selection is on: one pillar under "Gap in" is that tab, nothing selected is All,
+ *  and several pillars (picked in the panel) are no single tab, so null. */
+export function pillarTabOf(f: Selection): PillarTab | null {
+  const g = f.gap || [];
+  if (!g.length) return "all";
+  if (g.length > 1) return null;
+  return PILLARS.find((p) => PILLAR_LABEL[p] === g[0]) || null;
+}
+
+/** The selection with the tab applied: a pillar sets "Gap in" to it, All clears it. */
+export function withPillarTab(f: Selection, tab: PillarTab): Selection {
+  const out: Selection = { ...f };
+  if (tab === "all") delete out.gap;
+  else out.gap = [PILLAR_LABEL[tab]];
+  return out;
+}
+
+export interface PillarCounts { all: number; gaps: Record<Pillar, number> }
+
+/** The counts the tabs show: rows that pass search and every facet except "Gap in" (so the
+ *  tabs stay comparable while one is selected), and how many of those have a gap per pillar. */
+export function pillarCounts(rows: readonly Row[], filter: Filter): PillarCounts {
+  const gaps: Record<Pillar, number> = { cyber: 0, compliance: 0, continuity: 0, platform: 0 };
+  let all = 0;
+  for (const r of rows) {
+    if (!matchRow(r, filter, "gap")) continue;
+    all++;
+    for (const p of PILLARS) if (r.status[p].status === "bad") gaps[p]++;
+  }
+  return { all, gaps };
 }

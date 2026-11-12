@@ -1,63 +1,76 @@
-/* The List page: results head, legend, tools, the inventory table, tier and lifecycle marks, the
-   completeness bar, sortable headers, Show more and the empty state. Ported from the approved
-   mockups (proto.src.html list, lx3.ext.html sortable headers and tools). Tokens only. */
+/* The inventory table, the Overview domain table and their shared parts: tools, header cells,
+   rows, tier and lifecycle text, completeness bar, Show more and the empty state. Identity G:
+   hairline rows, uppercase small header labels, status as glyph columns. Tokens only. */
+/* results panel of the Heatmap and the Landscape: head, status legend, tool buttons */
 .results { overflow: hidden; }
 .rhead { display: flex; flex-wrap: wrap; gap: 8px 16px; align-items: center; justify-content: space-between; padding: 12px 14px 8px; }
-.rhead b { font-weight: 600; }
+.rhead b { font-weight: 700; }
 .rcount { display: inline-flex; flex-wrap: wrap; gap: 0 4px; align-items: baseline; }
 .legend { display: flex; flex-wrap: wrap; gap: 4px 14px; color: var(--muted); font-size: 12px; }
 .legend span { display: inline-flex; gap: 6px; align-items: center; }
-.rtools { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
-.tbtn { display: inline-flex; align-items: center; gap: 7px; border: 1px solid var(--line); background: var(--surface); border-radius: 8px; padding: 5px 10px; font-weight: 500; font-size: 13px; white-space: nowrap; }
-.tbtn:hover { border-color: var(--line2); }
+.tbtn { display: inline-flex; align-items: center; gap: 7px; border: 1px solid var(--line2); background: var(--surface); border-radius: var(--r); padding: 5px 10px; font-weight: 600; font-size: 13px; white-space: nowrap; }
+.tbtn:hover { border-color: var(--accent); }
 .tbtn svg { width: 14px; height: 14px; color: var(--muted); }
 .tbtn[aria-expanded="true"] { border-color: var(--accent); }
+.tlink { flex: none; white-space: nowrap; border: 0; background: none; padding: 2px 0; color: var(--accent); font-weight: 600; font-size: 13px; }
+.tlink:hover { text-decoration: underline; text-underline-offset: 2px; }
+.rtools { display: flex; gap: 16px; align-items: center; flex-wrap: wrap; }
 .pop-cols { width: 230px; }
 .pop-cols .plist { max-height: none; overflow: visible; padding-right: 0; scrollbar-gutter: auto; }
 .mlbl { display: block; padding: 6px 6px 2px; }
 
 .tw { overflow-x: auto; position: relative; }
-table { border-collapse: collapse; width: 100%; font-size: 13px; }
-th { font-size: 11px; letter-spacing: 0.06em; text-transform: uppercase; color: var(--muted); font-weight: 500; text-align: left; padding: 8px 14px; border-block: 1px solid var(--line); white-space: nowrap; background: var(--surface2); }
+table { border-collapse: collapse; width: 100%; font-size: 14px; }
+th { font: 700 11.5px var(--sans); letter-spacing: 0.06em; text-transform: uppercase; color: var(--muted); text-align: left; padding: 8px 8px; border-bottom: 1px solid var(--line2); white-space: nowrap; background: var(--surface); }
 th[aria-sort] { color: var(--fg); }
 th .sh { border: 0; background: none; padding: 0; font: inherit; letter-spacing: inherit; text-transform: inherit; color: inherit; display: inline-flex; gap: 4px; align-items: center; }
 th .sh:hover { color: var(--fg); }
 th .sh svg { width: 10px; height: 10px; opacity: 0.35; flex: none; }
 th .sh.on svg { opacity: 1; color: var(--accent); }
-td { line-height: 1.2; padding: 10px 14px; border-bottom: 1px solid var(--line); white-space: nowrap; }
-/* Only rows that open something look clickable: the List and the Overview domains. */
+th.p { text-align: center; width: 40px; color: var(--pc); }
+th.p .sh { justify-content: center; }
+th.p .sh.on { text-decoration: underline; text-underline-offset: 3px; }
+.pc-cyber { --pc: var(--cy); }
+.pc-compliance { --pc: var(--co); }
+.pc-continuity { --pc: var(--ct); }
+.pc-platform { --pc: var(--pl); }
+td { line-height: 1.2; padding: 7px 8px; border-bottom: 1px solid var(--line); white-space: nowrap; }
+td.p { text-align: center; padding-inline: 2px; }
+th.p { padding-inline: 2px; }
+/* Only rows that open something look clickable: the Inventory and the Overview domains. */
 table[data-table="list"] tbody tr, table[data-table="domains"] tbody tr { cursor: pointer; }
 table[data-table="list"] tbody tr:hover td, table[data-table="list"] tbody tr:focus-within td,
 table[data-table="domains"] tbody tr:hover td, table[data-table="domains"] tbody tr:focus-within td { background: var(--surface2); }
 tbody tr:last-child td { border-bottom: 0; }
-.ell { display: block; max-width: 170px; overflow: hidden; text-overflow: ellipsis; }
-td[data-col="o"] .ell, td[data-col="so"] .ell { max-width: 150px; }
-.nm { display: block; max-width: 260px; overflow: hidden; text-overflow: ellipsis; font-weight: 500; border: 0; background: none; padding: 0; text-align: left; }
+.ell { display: block; max-width: 150px; overflow: hidden; text-overflow: ellipsis; }
+td[data-col="d"] .ell { max-width: 135px; }
+td[data-col="o"] .ell, td[data-col="so"] .ell { max-width: 105px; }
+.nm { display: block; max-width: 200px; overflow: hidden; text-overflow: ellipsis; font-weight: 600; border: 0; background: none; padding: 0; text-align: left; }
 tr:hover .nm, .nm:focus-visible { color: var(--accent); }
 .more { display: flex; justify-content: center; padding: 12px; border-top: 1px solid var(--line); }
 .empty { padding: 48px 16px; display: flex; flex-direction: column; align-items: center; gap: 10px; text-align: center; color: var(--muted); }
 .empty b { color: var(--fg); font-weight: 600; }
 
-/* tier and lifecycle marks */
-.tier { display: inline-block; font: 600 11px var(--mono); padding: 1px 7px; border: 1px solid var(--line2); border-radius: 10px; color: var(--muted); white-space: nowrap; }
-.tier.t1 { background: var(--fg); color: var(--surface); border-color: var(--fg); }
-.tier.t2 { color: var(--fg); }
-.tier.t0 { border-style: dashed; color: var(--none); }
-.lc { display: inline-flex; align-items: center; gap: 7px; white-space: nowrap; }
-.lc::before { content: ""; width: 7px; height: 7px; border-radius: 50%; background: var(--none); }
-.lc.ga::before { background: var(--ok); }
-.lc.beta::before { background: var(--accent); }
-.lc.eol::before { background: var(--bad); }
-.lc.dec::before { background: var(--warn); }
+/* tier and lifecycle: mono tier code, muted dash when unset, plain lifecycle text */
+.tier { display: inline-block; font: 500 12.5px var(--mono); color: var(--fg); white-space: nowrap; }
+.tier.t0 { color: var(--none); }
+.lc { display: inline-flex; align-items: center; white-space: nowrap; }
+.lc.eol { color: var(--bad); font-weight: 600; }
 
 /* completeness: a bar and the number */
 .qcell { display: inline-flex; align-items: center; gap: 8px; }
-.qbar { width: 56px; height: 6px; border-radius: 3px; background: var(--line); overflow: hidden; }
+.qbar { width: 56px; height: 6px; border-radius: 1px; background: var(--line); overflow: hidden; }
 .qbar i { display: block; height: 100%; background: var(--accent); }
 .qbar i.ok { background: var(--ok); }
 .qbar i.warn { background: var(--warn); }
 .qbar i.bad { background: var(--bad); }
 .qcell small { font: 500 11px var(--mono); color: var(--muted); min-width: 30px; }
 
-@media (max-width: 600px) { .rhead { padding-inline: 10px; } th, td { padding-inline: 10px; } }
+.gls { display: inline-flex; gap: 6px; vertical-align: middle; }
+@media (max-width: 600px) { .rhead { padding-inline: 10px; } th, td { padding-inline: 8px; } }
 .pop-cols .ck.zero input { opacity: .5; cursor: default; }
+@media (min-width: 1500px) {
+  .nm { max-width: 280px; }
+  td[data-col="d"] .ell { max-width: 240px; }
+  td[data-col="o"] .ell, td[data-col="so"] .ell { max-width: 180px; }
+}

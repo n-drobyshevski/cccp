@@ -12,6 +12,7 @@ const P = {
   back: '<path d="M15 5l-7 7 7 7"/>',
   arrowleft: '<path d="M19 12H5M11 6l-6 6 6 6"/>',
   close: '<path d="M6 6l12 12M18 6L6 18"/>',
+  bang: '<path d="M12 5v9M12 19h.01"/>',
   check: '<path d="M5 12.5l4.5 4.5L19 7.5"/>',
   chevron: '<path d="M6 9l6 6 6-6"/>',
   copy: '<rect x="9" y="9" width="11" height="11" rx="2"/><path d="M5 15V6a2 2 0 0 1 2-2h9"/>',

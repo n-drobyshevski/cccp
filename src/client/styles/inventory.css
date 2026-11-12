@@ -1,0 +1,65 @@
+/* The Inventory workbench (identity G): a facet panel on the left, the saved-view tabs, header
+   line, pillar tabs and table on the right. Below 1024 px the panel is a drawer behind the
+   Filters button. Tokens only. */
+.wb { display: grid; grid-template-columns: 250px minmax(0, 1fr); align-items: start; min-height: calc(100vh - 51px); }
+.facets { border-right: 1px solid var(--line2); background: var(--surface); padding: 8px 0 20px; align-self: stretch; min-width: 0; }
+.fscrim { display: none; }
+.fhead { display: none; }
+
+.fg { padding: 0 0 6px; }
+.fh { display: flex; justify-content: space-between; align-items: center; gap: 8px; margin: 0; padding: 14px 16px 6px; font: 700 11.5px var(--sans); text-transform: uppercase; letter-spacing: 0.08em; color: var(--muted); }
+.fh .fact { display: inline-flex; gap: 10px; text-transform: none; letter-spacing: 0; }
+.fh .tlink { font-size: 12px; }
+.facets .find { margin: 0 16px 4px; width: calc(100% - 32px); }
+.facets .popin, .facets .plist { padding: 0; }
+.facets .plist { max-height: none; overflow: visible; padding-right: 0; scrollbar-gutter: auto; }
+.facets .fg:has(.find) .plist { max-height: 264px; overflow: auto; }
+.facets .ck { padding: 3px 16px; gap: 8px; border-radius: 0; font-size: 14px; }
+.facets .ck small { font: 400 12px var(--mono); color: var(--muted); }
+.facets .ck.zero > span { color: var(--muted); }
+.facets .hint { padding: 3px 16px; }
+
+.wmain { padding: 0 22px 24px; min-width: 0; }
+.views-slot .vtabs { margin: 14px 0 0; }
+.wmain .rhead { padding: 14px 0 4px; justify-content: flex-start; gap: 6px 14px; }
+.wmain .rcount { font-size: 15px; align-items: baseline; gap: 0 8px; }
+.wmain .rcount b { font: 600 22px var(--mono); color: var(--fg); }
+.wmain .rcount .mut { font-size: 15px; }
+.ftags { display: inline-flex; flex-wrap: wrap; gap: 6px; align-items: center; min-width: 0; }
+.ftag { display: inline-flex; align-items: center; background: var(--accent-soft); color: var(--accent); border-radius: 3px; font-size: 12.5px; font-weight: 600; max-width: 100%; }
+.ftag > span { padding: 1px 2px 1px 8px; max-width: 260px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.ftag button { display: inline-grid; place-items: center; border: 0; background: none; color: inherit; padding: 3px 7px 3px 5px; align-self: stretch; }
+.ftag button:hover { background: color-mix(in srgb, var(--accent) 14%, transparent); }
+.wmain .rtools { margin-left: auto; }
+.fbtn { display: none; }
+
+/* pillar tabs */
+.ptabs { display: flex; flex-wrap: wrap; border-bottom: 1px solid var(--line2); margin-top: 4px; }
+.pt { display: flex; flex-direction: column; align-items: flex-start; gap: 0; border: 0; background: none; padding: 8px 18px 8px 0; margin: 0 18px -1px 0; border-bottom: 3px solid transparent; text-align: left; color: var(--fg); }
+.pt:focus-visible { outline-offset: -2px; }
+.pt.pc-all { --pc: var(--fg); }
+.pt[aria-selected="true"] { border-bottom-color: var(--pc); }
+.pt .k { font: 700 11.5px var(--sans); text-transform: uppercase; letter-spacing: 0.08em; color: var(--pc); }
+.pt .v { font-size: 13px; color: var(--muted); }
+.pt .v b { font: 600 16px var(--mono); color: var(--fg); margin-right: 3px; }
+.pc-all { --pc: var(--fg); }
+
+.tbl { background: var(--surface); border: 1px solid var(--line2); border-top: 0; min-width: 0; }
+.tbl .empty { padding-block: 40px; }
+
+@media (max-width: 1023px) {
+  .wb { grid-template-columns: minmax(0, 1fr); }
+  .fbtn { display: inline-block; }
+  .facets { position: fixed; z-index: 62; top: 0; bottom: 0; left: 0; width: min(320px, 88vw); overflow-y: auto; border-right: 1px solid var(--line2); transform: translateX(-102%); visibility: hidden; transition: transform 0.18s ease, visibility 0s linear 0.18s; box-shadow: var(--shadow); }
+  .fopen .facets { transform: none; visibility: visible; transition: transform 0.18s ease; }
+  .fopen .fscrim { display: block; position: fixed; inset: 0; z-index: 61; border: 0; padding: 0; background: var(--scrim); }
+  .fhead { display: flex; justify-content: space-between; align-items: center; padding: 10px 16px; border-bottom: 1px solid var(--line); position: sticky; top: 0; background: var(--surface); z-index: 1; }
+  .wmain { padding-inline: 14px; }
+}
+@media (prefers-reduced-motion: reduce) { .facets, .fopen .facets { transition: none; } }
+@media (max-width: 600px) {
+  .wmain { padding-inline: 10px; }
+  .wmain .rtools { margin-left: 0; }
+  .ptabs { flex-wrap: nowrap; overflow-x: auto; }
+  .pt { margin-right: 6px; padding-right: 8px; flex: none; }
+}

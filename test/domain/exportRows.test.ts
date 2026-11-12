@@ -8,7 +8,7 @@ describe("exportRows", () => {
     const cols = visibleColumnDefs(["-d", "+h"]);
     const out = exportRows([rowOf({ name: "Alpha", hosting: "Cloud", tier: 2 })], cols);
     expect(out).toHaveLength(2);
-    expect(out[0]).toEqual(["Application", "Tier", "Lifecycle", "Owner", "Security officer", "Hosting", "Completeness",
+    expect(out[0]).toEqual(["Application", "Tier", "Lifecycle", "Owner", "Security officer", "Hosting",
       "Cyber", "Compliance", "Continuity", "Platform", "Cyber reason", "Compliance reason", "Continuity reason", "Platform reason"]);
     expect(out[1]![0]).toBe("Alpha");
     expect(out[1]![1]).toBe("T2");

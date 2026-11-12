@@ -7,7 +7,6 @@ import { BOOT_STEPS, splashView, stepsView } from "../../src/client/shell/splash
 import { SKELETON_ROUTES, SLOW_AFTER_MS, SLOW_TEXT } from "../../src/client/shell/skeletons.js";
 import { armSlow, skeleton } from "../../src/client/shell/states.js";
 import { SETTINGS_TABS } from "../../src/client/pages/settings/draft.js";
-import { SEARCH_PLACEHOLDER } from "../../src/client/components/toolbar.js";
 import { withRefresh } from "../../src/client/state/refresh.js";
 import { initialState, store } from "../../src/client/state/store.js";
 import { COLUMN_BY_KEY, DEFAULT_COLUMN_KEYS } from "../../src/domain/columns";
@@ -87,7 +86,6 @@ describe("route skeletons", () => {
 
   it("list: toolbar words and every default column head are real text", () => {
     const h = s(skeleton("list"));
-    expect(h).toContain(SEARCH_PLACEHOLDER);
     for (const l of ["All applications", "Tier", "Domain", "Lifecycle", "Security officer", "Gap in", "Columns", "Export"]) expect(h).toContain(l);
     for (const k of DEFAULT_COLUMN_KEYS) expect(h).toContain(">" + COLUMN_BY_KEY[k].label + "<");
   });
@@ -108,7 +106,7 @@ describe("route skeletons", () => {
     const h = s(skeleton("landscape"));
     expect(h).toContain("Colour by");
     expect(h).toContain("Worst status");
-    expect(h).toContain(SEARCH_PLACEHOLDER);
+    expect(h).toContain("Gap in");
   });
 
   it("app: every section title, the field names of the first sections and the Data quality title", () => {

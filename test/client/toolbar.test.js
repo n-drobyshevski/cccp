@@ -1,9 +1,8 @@
-// The toolbar, facet checklists, filter panel, tier pill and dots as pure views: pill
+// The pill toolbar, facet checklists and the right filter panel as pure views: pill
 // labels, skip-semantics counts, muted zero rows, find, chips, the saved panel state and the
 // escaping of hostile values. The DOM behaviour (popover focus, outside click, sync) is in
 // e2e/filters.spec.ts.
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
-import { dots, dotsHead } from "../../src/client/components/dots.js";
 import { checklist, facetPopover, findOptions } from "../../src/client/components/facetList.js";
 import { panelView, readSide, writeSide } from "../../src/client/components/filterPanel.js";
 import { PILL_FACETS, chipKeys, filtersShell, frameView, pillLabel, pillTip, rowView, toggled, withFacet } from "../../src/client/components/toolbar.js";
@@ -283,40 +282,16 @@ describe("the saved panel state", () => {
   });
 });
 
-describe("status dots", () => {
-  const status = {
-    cyber: { status: "bad", why: "Front exposed" }, compliance: { status: "warn", why: "" },
-    continuity: { status: "ok", why: "" }, platform: { status: "none", why: "" },
-  };
-  it("shows four dots in the order Cyber, Compliance, Continuity, Platform", () => {
-    const out = s(dots(status));
-    expect([...out.matchAll(/class="dot (\w+)"/g)].map((m) => m[1])).toEqual(["bad", "warn", "ok", "none"]);
-    expect([...out.matchAll(/aria-label="(\w+):/g)].map((m) => m[1])).toEqual(["Cyber", "Compliance", "Continuity", "Platform"]);
-  });
-  it("names the status in words, not by colour alone", () => {
-    const out = s(dots(status));
-    expect(out).toContain('aria-label="Cyber: Gap. Front exposed"');
-    expect(out).toContain('aria-label="Platform: No data"');
-    expect(out).toContain('data-tip="Compliance: Needs attention"');
-  });
-  it("the head reads C C C P", () => {
-    expect([...s(dotsHead()).matchAll(/>([CP])<\/span>/g)].map((m) => m[1]).join("")).toBe("CCCP");
-  });
-  it("copes with a missing status", () => {
-    expect(s(dots(null))).toContain("No data");
-  });
-});
-
 describe("hostile values are escaped in every view", () => {
   const f = { dom: [BAD], so: [BAD] };
   const st = state({ side: true, q: BAD, f });
   const views = {
     row: rowView(st, null),
     rowPills: rowView({ ...st, side: false }, null),
-    frame: frameView(BAD),
+    frame: frameView(),
     popover: facetPopover({ key: "dom", label: "Domain", big: true, find: BAD, options: facetOptions(rows, { q: "", f }, "dom") }),
     panel: panelView(st, rows, PILL_FACETS, { dom: BAD, so: BAD }),
-    shell: filtersShell(frameView(BAD)),
+    shell: filtersShell(frameView()),
   };
   for (const [name, v] of Object.entries(views)) {
     it(name + " carries no live tag or event attribute from a value", () => {

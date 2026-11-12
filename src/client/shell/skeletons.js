@@ -5,7 +5,6 @@
 // SafeHtml; skeleton(route, label) wraps one in the busy region the router and Settings share.
 import { html } from "../lib/html.js";
 import { icon } from "../lib/icons.js";
-import { SEARCH_PLACEHOLDER } from "../components/toolbar.js";
 import { ALL_VIEW } from "../state/views.js";
 import { DEFAULT_COLUMN_KEYS, COLUMN_BY_KEY } from "../../domain/columns";
 import { DQ_TITLE, factsheetOutline } from "../../domain/factsheet";
@@ -28,16 +27,23 @@ const bar = (width, cls) => html`<i class="sk${cls ? " " + cls : ""}" style="--w
 const dots = () => html`<span class="sk-dots"><i></i><i></i><i></i><i></i></span>`;
 const rows = (n, fn) => Array.from({ length: n }, (_, i) => fn(i));
 
-// The filter toolbar the three filtered pages share.
+// The filter toolbar the Heatmap and the Landscape share.
 function toolbar() {
   const pills = ["tier", "dom", "lc", "so", "gap"].map((k) => html`<span class="pill ld-hide-s"><span>${FACET_BY_KEY[k].label}</span>${icon("chevron")}</span>`);
   return html`<section class="panel ld-bar">
     <div class="ld-tab"><span>${ALL_VIEW.name}</span></div>
     <div class="ld-bar-row">
-      <span class="ld-search">${icon("search")}<span>${SEARCH_PLACEHOLDER}</span></span>
       ${pills}
       <span class="pill">${icon("filter", 14)}</span>
     </div>
+  </section>`;
+}
+
+// The Inventory's frame: the saved-view tab, the pillar tabs and the facet names.
+function inventoryBar() {
+  return html`<section class="panel ld-bar">
+    <div class="ld-tab"><span>${ALL_VIEW.name}</span></div>
+    <div class="ld-bar-row ld-ptabs"><span>All</span>${PILLARS.map((p) => html`<span>${PILLAR_LABEL[p]}</span>`)}<span class="ld-hide-s ld-facets">${["tier", "lc", "dom", "so", "gap"].map((k) => FACET_BY_KEY[k].label).join(" · ")}</span></div>
   </section>`;
 }
 
@@ -45,7 +51,7 @@ function listView() {
   const cols = DEFAULT_COLUMN_KEYS.map((k) => COLUMN_BY_KEY[k]);
   const n = cols.length;
   const style = "grid-template-columns:2fr repeat(" + (n - 1) + ", minmax(0, 1fr))";
-  return html`${toolbar()}
+  return html`${inventoryBar()}
     <section class="panel ld-res">
       <div class="ld-head">${bar(14, "h")}<span class="ld-tools"><span>Columns</span><span>Export</span></span></div>
       <div class="ld-tbl">

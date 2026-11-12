@@ -46,12 +46,12 @@ test.describe("sorting", () => {
     expect(bad).toEqual([]);
   });
 
-  test("Status uses the lx3 key: worst first on the first click", async ({ page }) => {
+  test("Status uses the lx3 key: worst first on the first click, from any of the four heads", async ({ page }) => {
     await ready(page);
-    await head(page, "Status").click();
+    await head(page, "Compliance: status. Sort by status.").click();
     await expect(page.locator("th[aria-sort]")).toHaveAttribute("aria-sort", "descending");
     expect(urlParam(page, "sort")).toBe("st");
-    const gaps = await rowsOf(page).evaluateAll((trs) => trs.map((tr) => tr.querySelectorAll("td[data-col=st] .dot.bad").length));
+    const gaps = await rowsOf(page).evaluateAll((trs) => trs.map((tr) => tr.querySelectorAll("td[data-col=st] .gl.bad").length));
     expect(gaps.length).toBeGreaterThan(1);
     expect(gaps).toEqual([...gaps].sort((a, b) => b - a));
     expect(gaps[0]).toBeGreaterThanOrEqual(gaps[gaps.length - 1]);
@@ -135,9 +135,7 @@ test.describe("count, Show more and the empty state", () => {
     await expect(page.getByRole("button", { name: /^Show 50 more/ })).toContainText((n - 50).toLocaleString("en-US") + " left");
     await page.getByRole("button", { name: /^Show 50 more/ }).click();
     await expect(rowsOf(page)).toHaveCount(100);
-    await page.locator('[data-k="pill-tier"]').click();
-    await page.locator('[data-k="pop-tier-T1"]').check();
-    await page.keyboard.press("Escape");
+    await page.locator('[data-k="side-tier-T1"]').check();
     const t1 = await visible(page);
     expect(t1).toBeLessThan(n);
     await expect(page.locator("[data-count=of]")).toContainText("of " + n.toLocaleString("en-US"));

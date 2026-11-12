@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { FACETS, facetValues, facetValuesOf, fold } from "../../src/domain/facets";
-import { facetCounts, filterRows, matchRow, runQuery, sortRows } from "../../src/domain/query";
+import { facetCounts, filterRows, matchRow, pillarCounts, pillarTabOf, runQuery, sortRows, withPillarTab } from "../../src/domain/query";
 import { statusKey } from "../../src/domain/columns";
 import { fixtureRows, rowOf } from "./rows";
 
@@ -126,5 +126,30 @@ describe("sortRows", () => {
     expect(out.every((r) => r.app.tier === 1)).toBe(true);
     const names = out.map((r) => r.app.name.toLowerCase());
     expect(names).toEqual([...names].sort().reverse());
+  });
+});
+
+describe("pillar tabs", () => {
+  it("maps a tab to the Gap in facet and back", () => {
+    expect(withPillarTab({ tier: ["T1"] }, "cyber")).toEqual({ tier: ["T1"], gap: ["Cyber"] });
+    expect(withPillarTab({ gap: ["Cyber"], dom: ["X"] }, "all")).toEqual({ dom: ["X"] });
+    expect(withPillarTab({ gap: ["Cyber"] }, "platform")).toEqual({ gap: ["Platform"] });
+    expect(pillarTabOf({})).toBe("all");
+    expect(pillarTabOf({ gap: ["Continuity"] })).toBe("continuity");
+    expect(pillarTabOf({ gap: ["Cyber", "Platform"] })).toBeNull();
+  });
+
+  it("counts gaps over the filtered set, ignoring the Gap in selection itself", () => {
+    const filter = { q: "", f: { tier: ["T1"] } };
+    const c = pillarCounts(rows, filter);
+    const base = filterRows(rows, filter);
+    expect(c.all).toBe(base.length);
+    for (const p of ["cyber", "compliance", "continuity", "platform"] as const) {
+      expect(c.gaps[p]).toBe(base.filter((r) => r.status[p].status === "bad").length);
+    }
+    // selecting a tab does not change the counts the tabs show
+    expect(pillarCounts(rows, { q: "", f: withPillarTab(filter.f, "cyber") })).toEqual(c);
+    // and the rows the table shows for a tab are exactly that tab's gap count
+    expect(filterRows(rows, { q: "", f: withPillarTab(filter.f, "cyber") }).length).toBe(c.gaps.cyber);
   });
 });

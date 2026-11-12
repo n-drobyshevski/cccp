@@ -1,4 +1,5 @@
-// The filter toolbar over the register: search (debounced 120 ms), the pills Tier / Domain /
+// The filter toolbar of the Heatmap and the Landscape (the Inventory has its own facet panel, see
+// facetPanel.js; search lives in the shell): the pills Tier / Domain /
 // Lifecycle / Security officer / Gap in with their checklist popovers, Clear all and the
 // Filter panel icon button (with the count of selected values). While the panel is open, chips replace the pills. The state is the
 // shared filter state in the store (q and f), written through url.replace, so the address, the
@@ -21,8 +22,6 @@ import { mountViewTabs } from "./viewTabs.js";
 export const PILL_FACETS = ["dom", "lc", "so", "gap"];
 /** Every pill in the row, in order. Tier stays a pill while the panel is open. */
 export const ROW_PILLS = ["tier", ...PILL_FACETS];
-export const SEARCH_DEBOUNCE_MS = 120;
-export const SEARCH_PLACEHOLDER = "Search name, team, owner, officer";
 
 /** The pill's visible value text: tier shows 'T1' as '1'; other values show as they are. */
 const shown = (key, v) => (key === "tier" ? v.replace(/^T(\d)$/, "$1") : v);
@@ -77,11 +76,11 @@ export function rowView(s, popKey) {
   return html`${pills}${s.side ? chips : ""}${n || s.q ? html`<button type="button" class="linkbtn clr" data-act="clear-all" data-k="clear-all">Clear all</button>` : ""}<button type="button" class="pill sbtn" data-act="side" data-k="side" aria-pressed="${s.side ? "true" : "false"}" aria-label="${panelName}" data-tip="${panelName}">${icon("filter", 14)}${n ? html`<span class="badge">${n}</span>` : ""}</button>`;
 }
 
-/** The toolbar's static frame: the views slot, the search box, and the region that is redrawn. */
-export function frameView(q) {
+/** The toolbar's static frame: the views slot and the region that is redrawn. */
+export function frameView() {
   return html`<section class="panel toolbar" aria-label="Filters">
     <div class="views-slot" data-slot="views"></div>
-    <div class="row"><label class="search">${icon("search")}<input type="search" data-k="q" placeholder="${SEARCH_PLACEHOLDER}" value="${q}" aria-label="Search applications" autocomplete="off"></label><div class="tbdyn" data-region="tbdyn"></div></div>
+    <div class="row"><div class="tbdyn" data-region="tbdyn"></div></div>
   </section>`;
 }
 
@@ -109,11 +108,8 @@ export function mountFilters(root) {
   const finds = { pop: "", side: {} };
   let popKey = null;
   let pop = null;
-  let timer = 0;
-  let typed = null;
 
-  renderRegion(tbHost, frameView(store.get().q), { keepFocus: false, keepScroll: false });
-  const input = qs(tbHost, "input[data-k=q]");
+  renderRegion(tbHost, frameView(), { keepFocus: false, keepScroll: false });
   const dyn = qs(tbHost, '[data-region="tbdyn"]');
   const offViews = mountViewTabs(qs(tbHost, "[data-slot=views]"));
 
@@ -138,7 +134,6 @@ export function mountFilters(root) {
     renderRegion(dyn, rowView(s, popKey));
     renderRegion(panelEl, panelView(s, scopeRows(), PILL_FACETS, finds.side));
     bodyEl.classList.toggle("side-on", !!s.side);
-    if (typed === null && document.activeElement !== input && input.value !== s.q) input.value = s.q;
     if (s.side && pop) closePopovers(false);
     drawPop();
   }
@@ -167,11 +162,8 @@ export function mountFilters(root) {
   };
 
   const clearAll = () => {
-    clearTimeout(timer);
-    typed = null;
     finds.pop = "";
     finds.side = {};
-    input.value = "";
     closePopovers(false);
     apply({ q: "", f: {} });
   };
@@ -184,11 +176,6 @@ export function mountFilters(root) {
     else if (act === "rm") setF(toggled(s.f, b.getAttribute("data-facet"), b.getAttribute("data-v"), false));
     else if (act === "clear-all") clearAll();
     else if (act === "side") setSide(!s.side);
-  }));
-  offs.push(delegate(tbHost, "input", "input[data-k=q]", (ev, el) => {
-    typed = el.value;
-    clearTimeout(timer);
-    timer = setTimeout(() => { const v = typed; typed = null; apply({ q: v }); }, SEARCH_DEBOUNCE_MS);
   }));
   offs.push(delegate(panelEl, "click", "[data-act]", (ev, b) => {
     const act = b.getAttribute("data-act");
@@ -207,7 +194,6 @@ export function mountFilters(root) {
   draw();
 
   return () => {
-    clearTimeout(timer);
     offViews();
     offStore();
     offReg();

@@ -80,7 +80,7 @@ test.describe("first open: the splash", () => {
 test.describe("later waits: the route-shaped skeleton", () => {
   const ROUTES: Array<[string, string, string]> = [
     ["overview", "overview", "Status by pillar"],
-    ["list", "list", "Search name, team, owner, officer"],
+    ["list", "list", "All applications"],
     ["heatmap", "heatmap", "Domain / application"],
     ["landscape", "landscape", "Colour by"],
   ];

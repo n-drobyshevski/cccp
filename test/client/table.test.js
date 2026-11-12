@@ -3,7 +3,6 @@
 // empty state. The DOM behaviour (clicks, keyboard, Back and scroll) is in e2e/list.spec.ts.
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
 import { chooserRows, chooserView, readCols, writeCols } from "../../src/client/components/columnChooser.js";
-import { legend } from "../../src/client/components/legend.js";
 import { PAGE_STEP, cell, emptyView, headCell, lifecycleClass, moreView, sortAfter, tableView } from "../../src/client/components/table.js";
 import { headView, resultsView } from "../../src/client/pages/list.js";
 import * as register from "../../src/client/state/register.js";
@@ -42,13 +41,16 @@ describe("sortable headers", () => {
     expect(out).toMatch(/<th scope="col"><button type="button" class="sh" data-act="sort" data-col="so"/);
     expect(out).toContain("Security officer");
   });
-  it("the status header shows C C C P and still names itself", () => {
+  it("the status column is four heads CY CO CT PL in the pillar colours, each sorting by status", () => {
     const out = s(headCell(col("st"), "n", false));
-    expect(out).toContain("dhead");
-    expect(out).toContain('<span class="sr-only">Status</span>');
+    expect([...out.matchAll(/<th scope="col" class="p pc-(\w+)"/g)].map((m) => m[1])).toEqual(["cyber", "compliance", "continuity", "platform"]);
+    expect([...out.matchAll(/data-col="st"[^>]*>(CY|CO|CT|PL)/g)].map((m) => m[1])).toEqual(["CY", "CO", "CT", "PL"]);
+    expect(s(headCell(col("st"), "st", true)).match(/aria-sort="descending"/g).length).toBe(1);
   });
-  it("the status header button carries the pillar legend as its tip, so focus shows it", () => {
-    expect(s(headCell(col("st"), "n", false))).toContain('data-tip="Status: Cyber · Compliance · Continuity · Platform"');
+  it("each status head names its pillar in the tip and the accessible name", () => {
+    const out = s(headCell(col("st"), "n", false));
+    expect(out).toContain('data-tip="Cyber: status. Sort by status."');
+    expect(out).toContain('aria-label="Platform: status. Sort by status."');
     expect(s(headCell(col("n"), "n", false))).not.toContain("data-tip");
   });
   it("long domain, owner and officer values are cut in the cell and keep the full text in the tip", () => {
@@ -113,12 +115,18 @@ describe("cells", () => {
     expect(lifecycleClass("whatever")).toBe("");
     expect(s(cell(col("lc"), rows[1]))).toContain("End of life");
   });
-  it("completeness is a bar with its number, status is four dots in C C C P order", () => {
+  it("completeness is a bar with its number, status is four glyphs in CY CO CT PL order", () => {
     const q = s(cell(col("q"), rows[0]));
     expect(q).toContain("qbar");
     expect(q).toContain(rows[0].pct + "%");
     const st = s(cell(col("st"), rows[0]));
     expect([...st.matchAll(/aria-label="(Cyber|Compliance|Continuity|Platform):/g)].map((m) => m[1])).toEqual(["Cyber", "Compliance", "Continuity", "Platform"]);
+  });
+  it("a table row has four status cells after the other columns", () => {
+    const out = s(tableView({ cols: visibleColumnDefs([], "n"), rows: [rows[0]], sort: "n", desc: false }));
+    expect([...out.matchAll(/<td class="p" data-col="st" data-pillar="(\w+)"/g)].map((m) => m[1])).toEqual(["cyber", "compliance", "continuity", "platform"]);
+    expect([...out.matchAll(/<th /g)].length).toBe(DEFAULT_COLUMN_KEYS.length + 3);
+    expect([...out.matchAll(/<td /g)].length).toBe(DEFAULT_COLUMN_KEYS.length + 3);
   });
   it("the table draws one row per row, with its id", () => {
     const out = s(tableView({ cols: visibleColumnDefs([], "n"), rows, sort: "n", desc: false }));
@@ -136,7 +144,7 @@ describe("columns", () => {
 
   it("the defaults are the lx3 set, in the registry order", () => {
     expect(visibleColumnDefs([], "n").map((c) => c.key)).toEqual(DEFAULT_COLUMN_KEYS.slice());
-    expect(DEFAULT_COLUMN_KEYS).toEqual(["n", "d", "t", "lc", "o", "so", "q", "st"]);
+    expect(DEFAULT_COLUMN_KEYS).toEqual(["n", "d", "t", "lc", "o", "so", "st"]);
   });
   it("Application is fixed: it cannot be switched off", () => {
     expect(toggleColumnKey([], "n", "n")).toEqual([]);
@@ -203,19 +211,30 @@ describe("Show more, the count and the empty state", () => {
     expect(s(moreView(1125, 1125))).toBe("");
   });
   it("the results head counts N of M and notes hidden applications", () => {
-    const h = s(headView(12, 1125, 0));
-    expect(h).toContain('data-count="visible"><b class="num">12</b>');
+    const h = s(headView(state(), 12, 1125, 0));
+    expect(h).toContain('data-count="visible"><b class="num mono">12</b>');
     expect(h).toContain("of 1,125 applications");
     expect(h).not.toContain('data-count="hidden"');
-    expect(s(headView(1, 1, 3))).toContain("and 3 applications hidden by the display settings");
-    expect(s(headView(1, 1, 0))).toContain("of 1 application<");
+    expect(s(headView(state(), 1, 1, 3))).toContain("and 3 applications hidden by the display settings");
+    expect(s(headView(state(), 1, 1, 0))).toContain("of 1 application<");
   });
-  it("the head holds the legend, Columns and Export", () => {
-    const h = s(headView(4, 4, 0));
-    expect(h).toContain('data-act="cols"');
-    expect(h).toContain('data-act="export"');
-    expect(s(legend())).toContain("Needs attention");
-    expect(s(legend())).toContain("dot none");
+  it("the head holds Columns and Export as text links, and Filters for the drawer", () => {
+    const h = s(headView(state(), 4, 4, 0));
+    expect(h).toMatch(/<button type="button" class="tlink" data-act="cols"[^>]*>Columns<\/button>/);
+    expect(h).toMatch(/<button type="button" class="tlink" data-act="export"[^>]*>Export<\/button>/);
+    expect(h).toContain('data-act="fopen"');
+    expect(h).toContain(">Filters<");
+    expect(s(headView(state({ f: { tier: ["T1"], dom: ["A", "B"] } }), 4, 4, 0))).toContain(">Filters (3)<");
+  });
+  it("active filters are small tags, each removable; the search is one too", () => {
+    const h = s(headView(state({ q: "pay", f: { tier: ["T1", "T2"], gap: ["Cyber"] } }), 4, 4, 0));
+    expect(h).toContain("Search: \u201cpay\u201d");
+    expect(h).toContain("Tier: T1, T2");
+    expect(h).toContain("Gap in: Cyber");
+    expect(h).toContain('data-act="rm-q"');
+    expect([...h.matchAll(/data-act="clear-facet" data-facet="(\w+)"/g)].map((m) => m[1])).toEqual(["tier", "gap"]);
+    expect(h).toContain('data-act="clear-all"');
+    expect(s(headView(state(), 4, 4, 0))).not.toContain('class="ftag"');
   });
   it("the page draws only `limit` rows and the footer says how many are left", () => {
     const big = Array.from({ length: 120 }, (_, i) => rows[i % 3]);

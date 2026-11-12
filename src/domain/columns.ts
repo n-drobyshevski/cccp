@@ -64,13 +64,14 @@ export const COLUMNS: readonly Column[] = [
   single("Security officer", "so", (r) => r.app.securityOfficer, (r) => text(r.app.securityOfficer), { defaultHidden: false }),
   single("Typology", "ty", (r) => r.app.typology, (r) => text(r.app.typology)),
   single("Hosting", "h", (r) => r.app.hosting, (r) => text(r.app.hosting)),
-  single("Completeness", "q", (r) => r.pct, (r) => r.pct, { defaultHidden: false }),
   {
     key: "st", label: "Status", fixed: false, pinned: false, defaultHidden: false, descFirst: true,
     sort: statusKey,
     heads: [...PILLARS.map((p) => PILLAR_LABEL[p]), ...PILLARS.map((p) => PILLAR_LABEL[p] + " reason")],
     cells: (r) => [...PILLARS.map((p) => STATUS_WORD[r.status[p].status]), ...PILLARS.map((p) => r.status[p].sentence)],
   },
+  // Off by default: the four status columns carry the Inventory; turn it on from Columns.
+  single("Completeness", "q", (r) => r.pct, (r) => r.pct, { defaultHidden: true }),
 ];
 
 export const COLUMN_BY_KEY: Readonly<Record<string, Column>> = Object.fromEntries(COLUMNS.map((c) => [c.key, c]));

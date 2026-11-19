@@ -2,6 +2,7 @@
 import { copyFileSync, lstatSync, mkdirSync, readdirSync, rmSync, writeFileSync } from "node:fs";
 import { dirname, join, relative, sep } from "node:path";
 import { UsageError } from "./args.mjs";
+import { printable } from "./source.mjs";
 import { KIT_DIR, LOCK_FILE, buildLock, hashFiles, renderLock, vendorFiles } from "./hash.mjs";
 
 /**
@@ -23,7 +24,7 @@ export function assertNoLink(root, rel, opts = {}) {
     } catch {
       return;
     }
-    if (st.isSymbolicLink()) throw new UsageError(cur + " is a symbolic link; " + (opts.who ?? "gas-kit") + " will not write through it. Remove it" + (opts.hint ?? ""));
+    if (st.isSymbolicLink()) throw new UsageError(cur + " is a symbolic link; " + (opts.who ?? "gas-kit") + " will not write through it. Remove it" + (opts.hint ?? ""), { title: "A link is in the way, so nothing was written", why: printable(relative(root, cur).split(sep).join("/") || ".") + " is a symbolic link, which could lead outside this app, and gas-kit will not write through it.", fix: "Remove the link (it is only a shortcut), then run the command again.", more: "npm run kit -- help kit" });
   }
   if (opts.deep !== false && lstatSync(cur).isDirectory()) {
     for (const e of readdirSync(cur)) assertNoLink(root, relative(root, join(cur, e)).split(sep).join("/"), opts);
@@ -34,8 +35,9 @@ export function assertNoLink(root, rel, opts = {}) {
  * Replace src/kit with the files of a kit source and rewrite kit.lock.json. Refuses (before deleting
  * anything) when src, src/kit or kit.lock.json is a symbolic link.
  * @param {string} root the app root
- * @param {{ dir: string, version: string, commit: string | null, source: string, remote?: string | null }} src remote is
- *   the shareable kit repository URL to remember in the lock (already through shareableRemote), or null
+ * @param {{ dir: string, version: string, commit: string | null, source: string, remote?: string | null | false }} src remote is
+ *   the shareable kit repository URL to remember in the lock (already through shareableRemote), null, or
+ *   false (a deliberate "no remote")
  * @returns {{ files: Record<string, string> }} path under src/kit to sha256
  */
 export function writeVendored(root, src) {

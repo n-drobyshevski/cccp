@@ -7,6 +7,7 @@
   "scripts": {
     "test": "vitest run --project domain --project server --project client --project kiritimati",
     "test:watch": "vitest",
+    "audit": "node tools/audit.mjs",
     "typecheck": "tsc -p tsconfig.json && tsc -p tsconfig.client.json",
     "lint": "eslint .",
     "build": "node tools/build.mjs",
@@ -19,7 +20,8 @@
     "deploy:new": "npm run push && clasp deploy",
     "kit:verify": "node src/kit/cli/src/bin.mjs kit:verify",
     "kit:sync": "node src/kit/cli/src/bin.mjs kit:sync",
-    "kit:diff": "node src/kit/cli/src/bin.mjs kit:diff"
+    "kit:diff": "node src/kit/cli/src/bin.mjs kit:diff",
+    "kit": "node src/kit/cli/src/bin.mjs"
   },
   "devDependencies": {
     "@google/clasp": "^3.4.0",
@@ -27,8 +29,23 @@
     "@types/google-apps-script": "^2.0.12",
     "@types/node": "^22.20.1",
     "esbuild": "^0.28.2",
-    "eslint": "^10.9.1",
+    "eslint": "^10.15.0",
     "typescript": "^7.0.2",
     "vitest": "^4.1.11"
+  },
+  "overrides": {
+    "gaxios": "^7.3.1",
+    "zod": "^4.6.7",
+    "vite": "^8.3.8",
+    "hono": "^4.13.19",
+    "@hono/node-server": "^2.1.9",
+    "@modelcontextprotocol/sdk": "^1.32.2",
+    "body-parser": "^2.4.0",
+    "proxy-addr": "^2.0.8",
+    "source-map-js": "^1.2.4",
+    "ip-address": "^10.7.6",
+    "qs": "^6.17.1",
+    "fast-uri": "^3.1.9",
+    "brace-expansion": "^5.0.13"
   }
 }

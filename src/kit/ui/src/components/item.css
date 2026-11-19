@@ -1,0 +1,37 @@
+/* Anatomy and styling adapted from shadcn/ui new-york v4 Item (MIT; see THIRD_PARTY_NOTICES.md). Tokens only. */
+.gk-item {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: var(--space-4);
+  padding: var(--space-4);
+  border: 1px solid transparent;
+  border-radius: var(--radius);
+  color: var(--text);
+  font-size: var(--fs-md);
+}
+.gk-item.is-outline { border-color: var(--border); }
+.gk-item.is-muted { background: var(--surface-2); }
+.gk-item.is-sm { gap: var(--space-3); padding: var(--space-2) var(--space-3); }
+.gk-item__media { display: flex; flex: none; align-items: center; justify-content: center; gap: var(--space-2); }
+.gk-item__media.is-icon {
+  width: 32px;
+  height: 32px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--surface-2);
+}
+.gk-item.is-sm .gk-item__media.is-icon { width: 24px; height: 24px; }
+.gk-item__media svg { width: 16px; height: 16px; }
+.gk-item__content { display: flex; flex: 1 1 0; flex-direction: column; gap: var(--space-1); min-width: 0; }
+.gk-item__title { font-weight: var(--fw-medium); line-height: var(--lh); overflow-wrap: anywhere; }
+.gk-item__description { margin: 0; color: var(--text-muted); font-size: var(--fs-md); line-height: var(--lh); overflow-wrap: anywhere; }
+.gk-item.is-sm .gk-item__title, .gk-item.is-sm .gk-item__description { font-size: var(--fs-sm); }
+.gk-item__link { color: inherit; text-decoration: underline; text-underline-offset: 3px; }
+.gk-item__link:hover { color: var(--accent); }
+.gk-item__link:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; border-radius: var(--radius-sm, 2px); }
+.gk-item__actions { display: flex; flex: none; align-items: center; gap: var(--space-2); }
+.gk-item-group { display: flex; flex-direction: column; margin: 0; padding: 0; list-style: none; }
+.gk-item-group__label { margin-bottom: var(--space-2); color: var(--text-muted); font-size: var(--fs-sm); font-weight: var(--fw-medium); }
+.gk-item-group.is-separated .gk-item-group__row + .gk-item-group__row { border-top: 1px solid var(--border); }
+.gk-item-group.is-separated .gk-item { border-radius: 0; }

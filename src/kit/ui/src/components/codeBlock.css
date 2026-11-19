@@ -1,0 +1,34 @@
+/* Tokens only. The copy button is gk-btn (button.css) wrapped by copyButton.css. */
+.gk-codeBlock {
+  margin: 0;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  background: var(--surface-2);
+  color: var(--text);
+  overflow: hidden;
+}
+.gk-codeBlock__head {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-1) var(--space-2) var(--space-1) var(--space-3);
+  border-bottom: 1px solid var(--border);
+  font-size: var(--fs-sm);
+}
+.gk-codeBlock__caption { flex: 1; min-width: 0; font-weight: var(--fw-medium); }
+.gk-codeBlock__lang { font-family: var(--font-mono); font-size: var(--fs-xs); color: var(--text-muted); }
+.gk-codeBlock__pre {
+  margin: 0;
+  padding: var(--space-3);
+  overflow: auto;
+  max-height: 24rem;
+  font-family: var(--font-mono);
+  font-size: var(--fs-sm);
+  line-height: 1.5;
+  tab-size: 2;
+  white-space: pre;
+}
+.gk-codeBlock__pre code { font: inherit; }
+.gk-codeBlock.is-wrap .gk-codeBlock__pre { white-space: pre-wrap; overflow-wrap: anywhere; }
+.gk-codeBlock__pre:focus-visible { outline: 2px solid var(--accent); outline-offset: -2px; }
+.gk-codeBlock.is-empty .gk-codeBlock__pre { min-height: var(--space-6); }

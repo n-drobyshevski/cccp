@@ -8,7 +8,9 @@ Release audit results and the manual live `/exec` checklist: `VERIFY.md`.
 
 ```
 npm install
+npm run kit            # the menu (preview, connect, put online, check, update, doctor, panel); every item is also a command below
 npm run check          # typecheck, lint, test, test:build, kit:verify
+npm run audit          # npm advisories for package-lock.json, moderate and up; exceptions, dated, in audit-allow.json
 npm run kit:verify     # src/kit (gas-kit) against kit.lock.json; kit:diff and kit:sync take a newer kit
 ```
 
@@ -37,22 +39,31 @@ Never start the dev server on :8791 and leave it running: `test/server/devServer
 
 ## CI
 
-`.github/workflows/ci.yml`: Node 22, `TZ=UTC`, `npm ci`, `npm run check`, install chromium,
+`.github/workflows/ci.yml`: Node 22, `TZ=UTC`, `npm ci`, `npm audit signatures`, `npm run audit`, `npm run check`, install chromium,
 `npm run e2e`; screenshots and, on failure, `test-results` are uploaded as artifacts.
+`.github/workflows/audit.yml` repeats the audit every Monday and keeps one issue open while it finds something.
 
 ## The kit
 
-`src/kit` is gas-kit, pinned by `kit.lock.json`; never edited here. To take a newer kit run `npm run kit:diff`,
+`src/kit` is gas-kit, pinned by `kit.lock.json`; never edited here. `npm run kit` is the normal entry
+point: a menu (preview, connect, put online, check, update, doctor, panel) that asks in plain words and
+runs the commands below. `npm run kit -- doctor` checks this computer and the app (`--offline` skips
+the look for a newer kit). To take a newer kit by hand run `npm run kit:diff`,
 `npm run kit:sync -- --from <kit checkout>` and `npm run kit:verify` (see `KIT.md`).
 
 ## Deploy
+
+In the menu: "Connect" checks the sign-in (step 1) and links an Apps Script project you paste (an alternative to step 2) and "Put the app
+online" does step 3. The explicit commands:
 
 0. In the cloned `cccp` folder, with Node 22 or newer: `npm ci`. This installs `tsc`, `clasp`,
    `esbuild` and the rest into `node_modules`. None of them is global, so outside `npm run` call
    them through `npx`.
 1. `npx clasp login` as the OWNER, who needs view access to the register Sheet.
 2. `npx clasp create --type webapp --title CCCP --rootDir dist`.
-3. `npm run push`: runs the check, then `clasp push --force`. `--force` is deliberate: the repo's
+3. `npm run push`: builds, runs the check on the fresh build, runs the dependency audit (an advisory at
+   high or critical that `audit-allow.json` does not allow stops the push; offline it only warns), then
+   `clasp push --force`. `--force` is deliberate: the repo's
    `appsscript.json` is the source of truth, and without it clasp asks to overwrite the remote
    manifest, defaults to No and skips the push.
 4. In the Apps Script editor run `setup('<sheet url>')` and grant the 4 scopes.

@@ -1,0 +1,14 @@
+/* scatterChart: needs chartParts.css (grid, ticks, hit areas and the sr-only table are shared).
+   Points are neutral; the active one is larger, in the accent, and carries a word. A class point
+   is a shape, solid or hollow (a surface fill with a coloured outline). */
+.gk-scatter__pt { outline: none; cursor: default; }
+.gk-scatter__pt:focus-visible .gk-chart__hit { stroke: var(--accent); stroke-width: 2px; }
+.gk-scatter__dot { fill: var(--text-muted); stroke: var(--surface); stroke-width: 1.5px; }
+.gk-scatter__pt.is-active .gk-scatter__dot { fill: var(--accent); }
+.gk-scatter__label { fill: var(--text); font-size: var(--fs-sm); paint-order: stroke; stroke: var(--surface); stroke-width: 3px; }
+.gk-scatter__pt.is-active .gk-scatter__label { font-weight: var(--fw-semibold); }
+.gk-scatter__leader { stroke: var(--border-strong); stroke-width: 1; }
+.gk-scatter__title { fill: var(--text); font-size: var(--fs-sm); font-weight: var(--fw-medium); }
+.gk-scatter__note { margin: 0; padding: var(--space-2) 0 0; color: var(--text-muted); font-size: var(--fs-sm); text-align: center; }
+.gk-scatter__mark { fill: var(--c); stroke: var(--surface); stroke-width: 1.5px; }
+.gk-scatter__mark.is-hollow { fill: var(--surface); stroke: var(--c); stroke-width: 1.5px; }

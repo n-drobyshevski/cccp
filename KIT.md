@@ -1,7 +1,7 @@
 # KIT.md: the gas-kit this app is built on
 
 CCCP takes its shared code from gas-kit, copied into `src/kit/` and pinned by `kit.lock.json`
-(kit `0.1.0`, commit `a9f8834e0581c96ced61bfcc860a92a59be6870e`, a local checkout). Nothing under
+(kit `0.2.1`, commit `fba21dc11616daf78c9fc64da27b0d7edd7f243c`, a local checkout). Nothing under
 `src/kit` is edited here. Until C6 the app also carried a verbatim snapshot of an earlier shared
 library (`src/vendor`, pinned at its commit `77bcf22`, taken from the `sidekick` repository, with
 `vendor:sync`, `vendor:verify` and `vendor:diff` scripts). The kit replaced every file of it, the
@@ -9,6 +9,12 @@ last ones in C5d, and C6 deleted it with its lock, its tooling and its test. Thi
 place those names still appear, as history.
 
 ## Taking a newer kit
+
+`npm run kit` is the normal entry point: a menu (preview, connect, put online, check, update, doctor,
+panel). Its "update" item walks through the steps below; `npm run kit -- doctor --offline` reports the
+state of this computer and the app. `package.json` has the `kit` script since C9 (`kit:sync` adds a
+missing kit script itself; the first sync from a kit older than 0.2 needs `npm run kit:sync -- --scripts-only`
+once, because the old CLI is the one that runs). The explicit commands:
 
 ```
 npm run kit:diff -- --from <kit checkout>     # what would change; read it before taking it

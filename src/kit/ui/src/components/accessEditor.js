@@ -1,14 +1,14 @@
 // Extracted from the author's production Apps Script apps; adapted.
 // The access editor: who may open the app. An access mode (listed people or the owner's
-// domain), a users list and an admins list with add and remove, and a summary of what a save
-// would change. It renders a draft held by the app (see accessModel); the owner row has no
+// domain; mode: false leaves it out), a users list and an admins list with add and remove (their
+// words can be overridden with labels), and a summary of what a save would change. It renders a draft held by the app (see accessModel); the owner row has no
 // remove button. Owner-only parts render read-only for an admin.
 import { attrs, html } from "@gas-kit/client/html.js";
 import { pluralize } from "@gas-kit/client/format.js";
 import { accessDiff, domainOf, foreignAddresses, normEmail } from "./accessModel.js";
 
 /**
- * @param {{key: "users"|"admins", title: string, hint: string, entries: string[], owner: string, editable: boolean, base: string[]|null, input: string, message?: string|null, outside: string[], id: string, noun: string}} o
+ * @param {{key: "users"|"admins", title: string, hint: string, entries: string[], owner: string, editable: boolean, base: string[]|null, input: string, message?: string|null, outside: string[], id: string, noun: string, name: string}} o
  */
 function listBlock(o) {
   const msgId = o.id + "-" + o.key + "-msg";
@@ -25,7 +25,7 @@ function listBlock(o) {
       !o.editable ? null : isOwner
         ? html`<span class="gk-accessEditor__fixed">Cannot be removed</span>`
         : html`<button type="button" class="gk-accessEditor__x gk-btn" data-variant="outline" data-size="sm" ${attrs({
-          "data-act": "accessEditor:remove", "data-list": o.key, "data-email": e, "data-k": "rm-" + o.key + "-" + e, "aria-label": "Remove " + e + " from " + o.key,
+          "data-act": "accessEditor:remove", "data-list": o.key, "data-email": e, "data-k": "rm-" + o.key + "-" + e, "aria-label": "Remove " + e + " from " + o.name,
         })}>Remove</button>`
     }</li>`;
   });
@@ -41,21 +41,40 @@ function listBlock(o) {
 }
 
 /**
+ * @typedef {{title?: string, hint?: string, noun?: string, name?: string}} ListLabels
+ */
+
+/**
+ * A list's words: the defaults, each replaced by a non-blank override.
+ * @param {{title: string, hint: string, noun: string}} d
+ * @param {ListLabels|null|undefined} o
+ * @returns {{title: string, hint: string, noun: string, name: string}}
+ */
+function listWords(d, o) {
+  const pick = (/** @type {unknown} */ v, /** @type {string} */ dflt) => (typeof v === "string" && v.trim() !== "" ? v : dflt);
+  const x = o && typeof o === "object" ? o : {};
+  const title = pick(x.title, d.title);
+  return { title, hint: pick(x.hint, d.hint), noun: pick(x.noun, d.noun), name: pick(x.name, title.toLowerCase()) };
+}
+
+/**
  * @component accessEditor
  * @title Access Editor
  * @category Domain
  * @summary An owner and admin editor for who may open the app: access mode, users, admins and a summary of unsaved changes.
- * @param {{owner: string, draft: {users: string[], admins: string[], mode: "list"|"org"}, base?: {users: string[], admins: string[], mode: "list"|"org"}|null, canEditUsers?: boolean, canEditAdmins?: boolean, canEditMode?: boolean, input?: {users?: string, admins?: string}, messages?: {users?: string|null, admins?: string|null, mode?: string|null}, id?: string}} p
+ * @param {{owner: string, draft: {users: string[], admins: string[], mode: "list"|"org"}, base?: {users: string[], admins: string[], mode: "list"|"org"}|null, canEditUsers?: boolean, canEditAdmins?: boolean, canEditMode?: boolean, mode?: boolean, labels?: {users?: ListLabels, admins?: ListLabels}, input?: {users?: string, admins?: string}, messages?: {users?: string|null, admins?: string|null, mode?: string|null}, id?: string}} p
+ * `mode: false` leaves the access-mode fieldset out (for an app whose mode is fixed or set elsewhere); the default draws it. `labels.users` and `labels.admins` override a list's words: `title` (the heading, default "Users" and "Admins"), `hint` (the line under it), `noun` (after "Add", default "a user" and "an admin") and `name` (the list in sentences, "Remove x from <name>" and the change summary; default the title in lower case).
  * `draft` is the working copy; `base` is the saved copy and turns on the New marks and the change summary. `canEditUsers` defaults to true; admins and mode are owner-only and default to false.
  * The view renders no form, so Enter in an Add input does nothing by itself: the app should delegate a keydown on Enter from [data-act="accessEditor:input"] to the same handler as accessEditor:add for that data-list.
  * @emits accessEditor:mode (data-mode), accessEditor:add (data-list), accessEditor:remove (data-list, data-email), accessEditor:input (data-list; read the value)
- * @states default, ownerView, orgMode, changed, error
- * @a11y The mode is a radio group in a fieldset with a legend. Each list is a section with a heading and a list; Remove buttons say who and from which list. The owner row says "Owner" and "Cannot be removed" in words. New and Other domain are text tags, not colour alone. Errors are role=alert and linked to the input with aria-describedby.
+ * @states default, ownerView, orgMode, changed, error, noMode
+ * @a11y The mode is a radio group in a fieldset with a legend (absent with `mode: false`, so nothing hidden stays in the tab order). Each list is a section with a heading and a list; Remove buttons say who and from which list. The owner row says "Owner" and "Cannot be removed" in words. New and Other domain are text tags, not colour alone. Errors are role=alert and linked to the input with aria-describedby.
  * @example default: accessEditor({ owner: "owner@example.org", draft: { users: ["owner@example.org", "ana@example.org"], admins: [], mode: "list" }, canEditUsers: true })
  * @example ownerView: accessEditor({ owner: "owner@example.org", draft: { users: ["owner@example.org", "ana@example.org"], admins: ["bo@example.org"], mode: "list" }, canEditUsers: true, canEditAdmins: true, canEditMode: true })
  * @example orgMode: accessEditor({ owner: "owner@example.org", draft: { users: ["owner@example.org"], admins: [], mode: "org" }, canEditUsers: true, canEditMode: true })
  * @example changed: accessEditor({ owner: "owner@example.org", draft: { users: ["owner@example.org", "ana@example.org", "guest@other.test"], admins: [], mode: "list" }, base: { users: ["owner@example.org", "cy@example.org"], admins: [], mode: "list" }, canEditUsers: true })
  * @example error: accessEditor({ owner: "owner@example.org", draft: { users: ["owner@example.org"], admins: [], mode: "list" }, canEditUsers: true, input: { users: "not-an-email" }, messages: { users: "not-an-email is not a valid email address" } })
+ * @example noMode: accessEditor({ owner: "owner@example.org", mode: false, labels: { users: { title: "Viewers", hint: "People who can read the register.", noun: "a viewer" }, admins: { title: "Editors", hint: "People who can also change settings.", noun: "an editor" } }, draft: { users: ["owner@example.org", "ana@example.org"], admins: ["bo@example.org"], mode: "list" }, canEditUsers: true, canEditAdmins: true })
  */
 export function accessEditor(p) {
   const id = p.id || "ae";
@@ -70,7 +89,10 @@ export function accessEditor(p) {
     { value: "list", label: "Only people on the lists", hint: "Users and admins listed below, plus the owner." },
     { value: "org", label: domain ? "Anyone at " + domain : "Anyone in the owner's organization", hint: "Everyone with an address at the owner's domain, plus the lists below." },
   ];
-  const modeGroup = html`<fieldset class="gk-accessEditor__mode"${p.canEditMode ? null : html` disabled`}><legend class="gk-accessEditor__h">Who can open the app</legend>${modes.map((m) => html`<label class="gk-accessEditor__opt"><input type="radio" ${attrs({
+  const labels = p.labels && typeof p.labels === "object" ? p.labels : {};
+  const uw = listWords({ title: "Users", hint: "People who can open the app.", noun: "a user" }, labels.users);
+  const aw = listWords({ title: "Admins", hint: "People who can also edit settings and the users list.", noun: "an admin" }, labels.admins);
+  const modeGroup = p.mode === false ? null : html`<fieldset class="gk-accessEditor__mode"${p.canEditMode ? null : html` disabled`}><legend class="gk-accessEditor__h">Who can open the app</legend>${modes.map((m) => html`<label class="gk-accessEditor__opt"><input type="radio" ${attrs({
     name: id + "-mode", value: m.value, checked: d.mode === m.value, "data-act": "accessEditor:mode", "data-mode": m.value, "data-k": "mode-" + m.value,
     disabled: !p.canEditMode, "aria-describedby": id + "-mode-" + m.value + (msg.mode ? " " + id + "-mode-msg" : ""),
   })}><span><span class="gk-accessEditor__optLabel">${m.label}</span><span class="gk-accessEditor__hint" id="${id}-mode-${m.value}">${m.hint}</span></span></label>`)}${
@@ -80,19 +102,20 @@ export function accessEditor(p) {
   const sum = diff && diff.count > 0 ? (() => {
     const parts = [];
     for (const k of /** @type {const} */ (["users", "admins"])) {
-      if (diff[k].added.length) parts.push(diff[k].added.length + " added to " + k);
-      if (diff[k].removed.length) parts.push(diff[k].removed.length + " removed from " + k);
+      const nm = k === "users" ? uw.name : aw.name;
+      if (diff[k].added.length) parts.push(diff[k].added.length + " added to " + nm);
+      if (diff[k].removed.length) parts.push(diff[k].removed.length + " removed from " + nm);
     }
     if (diff.mode) parts.push("mode changes from " + diff.mode.from + " to " + diff.mode.to);
     return html`<p class="gk-accessEditor__summary" role="status"><strong>${pluralize(diff.count, "unsaved change")}:</strong> ${parts.join(", ")}.</p>`;
   })() : null;
   const common = { id, owner, input: "", outside: /** @type {string[]} */ ([]), base: null };
   const users = listBlock(Object.assign({}, common, {
-    key: /** @type {const} */ ("users"), title: "Users", noun: "a user", hint: "People who can open the app.", entries: d.users, editable: canUsers,
+    key: /** @type {const} */ ("users"), ...uw, entries: d.users, editable: canUsers,
     base: base ? base.users : null, input: input.users || "", message: msg.users, outside: foreignAddresses(d.users, owner),
   }));
   const admins = listBlock(Object.assign({}, common, {
-    key: /** @type {const} */ ("admins"), title: "Admins", noun: "an admin", hint: "People who can also edit settings and the users list.", entries: d.admins, editable: !!p.canEditAdmins,
+    key: /** @type {const} */ ("admins"), ...aw, entries: d.admins, editable: !!p.canEditAdmins,
     base: base ? base.admins : null, input: input.admins || "", message: msg.admins, outside: foreignAddresses(d.admins, owner),
   }));
   return html`<div class="gk-accessEditor">${sum}${modeGroup}${users}${admins}</div>`;

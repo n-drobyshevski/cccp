@@ -73,3 +73,19 @@
     opacity: 0;
   }
 }
+
+/* lineChart markers: shaped points above the lines, each a tab stop with a 2px accent ring; the
+   legend shows the same shape. Reference lines are dashed and labelled, never colour alone. */
+.gk-chart__mark { fill: var(--c); stroke: var(--surface); stroke-width: 1.5px; }
+.gk-chart__marker { outline: none; cursor: default; }
+.gk-chart__marker:focus-visible .gk-chart__hit { stroke: var(--accent); stroke-width: 2px; }
+.gk-chart__swatch:is(.is-circle, .is-triangle, .is-square, .is-diamond) { width: 10px; height: 10px; }
+.gk-chart__swatch.is-circle { border-radius: 50%; }
+.gk-chart__swatch.is-triangle { border-radius: 0; clip-path: polygon(50% 0, 100% 100%, 0 100%); }
+.gk-chart__swatch.is-diamond { border-radius: 0; clip-path: polygon(50% 0, 100% 50%, 50% 100%, 0 50%); }
+/* a hollow marker swatch: an outline of its shape (a ring cut by an even-odd clip for the clipped shapes) */
+.gk-chart__swatch.is-hollow { background: transparent; box-shadow: inset 0 0 0 1.5px var(--c); }
+.gk-chart__swatch.is-hollow.is-diamond { background: var(--c); box-shadow: none; clip-path: polygon(evenodd, 50% 0, 100% 50%, 50% 100%, 0 50%, 50% 0, 50% 28%, 28% 50%, 50% 72%, 72% 50%, 50% 28%); }
+.gk-chart__swatch.is-hollow.is-triangle { background: var(--c); box-shadow: none; clip-path: polygon(evenodd, 50% 0, 100% 100%, 0 100%, 50% 0, 50% 34%, 22% 86%, 78% 86%, 50% 34%); }
+.gk-chart__ref { stroke: var(--text-muted); stroke-width: 1; stroke-dasharray: 4 4; }
+.gk-chart__refLabel { fill: var(--text-muted); font-size: var(--fs-sm); paint-order: stroke; stroke: var(--surface); stroke-width: 3px; }

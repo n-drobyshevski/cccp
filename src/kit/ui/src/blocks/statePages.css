@@ -1,7 +1,7 @@
 /* Layout only for the page-state blocks (notFoundPage, noAccessPage, errorPage); the state itself is
    the kit emptyState, restyled here as the shadcn empty page: a 40px icon tile, tighter title, roomy
    padding. Tokens only. */
-.gk-statePage { display: flex; flex-direction: column; align-items: center; gap: var(--space-5); max-width: 32rem; margin: 0 auto; padding: var(--space-7) var(--space-4); text-align: center; text-wrap: balance; }
+.gk-statePage { display: flex; flex-direction: column; align-items: center; gap: var(--space-5); justify-content: center; box-sizing: border-box; min-height: 100%; max-width: 32rem; margin: 0 auto; padding: var(--space-7) var(--space-4); text-align: center; text-wrap: balance; }
 .gk-statePage .gk-empty { gap: var(--space-2); width: 100%; padding: 0; border: 0; background: none; }
 .gk-statePage .gk-empty__icon { width: 40px; height: 40px; margin-bottom: var(--space-2); border-radius: var(--radius-lg); }
 .gk-statePage .gk-empty__title { font-size: var(--fs-xl); font-weight: var(--fw-medium); letter-spacing: -0.025em; }
@@ -10,3 +10,10 @@
 .gk-statePage__search { display: flex; gap: var(--space-2); width: 100%; max-width: 24rem; }
 .gk-statePage__search .gk-input { flex: 1 1 auto; min-width: 0; }
 .gk-statePage__help { display: flex; align-items: center; justify-content: center; gap: var(--space-1); margin: 0; color: var(--text-muted); font-size: var(--fs-md); }
+.gk-statePage__code { margin: 0; color: var(--text-muted); font-size: 7rem; font-weight: var(--fw-semibold); letter-spacing: -0.05em; line-height: 1; }
+.gk-statePage.has-code .gk-empty__icon { display: none; }
+.gk-statePage__links { display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: var(--space-2); }
+.gk-statePage__linksLabel { flex: 0 0 100%; color: var(--text-muted); font-size: var(--fs-sm); }
+.gk-statePage__who, .gk-statePage__ref { color: var(--text-muted); font-size: var(--fs-sm); }
+.gk-statePage__who strong { color: var(--text); font-weight: var(--fw-medium); }
+.gk-statePage__ref code { padding: 1px var(--space-1); border-radius: var(--radius-sm); background: var(--surface-2); color: var(--text); font-family: var(--font-mono); }

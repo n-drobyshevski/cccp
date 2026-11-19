@@ -63,3 +63,18 @@ export function deriveBrand(accent) {
     dark: { accent: dark, accentInk: darkInk, accentSoft: mix(DARK_SURFACE, dark, 0.15), mark: dark, markInk: darkInk },
   };
 }
+
+/**
+ * The main colours the guided create offers. Each is a #rrggbb that reaches 4.5:1 on the white surface as it
+ * stands (a test checks it), so the swatch shown is the colour the app gets. "Blue" is the template's accent.
+ * Brand tokens still come from deriveBrand; these are only the starting accents.
+ * They are kept here and not taken from tooling's brandPresets.mjs: that file has three presets, one of them
+ * a vendor brand, and the guided create needs neutral colours it can show as swatches.
+ */
+export const ACCENT_PRESETS = [
+  { id: "blue", label: "Blue", accent: "#2a4fb5" },
+  { id: "green", label: "Green", accent: "#1e7a4d" },
+  { id: "purple", label: "Purple", accent: "#6b3fa0" },
+  { id: "orange", label: "Orange", accent: "#b45309" },
+  { id: "teal", label: "Teal", accent: "#0f766e" },
+];

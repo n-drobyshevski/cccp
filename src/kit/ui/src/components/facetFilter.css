@@ -1,0 +1,57 @@
+/* Anatomy and styling ported from shadcn/ui new-york v4 (MIT; see THIRD_PARTY_NOTICES.md). Tokens only.
+   The trigger is an outline gk-btn with a dashed border; the chosen values are secondary badges
+   after a thin divider. The panel is a native popover; the island sets its left and top. The
+   checklist inside is facetList, styled by its own sheet. */
+.gk-facetFilter { display: inline-block; }
+.gk-facetFilter__trigger.gk-btn[data-variant="outline"] { border-style: dashed; border-color: var(--border-strong); }
+.gk-facetFilter__trigger:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.gk-facetFilter__sep {
+  flex: none;
+  align-self: center;
+  width: 1px;
+  height: 16px;
+  margin: 0 var(--space-1);
+  background: var(--border);
+}
+.gk-facetFilter__values { display: inline-flex; align-items: center; gap: var(--space-1); min-width: 0; }
+.gk-facetFilter__values .gk-badge {
+  padding: 0 var(--space-1);
+  border-radius: var(--radius-sm);
+  font-weight: var(--fw-normal);
+}
+.gk-facetFilter__panel {
+  position: fixed;
+  inset: auto;
+  margin: 0;
+  width: 13rem;
+  max-width: calc(100vw - var(--space-4));
+  max-height: calc(100dvh - var(--space-4));
+  overflow: auto;
+  padding: var(--space-1);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  background: var(--surface);
+  color: var(--text);
+  box-shadow: var(--shadow-md);
+  opacity: 0;
+  scale: calc(1 - 0.05 * var(--motion-scale));
+  transition: opacity var(--dur-2) var(--ease-exit), scale calc(var(--dur-2) * var(--motion-scale)) var(--ease-exit), display var(--dur-2) allow-discrete, overlay var(--dur-2) allow-discrete;
+}
+.gk-facetFilter__panel:popover-open {
+  opacity: 1;
+  scale: 1;
+  transition: opacity var(--dur-2) var(--ease-enter), scale calc(var(--dur-2) * var(--motion-scale)) var(--ease-enter), display var(--dur-2) allow-discrete, overlay var(--dur-2) allow-discrete;
+}
+@starting-style {
+  .gk-facetFilter__panel:popover-open { opacity: 0; scale: calc(1 - 0.05 * var(--motion-scale)); }
+}
+.gk-facetFilter__set { min-width: 0; margin: 0; padding: 0; border: 0; }
+.gk-facetFilter__legend { padding: 6px var(--space-2); font-size: var(--fs-sm); font-weight: var(--fw-medium); color: var(--text-muted); }
+.gk-facetFilter__panel .gk-facetList { gap: var(--space-1); }
+.gk-facetFilter__panel .gk-facetList__list { max-height: 18rem; overflow-y: auto; }
+.gk-facetFilter__foot { margin-top: var(--space-1); padding-top: var(--space-1); border-top: 1px solid var(--border); }
+.gk-facetFilter__clear { width: 100%; }
+@media (prefers-reduced-motion: reduce) {
+  .gk-facetFilter__panel,
+  .gk-facetFilter__panel:popover-open { transition: opacity var(--dur-2) var(--ease-standard), display var(--dur-2) allow-discrete, overlay var(--dur-2) allow-discrete; }
+}

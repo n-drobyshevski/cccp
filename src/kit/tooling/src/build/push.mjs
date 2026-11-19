@@ -8,7 +8,11 @@
 //    GAS_KIT_PUSH=1 in its environment. The app's contracts test reads that flag: in a push run its
 //    dist block must find dist and fails instead of skipping when there is none, so the guards on
 //    dist run on what is about to be pushed.
-// 3. `clasp push --force`, only when both exited 0, and never for a dev build (the dev marker).
+// 3. The dependency audit (deps/audit.mjs) at level high: an advisory at high or critical that
+//    audit-allow.json does not allow stops the push. The dev tools hold the Google token that
+//    pushes, so their advisories count. A registry this machine cannot reach is a warning here
+//    (--offline-ok); CI and the scheduled audit hold the moderate level and fail closed.
+// 4. `clasp push --force`, only when every step passed, and never for a dev build (the dev marker).
 //
 // Checking first and building after (the old order) let the contracts read the previous dist, or
 // skip with none, while a define or a global they would have refused went out. Node is spawned on
@@ -18,6 +22,10 @@ import { spawnSync } from "node:child_process";
 import { readFileSync, realpathSync } from "node:fs";
 import { join } from "node:path";
 import { isDevBundle } from "./whichBuild.mjs";
+import { main as auditMain } from "../deps/audit.mjs";
+
+/** The level `npm run push` holds the dependency audit to. */
+export const PUSH_AUDIT_LEVEL = "high";
 
 /** The environment flag a push run sets for the app's tests. */
 export const PUSH_ENV = "GAS_KIT_PUSH";
@@ -37,6 +45,7 @@ export const isPushRun = (env = process.env) => env[PUSH_ENV] === "1";
  * @param {(root: string) => boolean} [opts.isDev] true when dist holds a dev build (default isDevBundle)
  * @param {(root: string) => string} [opts.claspBin]
  * @param {string} [opts.checkScript] the npm script that checks the app (default check)
+ * @param {(root: string) => number} [opts.audit] the dependency audit's exit code (default deps/audit.mjs at PUSH_AUDIT_LEVEL, --offline-ok)
  * @returns {number} exit code
  */
 export function push(opts = {}) {
@@ -65,6 +74,12 @@ export function push(opts = {}) {
   if ((opts.isDev ?? isDevBundle)(root)) {
     error("push: dist/server.js is a dev build (it carries the dev marker); refusing to push it.");
     return 1;
+  }
+  const audit = opts.audit ?? ((r) => auditMain([".", "--level", PUSH_AUDIT_LEVEL, "--offline-ok"], { cwd: r }));
+  code = audit(root);
+  if (code !== 0) {
+    error("push: the dependency audit found an advisory at " + PUSH_AUDIT_LEVEL + " or above (exit " + code + "); nothing was pushed. Update the package (npm run audit names the fix), or allow the advisory in audit-allow.json with a reason and a date.");
+    return code;
   }
   const resolveClasp = opts.claspBin ?? ((r) => {
     const dir = join(r, "node_modules", "@google", "clasp");

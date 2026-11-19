@@ -1,0 +1,46 @@
+/* Extracted from the author's production Apps Script apps; adapted. */
+.gk-tickTimeline { display: flex; flex-direction: column; gap: var(--space-1); min-width: 0; }
+/* The track and its end labels share the track's width, so the ends sit under its first and last ticks. */
+.gk-tickTimeline__span { display: grid; gap: 2px; width: fit-content; max-width: 100%; }
+.gk-tickTimeline__ticks { display: flex; flex-wrap: wrap; gap: 2px; }
+.gk-tickTimeline__tick {
+  --gk-c: var(--none-fg);
+  display: inline-flex;
+  flex: none;
+  align-items: center;
+  justify-content: center;
+  box-sizing: border-box;
+  width: 1.1rem;
+  height: 1.4rem;
+  border-bottom: 3px solid var(--gk-c);
+  color: var(--gk-c);
+  font-size: var(--fs-xs);
+  line-height: 1;
+}
+.gk-tickTimeline__tick.is-ok { --gk-c: var(--ok-fg); }
+.gk-tickTimeline__tick.is-warn { --gk-c: var(--warn-fg); }
+.gk-tickTimeline__tick.is-bad { --gk-c: var(--bad-fg); }
+.gk-tickTimeline__tick.is-info { --gk-c: var(--info-fg); }
+.gk-tickTimeline__tick.is-plain { border-bottom-color: var(--border-strong); }
+.gk-tickTimeline__ends {
+  display: flex;
+  justify-content: space-between;
+  gap: var(--space-2);
+  color: var(--text-muted);
+  font-size: var(--fs-xs);
+}
+.gk-tickTimeline__legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-1) var(--space-4);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  color: var(--text);
+  font-size: var(--fs-sm);
+}
+.gk-tickTimeline__item { display: inline-flex; align-items: center; gap: var(--space-1); white-space: nowrap; }
+.gk-tickTimeline__tick.is-key { width: 1rem; height: 1.2rem; }
+.gk-tickTimeline__count { color: var(--text-muted); font-variant-numeric: tabular-nums; }
+.gk-tickTimeline__note { margin: 0; color: var(--text-muted); font-size: var(--fs-sm); }
+.gk-tickTimeline__empty { margin: 0; color: var(--text-muted); font-size: var(--fs-sm); }

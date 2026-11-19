@@ -1,0 +1,103 @@
+/* Extracted from the author's production Apps Script apps; adapted. */
+.gk-markerTrack { display: grid; gap: var(--space-2); min-width: 0; }
+.gk-markerTrack__table { width: 100%; border-collapse: collapse; font-size: var(--fs-sm); }
+.gk-markerTrack__table th,
+.gk-markerTrack__table td { padding: var(--space-1) var(--space-2); vertical-align: middle; }
+.gk-markerTrack__table th:first-child,
+.gk-markerTrack__table td:first-child { padding-inline-start: 0; }
+.gk-markerTrack__table th:last-child,
+.gk-markerTrack__table td:last-child { padding-inline-end: 0; }
+.gk-markerTrack__table thead th,
+.gk-markerTrack__table thead td {
+  color: var(--text-muted);
+  font-size: var(--fs-xs);
+  font-weight: var(--fw-medium);
+  text-align: start;
+}
+.gk-markerTrack__colhead.is-num { text-align: end; white-space: nowrap; }
+.gk-markerTrack__head { color: var(--text); font-weight: var(--fw-medium); text-align: start; white-space: nowrap; }
+.gk-markerTrack__trackcell, .gk-markerTrack__axiscell { width: 100%; min-width: 8rem; }
+.gk-markerTrack__cell { text-align: end; white-space: nowrap; font-variant-numeric: tabular-nums; }
+.gk-markerTrack__axis, .gk-markerTrack__track { position: relative; display: block; height: 1.25rem; }
+.gk-markerTrack__track::before {
+  content: "";
+  position: absolute;
+  inset-inline: 0;
+  top: 50%;
+  border-top: 1px solid var(--border-strong);
+}
+.gk-markerTrack__tick {
+  position: absolute;
+  top: 50%;
+  left: calc(var(--gk-pos, 0) * 1%);
+  transform: translate(-50%, -50%);
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+}
+.gk-markerTrack__tick.is-start { transform: translate(0, -50%); }
+.gk-markerTrack__tick.is-end { transform: translate(-100%, -50%); }
+.gk-markerTrack__mark {
+  position: absolute;
+  top: 50%;
+  left: calc(var(--gk-pos, 0) * 1%);
+  box-sizing: border-box;
+  transform: translate(-50%, -50%);
+}
+.gk-markerTrack__mark.is-tick { width: 2px; height: 16px; background: var(--gk-c, var(--text)); }
+.gk-markerTrack__mark.is-dot { width: 10px; height: 10px; border-radius: 50%; background: var(--gk-c, var(--chart-1)); }
+.gk-markerTrack__mark.is-ring {
+  width: 11px;
+  height: 11px;
+  border: 2px solid var(--gk-c, var(--chart-1));
+  border-radius: 50%;
+  background: var(--surface);
+}
+.gk-markerTrack__mark.is-diamond {
+  width: 9px;
+  height: 9px;
+  background: var(--gk-c, var(--chart-2));
+  transform: translate(-50%, -50%) rotate(45deg);
+}
+.gk-markerTrack__mark.is-band {
+  width: calc((var(--gk-to, 0) - var(--gk-pos, 0)) * 1%);
+  min-width: 3px;
+  height: 8px;
+  border-radius: 2px;
+  background: var(--gk-c, var(--chart-1));
+  opacity: 0.35;
+  transform: translateY(-50%);
+}
+/* The track's own marks sit above the band they bound. */
+.gk-markerTrack__mark.is-tick, .gk-markerTrack__mark.is-dot, .gk-markerTrack__mark.is-ring, .gk-markerTrack__mark.is-diamond { z-index: 1; }
+.gk-markerTrack__foot {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-1) var(--space-4);
+  color: var(--text-muted);
+  font-size: var(--fs-sm);
+}
+.gk-markerTrack__key {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-1) var(--space-4);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.gk-markerTrack__keyItem { display: inline-flex; align-items: center; gap: var(--space-1); }
+.gk-markerTrack__swatch { position: relative; display: inline-block; flex: none; width: 16px; height: 16px; }
+.gk-markerTrack__mark.is-key { --gk-pos: 50; }
+.gk-markerTrack__mark.is-key.is-tick { height: 12px; }
+.gk-markerTrack__mark.is-key.is-band { left: 1px; width: 14px; }
+.gk-markerTrack__empty { margin: 0; color: var(--text-muted); font-size: var(--fs-sm); }
+.gk-markerTrack.is-compact { gap: var(--space-1); }
+.gk-markerTrack.is-compact > .gk-markerTrack__axis { color: var(--text-muted); font-size: var(--fs-xs); }
+.gk-markerTrack.is-compact .gk-markerTrack__track::before {
+  top: calc(50% - 3px);
+  border-top: 6px solid var(--surface-2);
+  border-radius: 3px;
+}
+@media (max-width: 720px) {
+  .gk-markerTrack__tick.is-minor { display: none; }
+}

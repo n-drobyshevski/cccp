@@ -25,7 +25,7 @@ export function checkName(v) {
 /** @param {string} v @returns {string | null} */
 export function checkProduct(v) {
   if (!v.trim() || v.length > 60) return "product must be 1 to 60 characters";
-  if (/["'`\\<>&]/.test(v) || v.includes("//") || /[\u0000-\u001f]/.test(v)) return "product must not contain quotes, backticks, backslashes, angle brackets, ampersands, a double slash or control characters";
+  if (/["'`\\<>&${}]/.test(v) || v.includes("//") || /[\u0000-\u001f\u2028\u2029]/.test(v)) return "product must not contain quotes, backticks, backslashes, angle brackets, ampersands, dollar signs, braces, a double slash or control or line-separator characters";
   if (v !== v.trim()) return "product must not start or end with a space";
   return null;
 }
@@ -112,5 +112,5 @@ export function validateValues(v) {
     if (why) bad.push(why);
   }
   if (v.confidential && v.access !== "list") bad.push("a confidential app admits listed people only: leave --access out or use --access list");
-  if (bad.length) throw new UsageError(bad.join("; "));
+  if (bad.length) throw new UsageError(bad.join("; "), { title: "Some of the app's settings are not valid", why: bad.join("; ") + ".", fix: "Change the flag it names (or answer the question again), then run create again.", more: "npm run kit -- help" });
 }

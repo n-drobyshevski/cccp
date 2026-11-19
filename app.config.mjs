@@ -74,6 +74,9 @@ export default {
     // C5d: js 222100 (bundle 222012, +3.2 KB: the kit kpiTile with its count-up motion import and tags, the kit
     // tableModel that replaces the vendored one) and css 86200 (bundle 86135, +3.3 KB: kit kpiTile and tags styles
     // under the app's overrides). The server cap is unchanged (the kit tableModel is smaller than the vendored one).
-    budgets: { server: 157_600, js: 222_100, css: 86_200 },
+    // C9 (kit 0.2.1): server 157900 (bundle 157823, +0.2 KB), js 228300 (bundle 228178, +6.1 KB: the kit's
+    // table, dropdown, tabs, sheet and tip modules the app imports grew in 0.2) and css 86400 (bundle 86338,
+    // +0.2 KB). No app code changed.
+    budgets: { server: 157_900, js: 228_300, css: 86_400 },
   },
 };

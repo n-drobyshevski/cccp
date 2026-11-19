@@ -1,0 +1,4 @@
+[
+  { "id": "GHSA-xp26-3454-mjgp", "package": "@vitest/mocker", "reason": "Windows-only backslash traversal in the mocker redirect allowlist of the test runner; CI and this checkout run on Linux and the mocker is never served. The fix needs vitest 4.1.12, whose install trips an npm resolver bug here.", "until": "2027-01-31" },
+  { "id": "GHSA-qxg6-89mg-rqv8", "package": "@vitest/mocker", "reason": "Manual mock registration over the mocker's dev server, which vitest starts only in browser mode or its UI; this app runs vitest in node and never exposes it. The fix needs vitest 4.1.12, whose install trips an npm resolver bug here.", "until": "2027-01-31" }
+]

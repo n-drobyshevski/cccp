@@ -23,7 +23,7 @@ const ALWAYS = "Always shown";
  * @emits columnChooser:toggle (change event; data-col is the column key)
  * @emits columnChooser:reset
  * @states default, with-deviations, pinned-column
- * @a11y The trigger is a native button with popovertarget, aria-haspopup="dialog" and aria-expanded kept in step by the island. The panel is role="dialog" labelled by `label`; inside it a role="group" labelled "Toggle columns" holds one native checkbox per column inside its label, so Tab and Space work as usual and several boxes can be changed without the panel closing. The island moves focus to the first enabled box on open and back to the trigger on close; Escape and an outside click close the panel natively. When the app tears the island down and re-renders the chooser in the same task (offIslands, renderRegion or swap, mountIslands), the new panel opens again with focus on the same box, so a re-render after each pick does not close it. A pinned column is a disabled checked box with "Always shown" as a tip and as sr-only text. Checked state is the native check mark, never colour alone. Motion: the panel fades and scales in over --dur-2 with the scale multiplied by --motion-scale.
+ * @a11y The trigger is a native button with popovertarget, aria-haspopup="dialog" and aria-expanded kept in step by the island. The panel is role="dialog" labelled by `label`; inside it a role="group" labelled "Toggle columns" holds one native checkbox per column inside its label, so Tab and Space work as usual and several boxes can be changed without the panel closing. The island moves focus to the first enabled box on open and back to the trigger on close; Escape and an outside click close the panel natively. When the app tears the island down and re-renders the chooser in the same task (offIslands, renderRegion or swap, mountIslands), the new panel opens again with focus on the same box, so a re-render after each pick does not close it; a panel that began to close before the re-render (beforetoggle, as an outside click's light dismiss does) stays closed. A pinned column is a disabled checked box with "Always shown" as a tip and as sr-only text. Checked state is the native check mark, never colour alone. Motion: the panel fades and scales in over --dur-2 with the scale multiplied by --motion-scale.
  * @example default: columnChooser({ id: "cols-invoices", columns: [{ key: "id", label: "Invoice" }, { key: "customer", label: "Customer" }, { key: "status", label: "Status" }, { key: "method", label: "Method", hidden: true }, { key: "amount", label: "Amount" }] })
  * @example with-deviations: columnChooser({ id: "cols-acme", columns: [{ key: "name", label: "Name" }, { key: "owner", label: "Owner" }, { key: "region", label: "Region", hidden: true }, { key: "updated", label: "Updated" }], deviations: ["-owner", "+region"] })
  * @example pinned-column: columnChooser({ id: "cols-pinned", columns: [{ key: "name", label: "Name", pinned: true }, { key: "email", label: "Email" }, { key: "team", label: "Team" }, { key: "", label: "" }] })
@@ -104,6 +104,9 @@ export function writeColumns(store, key, deviations) {
  */
 const reopen = new Map();
 
+/** Whether a popover panel is showing; false where :popover-open is not known. @param {any} pn */
+const shownNow = (pn) => { try { return !!(pn.matches && pn.matches(":popover-open")); } catch (e) { return false; } };
+
 /**
  * Placement and state for the column chooser, mounted on the popover panel. On open it places
  * the panel under the trigger with tipPlacement (flipping above when there is no room), sets
@@ -139,18 +142,30 @@ export const columnChooserIsland = {
     const focusInside = () => {
       const want = restoreK;
       restoreK = null;
+      // renderRegion already put focus back inside a redrawn panel: leave it there.
+      if (!want && el.contains(doc.activeElement)) return;
       const all = /** @type {any[]} */ (Array.prototype.slice.call(el.querySelectorAll("[data-k]")));
       const hit = want ? all.find((x) => x.getAttribute("data-k") === want && !x.hasAttribute("disabled")) : null;
       const first = hit || boxes()[0] || all.find((x) => !x.hasAttribute("disabled"));
       if (first && typeof first.focus === "function") first.focus();
     };
+    // `open` drops on beforetoggle, which runs as the panel starts to close: a light dismiss by an
+    // outside click fires it on pointerup, the click's act redraws in the same task, and toggle
+    // only comes a task later, so a teardown reading `open` then would reopen the panel.
+    /** @param {any} ev */
+    const onBefore = (ev) => {
+      if (ev && ev.newState === "closed") open = false;
+    };
     /** @param {any} ev */
     const onToggle = (ev) => {
+      // A panel a redraw removed reports its close a task later; the trigger is the new one then.
+      if (!el.isConnected) return;
       open = ev && ev.newState ? ev.newState === "open" : !!(pn.matches && pn.matches(":popover-open"));
       const t = trigger();
       if (t) t.setAttribute("aria-expanded", open ? "true" : "false");
       if (open) { place(); focusInside(); } else if (t && (doc.activeElement === doc.body || el.contains(doc.activeElement))) t.focus();
     };
+    el.addEventListener("beforetoggle", onBefore);
     el.addEventListener("toggle", onToggle);
     if (reopen.has(id)) {
       restoreK = reopen.get(id) || null;
@@ -159,7 +174,15 @@ export const columnChooserIsland = {
         try { pn.showPopover(); } catch (e) { restoreK = null; }
       }
     }
+    if (shownNow(pn)) {
+      // renderRegion showed the redrawn panel again: the trigger says so at once.
+      open = true;
+      const t = trigger();
+      if (t) t.setAttribute("aria-expanded", "true");
+      place();
+    }
     return () => {
+      el.removeEventListener("beforetoggle", onBefore);
       el.removeEventListener("toggle", onToggle);
       let isOpen = open;
       try { if (pn.matches) isOpen = pn.matches(":popover-open") || open; } catch (e) { /* no :popover-open support */ }

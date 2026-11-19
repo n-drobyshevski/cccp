@@ -17,7 +17,9 @@
 //  - rect and size fields that tests set by hand: getBoundingClientRect, offsetWidth, offsetHeight,
 //    documentElement.clientWidth and clientHeight
 //  - a window with location.hash, matchMedia (driven by window.reducedMotion), requestAnimationFrame and listeners, and installDom() to put the
-//    document and window on globalThis for the code under test.
+//    document and window on globalThis for the code under test
+//  - opt-in native popovers, installDom({ popovers: true }): showPopover, hidePopover,
+//    :popover-open, beforetoggle and toggle, closing on removal, no focus inside a closed one
 
 const VOID = new Set(["area", "base", "br", "col", "embed", "hr", "img", "input", "link", "meta", "source", "wbr"]);
 const TEXTY = new Set(["input", "textarea"]);
@@ -545,13 +547,107 @@ export function createDom() {
   return { document, window };
 }
 
+/** @param {any} el @param {string} newState @param {string} type */
+function popoverEvent(el, newState, type) {
+  const ev = new StubEvent(type, { newState, oldState: newState === "open" ? "closed" : "open" });
+  ev.bubbles = false;
+  ev.target = el;
+  return ev;
+}
+
+/** @param {any} el @param {string} newState */
+function queueToggle(el, newState) {
+  setTimeout(() => el.dispatchEvent(popoverEvent(el, newState, "toggle")), 0);
+}
+
+/** @param {any} n @param {(el: any) => void} fn */
+function eachElement(n, fn) {
+  if (!isEl(n)) return;
+  fn(n);
+  for (const c of n.childNodes) eachElement(c, fn);
+}
+
+/**
+ * Native popover behaviour on every StubElement, for the tests that ask for it with
+ * installDom({ popovers: true }); the returned function takes it away again.
+ *  - showPopover() on a connected element with a popover attribute fires beforetoggle (not
+ *    bubbling) at once, marks it open and fires toggle a task later; hidePopover() likewise,
+ *    and returns focus that was inside to the element focused when it opened (else the body);
+ *    togglePopover() flips it. A disconnected element or one without the attribute throws.
+ *  - matches(":popover-open") is true while it is open and connected.
+ *  - removing an open popover closes it with a toggle a task later and no beforetoggle.
+ *  - focus() on an element inside a closed popover does nothing, as display none refuses it.
+ * @returns {() => void}
+ */
+function enablePopovers() {
+  const P = /** @type {any} */ (StubElement.prototype);
+  const N = /** @type {any} */ (StubNode.prototype);
+  const had = { matches: P.matches, focus: P.focus, removeChild: N.removeChild, show: P.showPopover, hide: P.hidePopover, toggle: P.togglePopover };
+  /** @param {any} el */
+  const check = (el) => {
+    if (!el.hasAttribute("popover") || !el.isConnected) {
+      const e = new Error("InvalidStateError: not a connected popover");
+      e.name = "InvalidStateError";
+      throw e;
+    }
+  };
+  P.showPopover = function () {
+    check(this);
+    if (this._popoverOpen) return;
+    this.dispatchEvent(popoverEvent(this, "open", "beforetoggle"));
+    this._popoverOpen = true;
+    this._popoverFrom = this.ownerDocument._active;
+    queueToggle(this, "open");
+  };
+  P.hidePopover = function () {
+    check(this);
+    if (!this._popoverOpen) return;
+    this.dispatchEvent(popoverEvent(this, "closed", "beforetoggle"));
+    this._popoverOpen = false;
+    const doc = this.ownerDocument;
+    if (doc._active && this.contains(doc._active)) {
+      const back = this._popoverFrom;
+      doc._active = null;
+      if (back && back.isConnected) back.focus();
+    }
+    queueToggle(this, "closed");
+  };
+  P.togglePopover = function () { if (this._popoverOpen) this.hidePopover(); else this.showPopover(); };
+  /** @param {string} sel */
+  P.matches = function (sel) {
+    if (String(sel).trim() === ":popover-open") return !!this._popoverOpen && this.isConnected;
+    return had.matches.call(this, sel);
+  };
+  P.focus = function () {
+    for (let n = this; isEl(n); n = n.parentNode) if (n.hasAttribute("popover") && !n._popoverOpen) return;
+    had.focus.call(this);
+  };
+  /** @param {any} n */
+  N.removeChild = function (n) {
+    const out = had.removeChild.call(this, n);
+    eachElement(n, (el) => { if (el._popoverOpen) { el._popoverOpen = false; queueToggle(el, "closed"); } });
+    return out;
+  };
+  return () => {
+    P.matches = had.matches;
+    P.focus = had.focus;
+    N.removeChild = had.removeChild;
+    for (const [k, v] of /** @type {Array<[string, any]>} */ ([["showPopover", had.show], ["hidePopover", had.hide], ["togglePopover", had.toggle]])) {
+      if (v === undefined) delete P[k]; else P[k] = v;
+    }
+  };
+}
+
 /**
  * Put a fresh document and window on globalThis (document, window, and an empty-handed
- * location is on window only). Call uninstall() in afterEach.
+ * location is on window only). Call uninstall() in afterEach. `popovers: true` adds native
+ * popover behaviour (showPopover, hidePopover, :popover-open; see enablePopovers) until then.
+ * @param {{ popovers?: boolean }} [opts]
  * @returns {{ document: StubDocument, window: StubWindow, uninstall: () => void }}
  */
-export function installDom() {
+export function installDom(opts) {
   const dom = createDom();
+  const offPopovers = opts && opts.popovers ? enablePopovers() : null;
   const g = /** @type {any} */ (globalThis);
   const had = { document: g.document, window: g.window, raf: g.requestAnimationFrame, caf: g.cancelAnimationFrame, mm: g.matchMedia };
   g.document = dom.document;
@@ -562,6 +658,7 @@ export function installDom() {
   return {
     ...dom,
     uninstall() {
+      if (offPopovers) offPopovers();
       if (had.document === undefined) delete g.document; else g.document = had.document;
       if (had.window === undefined) delete g.window; else g.window = had.window;
       if (had.raf === undefined) delete g.requestAnimationFrame; else g.requestAnimationFrame = had.raf;

@@ -3,6 +3,7 @@
 import { existsSync, lstatSync, readFileSync } from "node:fs";
 import { join, resolve } from "node:path";
 import { KIT_DIR, LOCK_FILE, hashFiles, parseLock, sha256, vendorFiles, walkFiles } from "./hash.mjs";
+import { FriendlyError } from "./errors.mjs";
 import { importProblem, importSpecifiers } from "./imports.mjs";
 import { isFullCommit, isGitUrl, lockedRemote, redactText, redactUrl, resolveSource } from "./source.mjs";
 
@@ -26,7 +27,7 @@ const STRICT_URL = /^(?:[a-z][a-z0-9+.-]*:\/\/[A-Za-z0-9._~%@:\[\]-]+(?:\/[A-Za-
  * untrusted text: its source is printed only when, after redactUrl, it is a strict git URL (STRICT_URL),
  * else "<kit checkout>" stands for it.
  * @param {string | undefined} source the lock's kit.source: a strict git URL is printed, anything else is not
- * @param {string | null} [remote] the lock's kit.remote
+ * @param {string | null | false} [remote] the lock's kit.remote (false: none on purpose, the same as no remote here)
  * @param {string | null} [commit] the lock's kit.commit: the hint restores that commit, not a newer kit
  */
 export function syncFix(source, remote, commit) {
@@ -43,7 +44,7 @@ const CODE = /\.(?:m?js|cjs|ts|mts|cts)$/;
 
 /**
  * The pure core: compare a lock with the files found on disk.
- * @param {{ kit?: { source?: string, remote?: string | null, commit?: string | null }, files: Record<string, string> }} lock
+ * @param {{ kit?: { source?: string, remote?: string | null | false, commit?: string | null }, files: Record<string, string> }} lock
  * @param {Record<string, string>} actual path under src/kit to sha256 of what is on disk
  * @returns {Problem[]}
  */
@@ -152,9 +153,12 @@ export function linkedPaths(root) {
  * edited together with its hash is caught. Every difference is a problem; a lock with no remote or no
  * full commit is one too (there is nothing to check against).
  * @param {string} root the app root
+ * @param {{ url: string, label: string }} [source] the source this very update was fetched from (update --from or GAS_KIT):
+ *   it replaces the remembered remote for this check, and is fetched under the same rules (https or ssh, a file: URL only
+ *   as an explicit --from or GAS_KIT, the commit proved to be on a branch or tag of it)
  * @returns {{ problems: Problem[], commit: string | null, remote: string | null }}
  */
-export function verifyUpstream(root) {
+export function verifyUpstream(root, source) {
   /** @type {Problem[]} */
   const problems = [];
   /** @type {import("./hash.mjs").Lock} */
@@ -167,18 +171,18 @@ export function verifyUpstream(root) {
   /** @type {string | null} */
   let remote;
   try {
-    remote = lockedRemote(lock.kit?.remote);
+    remote = source ? source.url : lockedRemote(lock.kit?.remote);
   } catch (e) {
     return { commit: null, remote: null, problems: [{ kind: "upstream", file: LOCK_FILE, message: /** @type {Error} */ (e).message, fix: "fix kit.remote, then run kit:verify --upstream again" }] };
   }
   const commit = isFullCommit(lock.kit?.commit) ? String(lock.kit.commit).toLowerCase() : null;
-  if (!remote) problems.push({ kind: "upstream", file: LOCK_FILE, message: "kit.remote is not set, so there is no upstream to check against", fix: "remember the kit repository with npm run kit:sync -- --remote <git URL>" });
+  if (!remote) problems.push({ kind: "upstream", file: LOCK_FILE, message: lock.kit?.remote === false ? "kit.remote is false (no remote on purpose), so there is no upstream to check against" : "kit.remote is not set, so there is no upstream to check against", fix: "remember the kit repository with npm run kit:sync -- --remote <git URL>" });
   if (!commit) problems.push({ kind: "upstream", file: LOCK_FILE, message: "kit.commit is not a full commit id (the kit was vendored from a dirty or non-git checkout)", fix: "run npm run kit:sync -- --ref <tag | full commit> to vendor a commit of the remote" });
   if (!remote || !commit) return { commit, remote, problems };
   const from = remote + "#" + commit;
   let src;
   try {
-    src = resolveSource(from, { label: "the remembered remote" });
+    src = resolveSource(from, { label: source ? source.label : "the remembered remote" });
   } catch (e) {
     return { commit, remote, problems: [{ kind: "upstream", file: LOCK_FILE, message: redactText(/** @type {Error} */ (e).message, from), fix: "check that kit.remote can be fetched from here and still holds kit.commit" }] };
   }
@@ -211,4 +215,43 @@ export function formatProblems(problems) {
   // File names come from kit.lock.json and the disk: never print a control character from them.
   const clean = (/** @type {string} */ s) => String(s).replace(/[\u0000-\u001f\u007f-\u009f]/g, "?");
   return problems.map((p) => "  " + clean(p.file) + ": " + clean(p.message) + ". Fix: " + clean(p.fix) + ".");
+}
+
+/** Plain words per kind of problem: what it means, and what to do. The kit's own fix per file stays in the list. */
+export const KIND_HELP = {
+  // <kit.commit> stands for the commit in kit.lock.json; verifyError writes the real one when it can read it.
+  lock: { why: "kit.lock.json (the list of kit files and their fingerprints) is missing or unreadable.", fix: "Run npm run kit:sync -- --from <kit checkout> --force to write it again (the lock is gone, so the kit must be named)." },
+  edited: { why: "A kit file was changed by hand, so it no longer matches the kit it came from.", fix: "Restore it with npm run kit:sync -- --ref <kit.commit> --force, and make the change in the kit itself." },
+  missing: { why: "A kit file is gone.", fix: "Restore it with npm run kit:sync -- --ref <kit.commit> --force." },
+  stray: { why: "There is a file in src/kit that does not belong to the kit.", fix: "Move your own code out of src/kit; the folder holds the vendored kit only." },
+  import: { why: "A kit file imports something from outside the kit.", fix: "Move your own code out of src/kit and import the kit by its @gas-kit/* name." },
+  link: { why: "src, src/kit or kit.lock.json is a symbolic link, which could lead outside this app.", fix: "Replace the link with a real folder or file." },
+  upstream: { why: "The kit files differ from the release the lock says they came from.", fix: "Restore them with npm run kit:sync -- --ref <kit.commit> --force, then find out how the difference got in." },
+};
+
+/**
+ * A plain-language error for a failed kit:verify: one why and one fix per kind of problem found.
+ * The problem list itself (formatProblems) is printed below it unchanged.
+ * @param {Problem[]} problems
+ * @param {string} [root] the app root, to name the locked commit in the fixes
+ * @returns {import("./errors.mjs").FriendlyError}
+ */
+export function verifyError(problems, root) {
+  /** @type {string} */
+  let locked = "<kit.commit>";
+  try {
+    const c = root ? parseLock(readFileSync(join(root, LOCK_FILE), "utf8")).kit?.commit : null;
+    if (isFullCommit(c)) locked = String(c).toLowerCase();
+  } catch {
+    // no readable lock: the fixes name <kit.commit> as written
+  }
+  const kinds = [...new Set(problems.map((p) => p.kind))];
+  const help = (/** @type {string} */ k) => /** @type {Record<string, { why: string, fix: string }>} */ (KIND_HELP)[k] ?? { why: "Something in the kit files is off.", fix: "Run npm run kit:sync -- --force." };
+  return new FriendlyError({
+    title: "The kit files in this app are not as they should be",
+    why: kinds.map((k) => help(k).why),
+    fix: [...new Set(kinds.map((k) => help(k).fix.replace("<kit.commit>", locked)))],
+    more: "npm run kit -- help lock",
+    exitCode: 1,
+  });
 }

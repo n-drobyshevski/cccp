@@ -28,3 +28,14 @@
   .gk-progress.is-indeterminate .gk-progress__fill { animation: none; }
 }
 :root[data-motion="reduce"] .gk-progress.is-indeterminate .gk-progress__fill { animation: none; }
+/* The meter: a head row (label, caption, state badge), the bar, an optional note. The state tints
+   the fill; the badge carries the shape and the word, so the colour is never the only cue. */
+.gk-progress__meter { display: flex; flex-direction: column; gap: var(--space-2); min-width: 0; }
+.gk-progress__head { display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-1) var(--space-2); font-size: var(--fs-sm); }
+.gk-progress__label { color: var(--text); font-weight: var(--fw-medium); }
+.gk-progress__caption { color: var(--text-muted); font-variant-numeric: tabular-nums; }
+.gk-progress__label + .gk-progress__caption { margin-left: auto; }
+.gk-progress__note { margin: 0; color: var(--text-muted); font-size: var(--fs-sm); }
+.gk-progress.is-ok .gk-progress__fill { background: var(--ok-fg); }
+.gk-progress.is-warn .gk-progress__fill { background: var(--warn-fg); }
+.gk-progress.is-bad .gk-progress__fill { background: var(--bad-fg); }

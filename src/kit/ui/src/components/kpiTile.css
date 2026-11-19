@@ -39,3 +39,4 @@ button.gk-kpiTile.is-interactive:hover { background: var(--surface-2); }
   .gk-kpiTile__value.is-loading { animation: none; }
 }
 button.gk-kpiTile { transition: background var(--dur-2) var(--ease-standard), border-color var(--dur-2) var(--ease-standard), transform var(--dur-1) var(--ease-standard); }
+.gk-kpiTile__spark { display: block; margin-top: var(--space-1, 4px); }

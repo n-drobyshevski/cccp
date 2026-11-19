@@ -1,0 +1,8 @@
+{
+  "comment": "Lines the migrate codemods write into generated code. Kept as data, not as strings in a module, so the import scanner of kit:verify never reads a generated import as one of the vendored CLI's own.",
+  "importHtml": "import { html } from \"@gas-kit/client/html.js\";",
+  "importHtmlLinks": "import { attrs, html, linkAttrs } from \"@gas-kit/client/html.js\";",
+  "importBindActs": "import { bindActs } from \"../../acts.js\";",
+  "importDelegate": "import { delegate } from \"@gas-kit/client/dom.js\";",
+  "importCall": "import { call } from \"@gas-kit/client/rpc.js\";"
+}

@@ -1,0 +1,23 @@
+/* Extracted from the author's production Apps Script apps; adapted. */
+.gk-sparkline {
+  display: inline-block;
+  vertical-align: middle;
+  flex: none;
+  color: var(--chart-1);
+  overflow: visible;
+}
+.gk-sparkline__line {
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.5;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+.gk-sparkline__area { fill: currentColor; fill-opacity: 0.18; stroke: none; }
+.gk-sparkline__dot,
+.gk-sparkline__bar { fill: currentColor; stroke: none; }
+.gk-sparkline__base {
+  stroke: var(--text-muted);
+  stroke-width: 1;
+  stroke-dasharray: 3 3;
+}

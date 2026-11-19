@@ -1,8 +1,8 @@
 {
   "name": "@gas-kit/cli",
-  "version": "0.1.0",
+  "version": "0.2.1",
   "private": true,
-  "description": "gas-kit create / kit:sync / kit:verify / kit:diff",
+  "description": "gas-kit menu / create / doctor / link / update / ui / kit:sync / kit:verify / kit:diff",
   "license": "MIT",
   "type": "module",
   "bin": { "gas-kit": "./src/bin.mjs" },

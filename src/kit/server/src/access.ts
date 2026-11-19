@@ -36,6 +36,7 @@ import { isPlainAddress } from "./address";
 import { cardPage } from "./page";
 import { PROP_MAX_BYTES, propsGeneration, utf8ByteLength } from "./props";
 import { executionGeneration } from "./execution";
+import { executionActiveEmail, executionEffectiveEmail, resetIdentityMemo } from "./identity";
 import type { DenyEnvelope, Role } from "./roles";
 
 export type AccessMode = "list" | "org";
@@ -237,7 +238,7 @@ export interface AccessOptions {
   /** The product name on the denied page and in the mailto subject. */
   product: string;
   props: AccessProps;
-  /** The owner's address. Default: Session.getEffectiveUser().getEmail(). */
+  /** The owner's address. Default: Session.getEffectiveUser().getEmail(), read once per execution. */
   ownerEmail?: () => string;
   /** The mode when ACCESS_MODE is unset. */
   modeDefault: AccessMode;
@@ -348,7 +349,7 @@ export interface Access {
   pinOwner(opts?: { force?: boolean }): string;
   /** True when an owner pin is stored. */
   ownerPinned(): boolean;
-  /** Forget the memoized decision (tests, the dev server between requests, after a save). */
+  /** Forget the memoized decision and the identity reads (tests, a host between requests). */
   resetMemo(): void;
 }
 
@@ -398,17 +399,16 @@ export function createAccess(opts: AccessOptions): Access {
   const props = opts.props;
   const keys: AccessKeys = { ...ACCESS_PROP_KEYS, ...(opts.keys ?? {}) };
   const modeDefault: AccessMode = opts.modeDefault === "org" ? "org" : "list";
-  const readOwner = opts.ownerEmail ?? (() => Session.getEffectiveUser().getEmail());
+  const readOwner = opts.ownerEmail ?? (() => executionEffectiveEmail() ?? "");
   const allowOrg = opts.allowOrg !== false;
   const requireOwnerPin = opts.requireOwnerPin === true;
   const requireBase = opts.requireBase === true;
 
   // One execution in GAS is one request by one caller, so the decision is memoized: doGet
   // and its include() scriptlets would otherwise each re-read the properties and Session.
-  // The memo is keyed to the active email, so a long-lived process that serves several
-  // identities (the dev server) never hands one identity's decision to the next, and to the
-  // execution and Script Properties generations, so a check made once withScriptLock has
-  // dropped the snapshot sees the lists as they are under the lock.
+  // The memo is keyed to the execution and Script Properties generations, so a check made once
+  // withScriptLock has dropped the snapshot sees the lists as they are under the lock, and to
+  // the active email (itself read once per execution, in identity.ts).
   let memo: AccessDecision | undefined;
   let memoActive: string | undefined;
   let memoPropsGen = -1;
@@ -426,11 +426,7 @@ export function createAccess(opts: AccessOptions): Access {
 
   /** The account this execution runs as, lowercased; "" when it cannot be read. */
   function effectiveEmail(): string {
-    try {
-      return String(Session.getEffectiveUser().getEmail() || "").trim().toLowerCase();
-    } catch {
-      return "";
-    }
+    return (executionEffectiveEmail() ?? "").trim().toLowerCase();
   }
 
   function storedPin(): string {
@@ -450,8 +446,9 @@ export function createAccess(opts: AccessOptions): Access {
   }
 
   function decide(): AccessDecision {
-    const active = Session.getActiveUser().getEmail();
-    const key = String(active ?? "").trim().toLowerCase();
+    // An unknown caller (the read failed) is blank, so it is refused as anonymous.
+    const active = executionActiveEmail() ?? "";
+    const key = active.trim().toLowerCase();
     const pg = propsGeneration();
     const eg = executionGeneration();
     if (memo === undefined || memoActive !== key || memoPropsGen !== pg || memoExecGen !== eg) {
@@ -459,7 +456,7 @@ export function createAccess(opts: AccessOptions): Access {
       memoPropsGen = pg;
       memoExecGen = eg;
       memo = misconfigured()
-        ? { allowed: false, role: null, reason: "misconfigured", email: String(active ?? "").trim() }
+        ? { allowed: false, role: null, reason: "misconfigured", email: active.trim() }
         : decideAccess({
             active,
             owner: ownerEmail(),
@@ -627,13 +624,7 @@ export function createAccess(opts: AccessOptions): Access {
   }
 
   function pinOwner(o?: { force?: boolean }): string {
-    const active = (() => {
-      try {
-        return String(Session.getActiveUser().getEmail() || "").trim().toLowerCase();
-      } catch {
-        return "";
-      }
-    })();
+    const active = (executionActiveEmail() ?? "").trim().toLowerCase();
     const effective = effectiveEmail();
     if (!active || !effective || active !== effective) {
       throw new ApiError("forbidden", "Pin the owner from the Apps Script editor, signed in as the deploying account.");
@@ -693,6 +684,7 @@ export function createAccess(opts: AccessOptions): Access {
     ownerPinned: () => storedPin() !== "",
     resetMemo(): void {
       memo = undefined;
+      resetIdentityMemo();
     },
   };
 }

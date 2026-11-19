@@ -2,19 +2,11 @@
 // A modal confirm: a pure view plus an island that traps Tab, closes on Escape and returns
 // focus to where it was. The view emits confirm:ok and confirm:cancel; the app decides what
 // they mean (and removes the dialog). Mount with mountIslands(root, { confirm: confirmIsland }).
+// askConfirm(slot, props) does all of that for one question and answers it as a promise.
+import { delegate, renderRegion } from "@gas-kit/client/dom.js";
 import { html } from "@gas-kit/client/html.js";
-
-const FOCUSABLE = "a[href], button, input, select, textarea, [tabindex]";
-
-/**
- * The focusable descendants of `container`, in document order.
- * @param {Element} container
- * @returns {any[]}
- */
-function focusables(container) {
-  return Array.prototype.slice.call(container.querySelectorAll(FOCUSABLE)).filter(
-    /** @param {any} e */ (e) => !e.hasAttribute("disabled") && e.getAttribute("tabindex") !== "-1");
-}
+import { mountIslands } from "@gas-kit/client/islands.js";
+import { focusables, trapTab as clientTrapTab } from "@gas-kit/client/tabKeys.js";
 
 /**
  * @component confirmDialog
@@ -38,35 +30,15 @@ export function confirmDialog(p) {
 }
 
 /**
- * Keep Tab inside `container`: from the last focusable it wraps to the first, from the first
- * with Shift it wraps to the last, and from outside it comes back in. Returns true when it
- * handled (and prevented) the event.
+ * Keep Tab inside `container`; the client's trapTab (tabKeys.js), kept here for callers that
+ * import it from the confirm module.
  * @internal
  * @param {Element} container
  * @param {{key: string, shiftKey?: boolean, preventDefault: () => void}} ev
  * @returns {boolean}
  */
 export function trapTab(container, ev) {
-  if (ev.key !== "Tab") return false;
-  const items = focusables(container);
-  if (!items.length) {
-    ev.preventDefault();
-    return true;
-  }
-  const first = items[0];
-  const last = items[items.length - 1];
-  const at = container.ownerDocument.activeElement;
-  if (items.indexOf(at) < 0 || (ev.shiftKey && at === first)) {
-    ev.preventDefault();
-    (ev.shiftKey ? last : first).focus();
-    return true;
-  }
-  if (!ev.shiftKey && at === last) {
-    ev.preventDefault();
-    first.focus();
-    return true;
-  }
-  return false;
+  return clientTrapTab(container, ev);
 }
 
 /** Per dialog (its data-k): the opener and focused control of an island just torn down. @type {Map<string, any>} */
@@ -128,3 +100,55 @@ export const confirmIsland = {
     };
   },
 };
+
+/** Per slot: how to answer the question it shows now. @type {WeakMap<Element, (ok: boolean) => void>} */
+const pending = new WeakMap();
+
+/**
+ * Ask a yes/no question and answer it as a promise: draws `confirmDialog(p)` into `slot`, mounts
+ * `confirmIsland` on it, and resolves true on OK and false on Cancel, the scrim or Escape. Either
+ * way it removes its two delegated click listeners, tears the island down (focus returns to the
+ * opener) and empties the slot. A second ask on the same slot answers the first one false. `slot`
+ * is an element the page owns and renders nothing else into; keep page-level handlers off the
+ * confirm acts inside it, since the clicks still bubble. Like createToaster it is a controller that
+ * adds listeners itself, only `delegate` on the slot and only while a question is open.
+ * @internal
+ * @param {Element} slot
+ * @param {{id?: string, title: string, body?: string|null, confirmLabel?: string, cancelLabel?: string, destructive?: boolean}} p
+ * @returns {Promise<boolean>} for example `if (await askConfirm(slot, { title: "Delete 3 items?", confirmLabel: "Delete", destructive: true })) remove()`
+ */
+export function askConfirm(slot, p) {
+  const prev = pending.get(slot);
+  if (prev) prev(false);
+  // A new question is never a re-render of the last one: drop what the island carries across a
+  // re-render, so focus starts on the default button (Cancel when destructive), not on a key left
+  // by an earlier dialog with the same id.
+  const dkey = ((p && p.id) || "confirm") + "-dialog";
+  carry.delete(dkey);
+  return new Promise((resolve) => {
+    /** @type {Array<() => void>} */
+    let offs = [];
+    /** @type {() => void} */
+    let unmount = () => {};
+    let settled = false;
+    /** @param {boolean} ok */
+    const done = (ok) => {
+      if (settled) return;
+      settled = true;
+      for (const off of offs) off();
+      offs = [];
+      if (pending.get(slot) === done) pending.delete(slot);
+      unmount();
+      carry.delete(dkey);
+      renderRegion(/** @type {HTMLElement} */ (slot), html``, { keepFocus: false, keepScroll: false });
+      resolve(ok);
+    };
+    pending.set(slot, done);
+    renderRegion(/** @type {HTMLElement} */ (slot), confirmDialog(p), { keepFocus: false, keepScroll: false });
+    offs = [
+      delegate(slot, "click", '[data-act="confirm:ok"]', () => done(true)),
+      delegate(slot, "click", '[data-act="confirm:cancel"]', () => done(false)),
+    ];
+    unmount = mountIslands(slot, { confirm: confirmIsland });
+  });
+}

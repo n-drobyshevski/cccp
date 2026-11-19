@@ -27,3 +27,5 @@
 .gk-switchRow__title { font-size: var(--fs-md); font-weight: var(--fw-medium); line-height: var(--lh); }
 .gk-switchRow__description { margin: 0; color: var(--text-muted); font-size: var(--fs-md); line-height: var(--lh); }
 .gk-switchRow__control { flex: none; }
+.gk-formSection__content > .gk-switchRow + .gk-switchRow { margin-top: calc(var(--space-3) - var(--space-6)); }
+.gk-switchRow + .gk-switchRow { margin-top: var(--space-3); }

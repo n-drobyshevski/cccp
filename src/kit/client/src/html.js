@@ -815,11 +815,16 @@ function safeUrl(u) {
 }
 
 /**
- * The attributes of a link, for attrs(): { href } for a relative or fragment URL, plus
- * target and rel for an absolute (http, https) or mailto URL. The app runs in a sandboxed
- * frame, so an outside link opens in the top window (target "_top") by default, or in a new
- * tab with { newTab: true }; rel is always "noopener noreferrer" on it. An unsafe URL throws a
- * TypeError, as attrs() would: test it with isSafeUrl first to drop it instead.
+ * The attributes of a link, for attrs(). The app runs in a sandboxed frame whose page sets
+ * <base target="_top">, so every link names its own target:
+ * - a fragment (hash) URL such as "#/item/1" gets target "_self": it stays in the frame, where
+ *   the hash router hears hashchange. Under the base target it would load the frame's own
+ *   document URL into the top window instead (a blank page, or nothing);
+ * - an absolute (http, https) or mailto URL opens in the top window (target "_top") by default,
+ *   or in a new tab with { newTab: true }, and always carries rel "noopener noreferrer";
+ * - any other relative URL is { href } alone.
+ * An unsafe URL throws a TypeError, as attrs() would: test it with isSafeUrl first to drop it
+ * instead.
  * @param {unknown} href
  * @param {{ newTab?: boolean }} [opts]
  * @returns {{ href: string, target?: string, rel?: string }}
@@ -827,7 +832,9 @@ function safeUrl(u) {
 export function linkAttrs(href, opts) {
   if (!isSafeUrl(href)) throw new TypeError("linkAttrs: unsafe URL");
   const h = String(href);
-  if (!/^([a-zA-Z][a-zA-Z0-9+.-]*):/.test(h.replace(/[\u0000- \u007f-\u009f]/g, ""))) return { href: h };
+  const bare = h.replace(/[\u0000- \u007f-\u009f]/g, "");
+  if (bare.charAt(0) === "#") return { href: h, target: "_self" };
+  if (!/^([a-zA-Z][a-zA-Z0-9+.-]*):/.test(bare)) return { href: h };
   return { href: h, target: opts && opts.newTab ? "_blank" : "_top", rel: "noopener noreferrer" };
 }
 

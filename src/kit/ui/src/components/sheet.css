@@ -49,3 +49,47 @@
 .gk-sheet__body { flex: 1 1 auto; font-size: var(--fs-md); }
 .gk-sheet__footer { display: flex; flex-direction: column; gap: var(--space-2); margin-top: auto; }
 .gk-sheet__close.gk-btn { position: absolute; top: var(--space-3); right: var(--space-3); width: 28px; height: 28px; }
+
+/* Previous and next buttons inside the panel, in a row beside the close button. */
+.gk-sheet__tools { position: absolute; top: var(--space-3); right: var(--space-3); display: flex; align-items: center; gap: var(--space-1); }
+.gk-sheet__tools .gk-btn { width: 28px; height: 28px; }
+.gk-sheet__tools .gk-sheet__close.gk-btn { position: static; }
+.gk-sheet[data-tools="2"] .gk-sheet__header { padding-right: calc(var(--space-5) + 28px + var(--space-1)); }
+.gk-sheet[data-tools="3"] .gk-sheet__header { padding-right: calc(var(--space-5) + 56px + var(--space-2)); }
+
+/* The rail and the grip sit outside the panel, so the dialog must not clip them (the panel scrolls itself). */
+/* Every sheet: the panel scrolls itself, and a tooltip inside it (tip.js puts the card in the open dialog) must not be clipped at the edge. */
+.gk-sheet { overflow: visible; }
+.gk-sheet__rail { position: absolute; top: var(--space-5); display: flex; flex-direction: column; gap: var(--space-2); }
+.gk-sheet[data-side="right"] .gk-sheet__rail { right: calc(100% + var(--space-2)); }
+.gk-sheet[data-side="left"] .gk-sheet__rail { left: calc(100% + var(--space-2)); }
+.gk-sheet__rail .gk-btn[data-variant],
+.gk-sheet__rail .gk-sheet__close.gk-btn[data-variant] {
+  position: static;
+  width: 36px;
+  height: 36px;
+  border: 1px solid var(--border);
+  border-radius: 50%;
+  background: var(--bg);
+  color: var(--text);
+  box-shadow: var(--shadow-md);
+}
+.gk-sheet__rail .gk-btn[data-variant]:hover:not(:disabled) { background: var(--surface-2); }
+.gk-sheet__rail .gk-btn[data-variant]:disabled { opacity: 0.5; }
+
+/* A resizable sheet takes its width from --gk-sheet-w (px, a number), held between the minimum, the optional cap and the
+   viewport minus room for the rail. */
+.gk-sheet[data-resizable] {
+  box-sizing: border-box;
+  max-width: none;
+  width: min(max(calc(var(--gk-sheet-w, 384) * 1px), calc(var(--gk-sheet-min, 320) * 1px)), calc(var(--gk-sheet-max, 100000) * 1px), calc(100vw - 4rem));
+}
+.gk-sheet[data-resizing] { transition: none; user-select: none; }
+.gk-sheet[data-resizing] .gk-sheet__panel { user-select: none; }
+.gk-sheet__grip { position: absolute; top: 50%; width: var(--space-5); height: 56px; display: grid; place-items: center; cursor: col-resize; touch-action: none; }
+.gk-sheet__grip::before { content: ""; width: 4px; height: 32px; border-radius: 999px; background: var(--border); transition: background var(--dur-1) var(--ease-standard); }
+.gk-sheet__grip::after { content: ""; position: absolute; inset: calc(-1 * var(--space-2)); }
+.gk-sheet__grip:hover::before, .gk-sheet__grip:focus-visible::before, .gk-sheet[data-resizing] .gk-sheet__grip::before { background: var(--border-strong); }
+.gk-sheet__grip:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; border-radius: 999px; }
+.gk-sheet[data-side="right"] .gk-sheet__grip { left: 0; translate: -50% -50%; }
+.gk-sheet[data-side="left"] .gk-sheet__grip { right: 0; translate: 50% -50%; }

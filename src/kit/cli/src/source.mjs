@@ -3,7 +3,8 @@ import { existsSync, lstatSync, mkdtempSync, readFileSync, realpathSync, rmSync 
 import { tmpdir } from "node:os";
 import { join, resolve } from "node:path";
 import { UsageError } from "./args.mjs";
-import { blobId, gitIn, gitView, headTree, runGit } from "./git.mjs";
+import { FriendlyError } from "./errors.mjs";
+import { assertSafeKitFolder, blobId, gitIn, gitListing, headTree, runGit } from "./git.mjs";
 import { vendoredKey } from "./hash.mjs";
 
 /** A scheme URL (also a mistyped "https:/" or "https:///"): the scheme with its slashes, and the rest. */
@@ -122,7 +123,7 @@ const REMOTE_SCHEMES = new Set(["https", "ssh", "git+ssh", "ssh+git"]);
  */
 export function checkRef(ref) {
   if (ref.startsWith("-") || !/^[A-Za-z0-9][A-Za-z0-9._\/+@-]*$/.test(ref) || ref.includes("..")) {
-    throw new Error("refusing the ref " + JSON.stringify(ref) + ": a ref must be a branch, tag or commit name and must not start with a dash");
+    throw new FriendlyError({ title: "That ref cannot be used", why: "A ref is a branch, tag or commit name, such as main or v0.2.0, and it cannot start with a dash.", fix: "Use a name such as main or v0.2.0, for example --ref v0.2.0.", more: "npm run kit -- help ref", detail: "refusing the ref " + JSON.stringify(ref) + ": a ref must be a branch, tag or commit name and must not start with a dash" });
   }
 }
 
@@ -160,13 +161,19 @@ export function splitSource(from) {
  * clean filters: the HEAD tree and the index are read with plumbing and the files are hashed in Node.
  * Files outside the vendored set (docs, the template, ignored files) do not count; an untracked file
  * that would be vendored makes the tree dirty.
+ * A checkout with a commit that git would not list (a failure or a timeout) is refused with an error,
+ * not read as dirty or walked: its ignore rules could not be read.
  * @param {string} dir
+ * @param {{ timeoutMs?: number }} [opts] the git listing timeout (tests shorten it)
  * @returns {string | null}
  */
-export function commitOf(dir) {
+export function commitOf(dir, opts = {}) {
   const tree = headTree(dir);
-  const view = tree && gitView(dir);
-  if (!tree || !view || !view.top) return null;
+  if (!tree) return null;
+  const listing = gitListing(dir, opts);
+  if (listing.state === "failed") throw new Error("refusing to read " + dir + ": it is a git checkout that git would not list (" + listing.reason + ")");
+  const view = listing.state === "ok" ? listing : null;
+  if (!view || !view.top) return null;
   /** @param {string} p */
   const scoped = (p) => p === "package.json" || vendoredKey(p) !== null;
   const paths = new Set([...[...tree.blobs.keys()].filter(scoped), ...view.files.filter(scoped)]);
@@ -275,32 +282,56 @@ export function remoteProblem(value) {
 }
 
 /**
- * The value of `kit:sync --remote` or `create --kit-remote`: "none" is null (remember nothing), anything
+ * remoteProblem's text in plain words for the friendly Why line (the technical text stays in the message).
+ * @param {string} why @param {unknown} value
+ */
+function plainProblem(why, value) {
+  const scheme = typeof value === "string" ? urlScheme(value.trim()) : null;
+  if (!why.includes("transport")) return why;
+  return scheme ? "starts with " + scheme + "://, which isn't secure" : "does not start with https:// or ssh://";
+}
+
+/**
+ * The value of `kit:sync --remote` or `create --kit-remote`: "none" is false (a deliberate "no remote",
+ * stored as "remote": false in kit.lock.json, which kit:sync never fills in from a checkout), anything
  * else must be a git URL a teammate can fetch from (https or ssh). Credentials and a query are dropped.
  * @param {string} flag the flag as typed, for the message
  * @param {string} value
- * @returns {string | null}
+ * @returns {string | false}
  */
 export function remoteFromFlag(flag, value) {
-  if (value === "none") return null;
+  if (value === "none") return false;
   const why = remoteProblem(value);
-  if (why) throw new UsageError(flag + " " + JSON.stringify(redactUrl(value)) + " " + why + "; give the kit repository's git URL (https or ssh), or none");
-  return shareableRemote(value);
+  if (why) {
+    throw new UsageError(flag + " " + JSON.stringify(redactUrl(value)) + " " + why + "; give the kit repository's git URL (https or ssh), or none", {
+      title: "Can't use that kit address",
+      why: "The address " + JSON.stringify(printable(value)) + " " + plainProblem(why, value) + ".",
+      fix: "Give the kit repository's git URL over https or ssh (for example https://git.example.org/acme/gas-kit), or none for no remote.",
+      more: ["Run with " + flag + " none to leave the kit address out on purpose.", "npm run kit -- help remote"],
+    });
+  }
+  return /** @type {string} */ (shareableRemote(value));
 }
 
 /**
  * The kit.remote of a lock, checked like --remote and also required to be stored exactly in its
- * shareable form (no credentials, no query). Null when the lock names none; a UsageError naming
- * --remote when it is not acceptable.
+ * shareable form (no credentials, no query). Null when the lock names none (null, "", absent, or false,
+ * the deliberate "no remote"); a UsageError naming --remote when it is not acceptable.
  * @param {unknown} had the lock's kit.remote
  * @returns {string | null}
  */
 export function lockedRemote(had) {
-  if (had === null || had === undefined || had === "") return null;
+  if (had === false || had === null || had === undefined || had === "") return null;
   const why = remoteProblem(had) || (shareableRemote(/** @type {string} */ (had)) !== had ? "carries credentials, a query string or extra text" : "");
   if (why) {
     throw new UsageError(
       "kit.lock.json remembers the kit remote " + JSON.stringify(redactUrl(String(had))) + ", which " + why + ". Replace it with npm run kit:sync -- --remote <git URL> (https or ssh), or pass --from",
+      {
+        title: "Can't update the kit",
+        why: "The kit address saved in kit.lock.json (" + JSON.stringify(printable(had)) + ") " + plainProblem(why, had) + ", so gas-kit won't download from it.",
+        fix: "npm run kit:sync -- --remote <git URL>   (https or ssh), or pass --from <kit checkout>",
+        more: "npm run kit -- help remote",
+      },
     );
   }
   return /** @type {string} */ (had);
@@ -309,7 +340,7 @@ export function lockedRemote(had) {
 /** @param {string} dir */
 export function kitVersion(dir) {
   const p = join(dir, "package.json");
-  if (!existsSync(p)) throw new Error("not a gas-kit checkout: " + dir + " has no package.json");
+  if (!existsSync(p)) throw new FriendlyError({ title: "That folder is not a gas-kit checkout", why: "There is no package.json in " + printable(dir) + ".", fix: "Point the command at a clone of the kit repository.", more: "npm run kit -- help kit", detail: "not a gas-kit checkout: " + dir + " has no package.json" });
   return String(JSON.parse(readFileSync(p, "utf8")).version ?? "0.0.0");
 }
 
@@ -328,6 +359,20 @@ export const HEX_REF = /^[0-9a-f]{7,64}$/i;
 /** A full commit id: 40 hex digits (sha1) or 64 (sha256). @param {unknown} s */
 export function isFullCommit(s) {
   return typeof s === "string" && /^(?:[0-9a-f]{40}|[0-9a-f]{64})$/i.test(s);
+}
+
+/**
+ * A refusal of a commit the kit cannot trust: retrying will not help, a release tag or the full commit id will.
+ * @param {string} why plain words @param {string} detail the technical text
+ */
+function refuseCommit(why, detail) {
+  return new FriendlyError({
+    title: "gas-kit will not use that version of the kit",
+    why: [why, detail],
+    fix: "Give a release tag (for example v0.2.0) or the full 40-character commit id.",
+    more: "npm run kit -- help ref",
+    detail,
+  });
 }
 
 /**
@@ -350,27 +395,51 @@ function checkoutCommit(git, ref) {
     .filter(Boolean);
   const clash = names.filter((n) => n === "refs/heads/" + want || n === "refs/tags/" + want || n === "refs/tags/" + want + "^{}");
   if (clash.length) {
-    throw new Error(
+    throw refuseCommit("The remote has a " + (clash[0]?.startsWith("refs/heads/") ? "branch" : "tag") + " with the same name, so the name could stand for other code than the commit.", 
       "refusing --ref " + ref + ": the remote has a " + (clash[0]?.startsWith("refs/heads/") ? "branch" : "tag") + " named " + ref +
         ", so the name could stand for other code than the commit. Give the full commit id (40 characters), or a release tag",
     );
   }
   git(["fetch", "-q", "--no-tags", "--", "origin", "+refs/heads/*:refs/remotes/origin/heads/*", "+refs/tags/*:refs/remotes/origin/tags/*"]);
   const notHeld = (/** @type {string} */ c) =>
-    new Error("commit " + c + " is not on any branch or tag of the remote (a pull request or other ref is not enough); give a release tag or a commit a branch or tag holds");
+    refuseCommit("That commit is not on any branch or tag of the remote (a pull request is not enough).", "commit " + c + " is not on any branch or tag of the remote (a pull request or other ref is not enough); give a release tag or a commit a branch or tag holds");
   /** @type {string} */
   let commit;
   try {
     commit = git(["rev-parse", "--verify", "--quiet", want + "^{commit}"]).trim();
   } catch {
     if (isFullCommit(want)) throw notHeld(want);
-    throw new Error("no single commit starting with " + ref + " is on the remote's branches and tags (missing, or the abbreviation is ambiguous); give the full commit id");
+    throw refuseCommit("No single commit starting with that is on the remote's branches and tags (it is missing, or the short form is ambiguous).", "no single commit starting with " + ref + " is on the remote's branches and tags (missing, or the abbreviation is ambiguous); give the full commit id");
   }
-  if (!isFullCommit(commit) || !commit.startsWith(want)) throw new Error("refusing --ref " + ref + ": it resolved to " + commit + ", which is not the commit asked for");
+  if (!isFullCommit(commit) || !commit.startsWith(want)) throw refuseCommit("The remote answered with a different commit than the one asked for.", "refusing --ref " + ref + ": it resolved to " + commit + ", which is not the commit asked for");
   const holders = git(["for-each-ref", "--contains", commit, "--format=%(refname)", "--", "refs/remotes/origin/heads/", "refs/remotes/origin/tags/"]).trim();
   if (!holders) throw notHeld(commit);
   git(["checkout", "-q", "--detach", commit]);
   return commit;
+}
+
+/**
+ * Refuse a URL the kit may not be fetched from: one that starts with a dash, or any transport but https and
+ * ssh (a file: URL only as an explicit --from or GAS_KIT). Every git network call of resolveSource and update passes through here (doctor checks its own lockedRemote).
+ * @param {string} url the URL without its #ref
+ * @param {string} label what named the source ("--from", "GAS_KIT", "the remembered remote", "--remote")
+ * @param {string} [shown] the text to name in the message (default the URL); printed through redactUrl
+ * @returns {boolean} true when a file: URL is allowed (the caller then lets git use the file transport)
+ */
+export function assertFetchable(url, label, shown = url) {
+  if (url.startsWith("-")) throw new FriendlyError({ title: "gas-kit will not download the kit from that address", why: "An address that starts with a dash could be read as an option.", fix: "Use an https or ssh git URL, for example npm run kit:sync -- --remote https://git.example.org/acme/gas-kit", more: "npm run kit -- help remote", detail: "refusing the URL " + JSON.stringify(redactUrl(url)) + ": it must not start with a dash" });
+  const scheme = urlScheme(url);
+  const allowFile = scheme === "file" && (label === "--from" || label === "GAS_KIT");
+  if (!allowFile && (!scheme || !REMOTE_SCHEMES.has(scheme))) {
+    throw new FriendlyError({
+      title: "gas-kit will not download the kit from that address",
+      why: "The address " + JSON.stringify(printable(shown)) + " (" + label + ") is not https or ssh, which are the only safe ways to fetch the kit.",
+      fix: "Use an https or ssh git URL, for example npm run kit:sync -- --remote https://git.example.org/acme/gas-kit",
+      more: "npm run kit -- help remote",
+      detail: "refusing to fetch " + redactUrl(shown) + " (" + label + "): the kit is fetched over https or ssh only" + (scheme === "file" ? "; a file: URL is taken only as an explicit --from or GAS_KIT" : ""),
+    });
+  }
+  return allowFile;
 }
 
 /**
@@ -385,18 +454,18 @@ export function resolveSource(from, opts = {}) {
   const label = opts.label ?? "--from";
   if (!isGitUrl(from)) {
     const dir = resolve(from);
-    if (!existsSync(join(dir, "packages", "server", "src"))) throw new Error(label + " " + redactUrl(from) + " is not a gas-kit checkout (packages/server/src not found)");
+    if (!existsSync(join(dir, "packages", "server", "src"))) throw new FriendlyError({
+        title: "That folder is not a gas-kit checkout",
+        why: label + " " + printable(from) + " is not a gas-kit checkout (it does not hold the kit's packages).",
+        fix: "Point " + label + " at a clone of the kit repository, or at its git address.",
+        more: "npm run kit -- help kit",
+        detail: label + " " + redactUrl(from) + " is not a gas-kit checkout (packages/server/src not found)",
+      });
+    assertSafeKitFolder(dir);
     return { dir, version: kitVersion(dir), commit: opts.commit === false ? null : commitOf(dir), source: "local checkout", cleanup: () => {} };
   }
   const { url, ref } = splitSource(from);
-  if (url.startsWith("-")) throw new Error("refusing the URL " + JSON.stringify(redactUrl(url)) + ": it must not start with a dash");
-  const scheme = urlScheme(url);
-  const allowFile = scheme === "file" && (label === "--from" || label === "GAS_KIT");
-  if (!allowFile && (!scheme || !REMOTE_SCHEMES.has(scheme))) {
-    throw new Error(
-      "refusing to fetch " + redactUrl(from) + " (" + label + "): the kit is fetched over https or ssh only" + (scheme === "file" ? "; a file: URL is taken only as an explicit --from or GAS_KIT" : ""),
-    );
-  }
+  const allowFile = assertFetchable(url, label, from);
   if (ref) checkRef(ref);
   const tmp = mkdtempSync(join(tmpdir(), "gas-kit-src-"));
   const git = (/** @type {string[]} */ args) => runGit(args, { cwd: tmp, allowFile });
@@ -416,14 +485,26 @@ export function resolveSource(from, opts = {}) {
     }
     const commit = git(["rev-parse", "HEAD"]).trim();
     if (ref && HEX_REF.test(ref) && !commit.startsWith(ref.toLowerCase())) {
-      throw new Error("refusing --ref " + ref + ": the remote answered with commit " + commit + ", which is not the commit asked for");
+      throw refuseCommit("The remote answered with a different commit than the one asked for.", "refusing --ref " + ref + ": the remote answered with commit " + commit + ", which is not the commit asked for");
     }
-    if (!existsSync(join(tmp, "packages", "server", "src"))) throw new Error(redactUrl(url) + " is not a gas-kit checkout (packages/server/src not found)");
+    if (!existsSync(join(tmp, "packages", "server", "src"))) throw new FriendlyError({ title: "That address is not a gas-kit repository", why: printable(redactUrl(url)) + " does not hold the kit's packages.", fix: "Give the git address of the kit repository.", more: "npm run kit -- help remote", detail: redactUrl(url) + " is not a gas-kit checkout (packages/server/src not found)" });
     return { dir: tmp, version: kitVersion(tmp), commit, source: redactUrl(from), cleanup };
   } catch (e) {
     cleanup();
+    if (e instanceof FriendlyError) {
+      // A refusal: keep its plain words, and the old technical text as it was.
+      const detail = "could not fetch " + redactUrl(from) + ": " + redactText(e.detail || e.message, from);
+      throw new FriendlyError({ title: e.title, why: e.why, fix: e.fix, more: e.more, detail, exitCode: e.exitCode });
+    }
     const err = /** @type {Error & { stderr?: string }} */ (e);
     const raw = err.stderr ? String(err.stderr).trim() : err.message;
-    throw new Error("could not fetch " + redactUrl(from) + ": " + redactText(raw, from));
+    const cleaned = redactText(raw, from);
+    throw new FriendlyError({
+      title: "Could not download the kit",
+      why: ["Nothing could be fetched from " + printable(from) + ": " + cleaned.split("\n").slice(0, 4).join(" ").slice(0, 400), "Check the address, your network and your access to it."],
+      fix: "Try again, or pass a different address with --from <git URL>.",
+      more: "npm run kit -- help remote",
+      detail: "could not fetch " + redactUrl(from) + ": " + cleaned,
+    });
   }
 }

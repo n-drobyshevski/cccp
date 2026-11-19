@@ -1,0 +1,53 @@
+/* Extracted from the author's production Apps Script apps; adapted. */
+.gk-stateLattice { display: grid; gap: var(--space-2); min-width: 0; }
+.gk-stateLattice__grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--gk-stateLattice-gap, 3px);
+  max-width: var(--gk-stateLattice-width, 40rem);
+}
+.gk-stateLattice__grid.is-columns {
+  display: grid;
+  grid-template-columns: repeat(var(--gk-cols, 20), var(--gk-stateLattice-cell, 12px));
+  max-width: none;
+}
+/* A state's cells sit in the grid as if the group were not there; the group carries the colour. */
+.gk-stateLattice__group { display: contents; }
+.gk-stateLattice__cell,
+.gk-stateLattice__swatch {
+  display: inline-block;
+  flex: none;
+  box-sizing: border-box;
+  width: var(--gk-stateLattice-cell, 12px);
+  height: var(--gk-stateLattice-cell, 12px);
+  border: 1.5px solid var(--gk-c, var(--none-fg));
+  border-radius: 2px;
+  background: var(--gk-c, var(--none-fg));
+}
+.gk-stateLattice__swatch { width: 12px; height: 12px; }
+.is-ring > .gk-stateLattice__cell, .gk-stateLattice__swatch.is-ring { border-width: 2px; background: var(--surface); }
+.is-dots > .gk-stateLattice__cell, .gk-stateLattice__swatch.is-dots {
+  background: radial-gradient(circle, var(--gk-c, var(--none-fg)) 1.1px, var(--surface) 1.6px) 0 0 / 4.5px 4.5px;
+}
+.is-half > .gk-stateLattice__cell, .gk-stateLattice__swatch.is-half {
+  background: linear-gradient(90deg, var(--gk-c, var(--none-fg)) 50%, var(--surface) 50%);
+}
+.is-hatch > .gk-stateLattice__cell, .gk-stateLattice__swatch.is-hatch {
+  background: repeating-linear-gradient(135deg, var(--gk-c, var(--none-fg)) 0 1.5px, var(--surface) 1.5px 3.5px);
+}
+.is-dashed > .gk-stateLattice__cell, .gk-stateLattice__swatch.is-dashed { border-style: dashed; background: var(--surface); }
+.gk-stateLattice__key {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-1) var(--space-4);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  font-size: var(--fs-sm);
+}
+.gk-stateLattice__item { display: inline-flex; align-items: center; gap: var(--space-1); white-space: nowrap; }
+.gk-stateLattice__name { color: var(--text); }
+.gk-stateLattice__count { color: var(--text); font-weight: var(--fw-semibold); font-variant-numeric: tabular-nums; }
+.gk-stateLattice__share { color: var(--text-muted); font-variant-numeric: tabular-nums; }
+.gk-stateLattice__unit { margin: 0; color: var(--text-muted); font-size: var(--fs-sm); }
+.gk-stateLattice.is-empty { color: var(--text-muted); font-size: var(--fs-sm); }

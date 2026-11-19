@@ -1,2 +1,6 @@
 /* lineChart: needs chartParts.css (the line, dot and grid rules are shared). */
 .gk-chart--line .gk-chart__value { paint-order: stroke; stroke: var(--surface); stroke-width: 3px; }
+/* shaded x ranges: a muted hatch behind the lines, named in the legend */
+.gk-chart__band { opacity: 0.3; }
+/* series[].fill: a faint area of the series colour under its line */
+.gk-chart__fill { fill: var(--c); fill-opacity: 0.12; stroke: none; }

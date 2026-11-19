@@ -1,0 +1,20 @@
+/* Tokens only. The bar is a size container: first and last hide below 30rem of bar width. */
+.gk-tablePagination {
+  container-type: inline-size;
+  display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between;
+  gap: var(--space-2) var(--space-4); padding: var(--space-3) 0; min-width: 0;
+}
+.gk-tablePagination__selected { color: var(--text-muted); font-size: var(--fs-sm); font-variant-numeric: tabular-nums; }
+.gk-tablePagination__controls { display: flex; flex-wrap: wrap; align-items: center; justify-content: flex-end; gap: var(--space-2) var(--space-4); margin-left: auto; }
+.gk-tablePagination__size { display: inline-flex; align-items: center; gap: var(--space-2); }
+.gk-tablePagination__label { font-size: var(--fs-sm); font-weight: var(--fw-medium); color: var(--text); white-space: nowrap; }
+.gk-tablePagination__select.gk-input { width: auto; min-width: 4.5rem; }
+.gk-tablePagination__page { font-size: var(--fs-sm); font-weight: var(--fw-medium); color: var(--text); font-variant-numeric: tabular-nums; white-space: nowrap; }
+.gk-tablePagination__steps { display: inline-flex; align-items: center; gap: var(--space-2); }
+.gk-tablePagination__ic { display: inline-flex; align-items: center; pointer-events: none; }
+.gk-tablePagination__ic svg { flex: none; width: 16px; height: 16px; }
+.gk-tablePagination__btn[aria-disabled="true"] { color: var(--text-muted); border-color: var(--border-strong); border-style: dashed; }
+@container (max-width: 30rem) {
+  .gk-tablePagination__btn.is-edge { display: none; }
+  .gk-tablePagination__controls { justify-content: flex-start; margin-left: 0; }
+}

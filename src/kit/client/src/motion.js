@@ -125,7 +125,7 @@ export function animateOut(el, frames, opts) {
  * data-enter (removed after the entrance), and keyed nodes that moved play a FLIP translate.
  * @param {Element} region
  * @param {unknown} safe SafeHtml from the html template
- * @param {{ key?: string, flip?: boolean, keepFocus?: boolean, keepScroll?: boolean }} [opts]
+ * @param {{ key?: string, flip?: boolean, keepFocus?: boolean, keepScroll?: boolean, keepOpen?: boolean }} [opts]
  * @returns {void}
  */
 export function swap(region, safe, opts) {
@@ -146,7 +146,7 @@ export function swap(region, safe, opts) {
   };
   const reduce = prefersReducedMotion();
   const before = measure(region);
-  renderRegion(region, safe, { keepFocus: o.keepFocus, keepScroll: o.keepScroll });
+  renderRegion(region, safe, { keepFocus: o.keepFocus, keepScroll: o.keepScroll, keepOpen: o.keepOpen });
   const after = measure(region);
 
   /** @type {Element[]} */

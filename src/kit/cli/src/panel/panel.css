@@ -1,0 +1,38 @@
+/* The control panel look: the kit's tokens only (brand.css and tokens.base.css are served beside this file). */
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--bg); color: var(--text); font: 15px/1.5 system-ui, sans-serif; }
+.page { max-width: 1040px; margin: 0 auto; padding: var(--space-4, 16px); }
+.head { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: flex-start; gap: var(--space-3); }
+.tools { display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-3); }
+#docs { color: var(--accent); font-size: 13px; }
+.theme { display: flex; align-items: center; gap: var(--space-1); font-size: 13px; }
+.theme span { margin-right: var(--space-1); }
+button.seg { padding: 2px var(--space-2); background: var(--surface); color: var(--text); }
+button.seg[aria-pressed="true"] { background: var(--accent); color: var(--accent-ink); font-weight: 700; }
+button.seg[aria-pressed="true"]::before { content: "\2714  "; content: "\2714  " / ""; }
+.eyebrow { margin: 0; font-size: 12px; text-transform: uppercase; letter-spacing: 0.06em; color: var(--text-muted); }
+h1 { margin: var(--space-1) 0; font-size: 28px; }
+h2 { font-size: 16px; margin: 0 0 var(--space-2); }
+h3 { font-size: 14px; margin: var(--space-4, 16px) 0 var(--space-2); }
+.muted { color: var(--text-muted); }
+.panel { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.2fr); gap: var(--space-4, 16px); align-items: start; }
+.status { list-style: none; margin: 0 0 var(--space-3); padding: 0; display: grid; gap: var(--space-2); }
+.row { display: flex; gap: var(--space-2); align-items: flex-start; }
+.row > div { display: grid; min-width: 0; overflow-wrap: anywhere; }
+.ic { width: 18px; flex: none; font-weight: 700; text-align: center; }
+.row.ok .ic, .say.ok { color: var(--ok-fg); }
+.row.warn .ic { color: var(--warn-fg); }
+.row.fail .ic, .say.bad { color: var(--bad-fg); }
+.row.info .ic { color: var(--info-fg); }
+.fix { font-size: 13px; color: var(--text-muted); }
+.actions { display: grid; gap: var(--space-2); }
+.act { display: grid; gap: var(--space-2); justify-items: start; padding: var(--space-3); border: 1px solid var(--border); border-radius: 10px; background: var(--surface); }
+.say { margin: 0; font-size: 13px; overflow-wrap: anywhere; }
+.upd { display: grid; gap: var(--space-2); justify-items: start; width: 100%; }
+.changes { margin: 0; padding-left: 20px; font-size: 13px; }
+button { font: inherit; padding: var(--space-1) var(--space-3); border-radius: 8px; border: 1px solid var(--border-strong); background: var(--accent); color: var(--accent-ink); cursor: pointer; }
+button.quiet, #recheck { background: var(--surface); color: var(--text); }
+input[type="text"], select { font: inherit; width: 100%; padding: var(--space-1) var(--space-2); border: 1px solid var(--border-strong); border-radius: 8px; background: var(--surface); color: var(--text); }
+.job { margin: 0; padding: var(--space-3); max-height: 320px; overflow: auto; white-space: pre-wrap; overflow-wrap: anywhere; background: var(--surface-2); border: 1px solid var(--border); border-radius: 8px; font: 12px/1.5 ui-monospace, monospace; }
+a:focus-visible, button:focus-visible, input:focus-visible, select:focus-visible, .job:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+@media (max-width: 640px) { .panel { grid-template-columns: 1fr; } h1 { font-size: 22px; } }

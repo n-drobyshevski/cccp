@@ -25,7 +25,7 @@ export function initials(name) {
  * @emits none
  * @states initials, sm, lg
  * @a11y The wrapper is role="img" with the name as aria-label, and both the initials and the picture are hidden from assistive tech, so the person is announced once by name.
- * @example initials: avatar({ name: "Ada Lovelace" })
+ * @example initials: avatar({ name: "Alex Lee" })
  * @example sm: avatar({ name: "Acme Support", size: "sm" })
  * @example lg: avatar({ name: "Grace", size: "lg" })
  */

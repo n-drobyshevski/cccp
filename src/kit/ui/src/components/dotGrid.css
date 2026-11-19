@@ -1,0 +1,16 @@
+/* Extracted from the author's production Apps Script apps; adapted. */
+.gk-dotGrid { display: inline-block; max-width: 100%; }
+.gk-dotGrid__cells {
+  display: grid;
+  grid-template-columns: repeat(var(--gk-cols, 20), var(--gk-dotGrid-cell, 8px));
+  gap: var(--gk-dotGrid-gap, 3px);
+}
+.gk-dotGrid__cell {
+  display: block;
+  width: var(--gk-dotGrid-cell, 8px);
+  height: var(--gk-dotGrid-cell, 8px);
+  border-radius: 1.5px;
+  background: var(--border);
+}
+.gk-dotGrid__cell.is-on { background: var(--gk-fill, var(--accent)); }
+.gk-dotGrid.is-empty { color: var(--text-muted); font-size: var(--fs-sm); }

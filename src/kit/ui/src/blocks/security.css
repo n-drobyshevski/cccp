@@ -1,0 +1,15 @@
+/* Layout only for the securityOverview block; the cards, chart, table, dots and items keep their own look.
+   Tokens only. The block is an inline-size container and lays out by its own width. */
+.gk-securityOverview { container-type: inline-size; display: flex; flex-direction: column; gap: var(--space-4); min-width: 0; }
+.gk-securityOverview__row { display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--space-4); }
+.gk-securityOverview__sev { display: flex; flex-direction: column; gap: var(--space-4); }
+.gk-securityOverview__legend { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--space-2) var(--space-4); margin: 0; padding: 0; list-style: none; }
+.gk-securityOverview__legendRow { display: flex; align-items: center; justify-content: space-between; gap: var(--space-2); min-width: 0; }
+.gk-securityOverview__count { font-variant-numeric: tabular-nums; font-weight: var(--fw-semibold); }
+.gk-securityOverview__clear { display: flex; align-items: center; gap: var(--space-2); margin: 0; }
+.gk-securityOverview__muted { margin: 0; color: var(--text-muted); font-size: var(--fs-md); line-height: var(--lh); }
+.gk-securityOverview__due { display: inline-flex; flex-wrap: wrap; align-items: center; gap: var(--space-2); }
+@container (min-width: 48rem) {
+  .gk-securityOverview { gap: var(--space-5); }
+  .gk-securityOverview__row { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--space-5); }
+}

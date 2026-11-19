@@ -2,7 +2,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import * as access from "../../src/server/access";
 import * as api from "../../src/server/api";
 import { diagnosticsReport, diagnosticsText } from "../../src/server/diagnostics";
-import { recordError } from "../../src/server/errors";
+import { errorLog } from "../../src/server/errorLog";
 import { REGISTER_WARN_ROWS } from "../../src/domain/payload";
 import { cacheGetJson, cacheKey, cachePutJson } from "../../src/server/serverCache";
 import { useGasEnv } from "../gasEnv";
@@ -20,7 +20,7 @@ describe("diagnostics report", () => {
   it("reports owner, mode, list sizes, tabs, versions, cache, sizes and recent errors", () => {
     as("admin@example.com");
     api.getRegister();
-    recordError("saveSettings", new Error("boom"));
+    errorLog.recordError("saveSettings", new Error("boom"));
     const res = api.getDiagnostics();
     expect(res.ok).toBe(true);
     const r = res.data!;

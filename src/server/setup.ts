@@ -9,7 +9,8 @@ import { cleanSettings, makeDefaultSettings, SECTION_KEYS, SECTION_PROPS, sheetI
 import type { Settings } from "../domain/types";
 import * as access from "./access";
 import { diagnosticsText } from "./diagnostics";
-import { getJsonProp, getProp, putJsonProp, setProp, PROP_KEYS } from "./props";
+import { getJsonProp, getProp, putJsonProp, setProp } from "@gas-kit/server";
+import { PROP_KEYS } from "./config";
 
 export function setup(sheetUrl?: string): string {
   access.assertOwner("setup");

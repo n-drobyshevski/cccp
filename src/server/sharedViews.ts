@@ -3,12 +3,11 @@
 // Each write is under the script lock and bumps VIEWS_GEN (not CFG_GEN, the settings save base), because the bootstrap core carries
 // the list. Personal views never come here: they live in the viewer's own localStorage.
 
-import { ApiError } from "./errors";
 import { sha1Hex } from "../vendor/gas_shared/domain/sha1";
 import { cleanView, validateSharedViews, validateView } from "../domain/viewState";
 import type { SavedView } from "../domain/types";
-import { withScriptLock } from "./locks";
-import { getJsonProp, PROP_KEYS, putJsonProp } from "./props";
+import { ApiError, getJsonProp, putJsonProp, withScriptLock } from "@gas-kit/server";
+import { PROP_KEYS } from "./config";
 import { bumpViewsGen } from "./serverCache";
 
 export const MAX_VIEWS = 40;

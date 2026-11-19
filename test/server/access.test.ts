@@ -112,11 +112,14 @@ describe("check and the guards", () => {
     fakes().setActiveUser("viewer@example.com");
     props().setProperty("ALLOWED_USERS", "viewer@example.com");
     expect(access.check().allowed).toBe(true);
-    const reads = fakes().counters().propGet;
+    // The kit reads the store once per execution through getProperties(), which the fakes do not
+    // count, so the once-per-execution claim is watched on the Session reads and the store read.
+    const asked = vi.spyOn(Session, "getActiveUser");
+    const stored = vi.spyOn(props(), "getProperties");
     access.check();
     access.check();
-    expect(fakes().counters().propGet).toBe(reads);
-    expect(reads).toBeGreaterThan(0);
+    expect(asked).not.toHaveBeenCalled();
+    expect(stored).not.toHaveBeenCalled();
   });
   it("reads ACCESS_MODE from the property", () => {
     fakes().setActiveUser("anyone@example.com");
@@ -144,9 +147,9 @@ describe("check and the guards", () => {
   it("assertAllowed throws for a denied caller; assertOwner for a non-owner", () => {
     fakes().setActiveUser("stranger@example.com");
     expect(() => access.assertAllowed("setup")).toThrow();
+    fakes().seedDefaults();
     access.__resetMemosForTest();
     fakes().setActiveUser("admin@example.com");
-    fakes().seedDefaults();
     expect(() => access.assertOwner("setup")).toThrow(/owner/);
     access.__resetMemosForTest();
     fakes().setActiveUser(OWNER);

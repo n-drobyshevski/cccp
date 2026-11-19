@@ -18,7 +18,7 @@ import {
 import { TAB_KEYS, type FieldKey, type Issues } from "../domain/types";
 import { FIELD_KEYS } from "../domain/fields";
 import type { SourceMeta } from "../domain/payload";
-import { BUILD_ID } from "../vendor/gas_shared/server/buildInfo";
+import { buildId } from "@gas-kit/server";
 import * as access from "./access";
 import { peekRegisterEntry, registerEntry } from "./registerStore";
 import { cached, cfgGen, peekCached, TTL_MIN_SEC } from "./serverCache";
@@ -106,7 +106,7 @@ export function getLive(core: BootstrapCore): BootstrapLive {
       canEditMode: access.canEditMode(),
     },
     serviceUrl: url,
-    buildId: BUILD_ID,
+    buildId: buildId(),
     today: todayIn(core.sourceMeta.tz),
     cfgGen: cfgGen(),
   };

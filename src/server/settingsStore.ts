@@ -15,9 +15,7 @@ import { applyPatch, changedSections, cleanSettings, SECTION_PROPS, validateSett
 import type { SaveSettingsResponse, SettingsResponse } from "../domain/payload";
 import type { SectionKey, Settings, SettingsPatch, TabKey } from "../domain/types";
 import { TAB_KEYS } from "../domain/types";
-import { ApiError } from "./errors";
-import { withScriptLock } from "./locks";
-import { getJsonProp, putJsonProp } from "./props";
+import { ApiError, getJsonProp, putJsonProp, withScriptLock } from "@gas-kit/server";
 import { bumpCfgGen, bumpDataVersion, cached, cfgGen } from "./serverCache";
 import { sampleWorkbook } from "./sourceSheet";
 

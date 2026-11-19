@@ -74,11 +74,9 @@ describe("no dangerous server API", () => {
   //  session:     access.ts is the app's access module, the one place that reads the caller's identity.
   //  htmlAppend:  access.ts deniedPage() builds the denial page; every interpolation goes through
   //               escapeHtml (deniedHtml), and it names no roster.
-  //  htmlFromFile: main.ts include() serves the index.html partials; entry.js gates it with
-  //               denyResult("include") and the names are constants in index.html.
   noDangerousServerApis.register(describe, it, expect, {
     srcDir: join(SRC, "server"),
-    allow: { session: ["access.ts"], htmlAppend: ["access.ts"], htmlFromFile: ["main.ts"] },
+    allow: { session: ["access.ts"], htmlAppend: ["access.ts"] },
   });
 });
 

@@ -18,8 +18,7 @@ import { evaluateAll } from "../domain/rules";
 import { sha1Hex } from "../vendor/gas_shared/domain/sha1";
 import * as access from "./access";
 import { todayIn } from "./bootstrap";
-import { ApiError } from "./errors";
-import { withScriptLock } from "./locks";
+import { ApiError, withScriptLock } from "@gas-kit/server";
 import { registerEntry } from "./registerStore";
 import { loadSettings } from "./settingsStore";
 

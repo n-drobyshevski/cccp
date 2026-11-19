@@ -15,7 +15,8 @@
 // compute().
 
 import { sha1Hex } from "../vendor/gas_shared/domain/sha1";
-import { getProp, PROP_KEYS, setProp } from "./props";
+import { getProp, setProp } from "@gas-kit/server";
+import { PROP_KEYS } from "./config";
 
 /** Bump to make every cached entry unreachable on the next deploy. 3: shared views in the core no
  *  longer carry the page they were saved on (identity G part 2). */

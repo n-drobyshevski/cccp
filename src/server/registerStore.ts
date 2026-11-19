@@ -11,8 +11,8 @@ import { FIELDS } from "../domain/fields";
 import { withLegacyFallback } from "../domain/settings";
 import type { Issues } from "../domain/types";
 import { TAB_KEYS } from "../domain/types";
-import { markRecorded, recordError } from "./errors";
-import { withScriptLock } from "./locks";
+import { withScriptLock } from "@gas-kit/server";
+import { errorLog } from "./errorLog";
 import { cached, dataVersion, bumpDataVersion, peekCached, primeCached } from "./serverCache";
 import { loadSettings } from "./settingsStore";
 import { readTabs } from "./sourceSheet";
@@ -44,9 +44,9 @@ function build(): { entry: RegisterEntry; ttlSec: number } {
   try {
     read = readTabs(settings.source, { idHeader: settings.fields.id.header });
   } catch (e) {
-    recordError("register", e);
+    errorLog.recordError("register", e);
     const err = new Error(UNREACHABLE);
-    markRecorded(err);
+    errorLog.markRecorded(err);
     throw err;
   }
   // Settings saved before the same-tab default name tabs that this workbook may not have.

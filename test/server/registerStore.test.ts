@@ -6,7 +6,8 @@ import * as api from "../../src/server/api";
 import { diagnosticsReport, diagnosticsText } from "../../src/server/diagnostics";
 import { getRegisterPayload, registerEntry, reloadRegister, UNREACHABLE } from "../../src/server/registerStore";
 import { cfgGen, dataVersion } from "../../src/server/serverCache";
-import { recentErrors } from "../../src/server/errors";
+import { errorLog } from "../../src/server/errorLog";
+const recentErrors = () => errorLog.recentErrors();
 import { genOneTabWorkbook, genWorkbook } from "../../dev/genTabs.mjs";
 import { useGasEnv } from "../gasEnv";
 

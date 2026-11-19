@@ -12,9 +12,9 @@ import * as access from "./access";
 import { getBootstrap } from "./bootstrap";
 import { exportToSheet as exportSheet, type ExportResult } from "./exportSheet";
 import { diagnosticsReport, type DiagnosticsReport } from "./diagnostics";
-import { ApiError, recordError, type ErrorKind } from "./errors";
-import { PROP_KEYS, setProp } from "./props";
-import { withScriptLock } from "./locks";
+import { ApiError, setProp, withScriptLock, type ErrorKind } from "@gas-kit/server";
+import { PROP_KEYS } from "./config";
+import { errorLog } from "./errorLog";
 import { getRegisterPayload, reloadRegister } from "./registerStore";
 import { requireRole } from "./roles";
 import { sheetIdFrom } from "../domain/settings";
@@ -41,7 +41,7 @@ function run<T>(name: string, fn: () => T): ApiResult<T> {
     return { ok: true, data: fn() };
   } catch (e) {
     if (e instanceof ApiError) return { ok: false, error: e.message, errorKind: e.kind };
-    recordError(name, e);
+    errorLog.recordError(name, e);
     return { ok: false, error: String(e instanceof Error ? e.message : e), errorKind: "error" };
   }
 }

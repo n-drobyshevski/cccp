@@ -82,7 +82,8 @@ describe("the gate in run()", () => {
     expect(api.bootstrap().ok).toBe(true);
   });
   it("records no refusal or input-validation error in the error log", async () => {
-    const { recentErrors } = await import("../../src/server/errors");
+    const { errorLog } = await import("../../src/server/errorLog");
+    const recentErrors = () => errorLog.recentErrors();
     as("viewer@example.com");
     api.saveAccess({ users: "x@example.com" });
     expect(recentErrors()).toEqual([]);
@@ -92,7 +93,9 @@ describe("the gate in run()", () => {
     expect(recentErrors()).toEqual([]);
   });
   it("keeps an ApiError's kind (busy, conflict) and does not log it", async () => {
-    const { ApiError, recentErrors } = await import("../../src/server/errors");
+    const { ApiError } = await import("@gas-kit/server");
+    const { errorLog } = await import("../../src/server/errorLog");
+    const recentErrors = () => errorLog.recentErrors();
     expect(new ApiError("conflict", "stale").kind).toBe("conflict");
     expect(recentErrors()).toEqual([]);
   });

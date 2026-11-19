@@ -12,6 +12,7 @@
 
 /** The web-app entry. Refuses before it draws. There is no welcome gate. */
 function doGet(e) {
+  Server.beginExecution();
   var denied = Server.access.deniedPage();
   if (denied) return denied;
   return Server.doGet(e);
@@ -30,6 +31,7 @@ function include(filename) {
  * The {ok, data} envelope is built in api.ts, so the dev harness and the deployment agree.
  */
 function timedApi_(name, params) {
+  Server.beginExecution();
   var denied = Server.access.denyResult(name);
   if (denied) return denied;
   var t0 = Date.now();
@@ -61,12 +63,14 @@ function api_exportToSheet(p) { return timedApi_("exportToSheet", p); }
 
 /** One-time owner setup. Seeds the owner and defaults; optionally binds the register Sheet. */
 function setup(sheetUrl) {
+  Server.beginExecution();
   Server.access.assertOwner("setup");
   return Server.setup(sheetUrl);
 }
 
 /** Prints the diagnostics report (owner only). Run it from the editor after each deploy. */
 function deploymentDiagnostic() {
+  Server.beginExecution();
   Server.access.assertOwner("deploymentDiagnostic");
   var text = Server.diagnosticsText();
   console.log(text);

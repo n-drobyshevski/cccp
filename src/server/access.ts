@@ -18,9 +18,9 @@
 // The guards live in src/gas/entry.js and in api.ts run(): google.script.run reaches top-level
 // globals directly, and the client is never the authority.
 
-import { ApiError } from "./errors";
 import { cardPage, escapeHtml, secondaryAction } from "./pageShell";
-import { getProp, PROP_KEYS } from "./props";
+import { ApiError, beginExecution, getProp } from "@gas-kit/server";
+import { PROP_KEYS } from "./config";
 
 /** The one place the product is named on the standalone pages. */
 export const PRODUCT = "CCCP";
@@ -205,6 +205,8 @@ export function check(): AccessDecision {
 /** See the memo comment above. */
 export function __resetMemosForTest(): void {
   memo = undefined;
+  // A new execution too: the kit keeps one Script Properties snapshot per execution.
+  beginExecution();
 }
 
 /**

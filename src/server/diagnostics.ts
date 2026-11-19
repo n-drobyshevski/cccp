@@ -4,10 +4,10 @@
 
 import { payloadBytes, REGISTER_WARN_BYTES, REGISTER_WARN_ROWS } from "../domain/payload";
 import { SECTION_PROPS } from "../domain/settings";
-import { BUILD_ID } from "../vendor/gas_shared/server/buildInfo";
+import { buildId, getProp, utf8ByteLength } from "@gas-kit/server";
 import * as access from "./access";
-import { recentErrors, utf8ByteLength } from "./errors";
-import { getProp, PROP_KEYS } from "./props";
+import { PROP_KEYS } from "./config";
+import { errorLog } from "./errorLog";
 import { peekRegisterEntry, registerEntry } from "./registerStore";
 import { cacheKey, cfgGen, dataVersion } from "./serverCache";
 import { loadSettings } from "./settingsStore";
@@ -92,7 +92,7 @@ export function diagnosticsReport(): DiagnosticsReport {
   for (const k of keys) propertyBytes[k] = safe("prop " + k, () => utf8ByteLength(getProp(k) ?? ""), null as number | null);
 
   return {
-    generatedAt, buildId: BUILD_ID, owner, mode, listSizes, source, issues,
+    generatedAt, buildId: buildId(), owner, mode, listSizes, source, issues,
     versions: { dataVersion: safe("dataVersion", () => dataVersion(), null as number | null), cfgGen: safe("cfgGen", () => cfgGen(), null as number | null) },
     cache: {
       registerWarm: safe("cache", () => peekRegisterEntry() !== undefined, null as boolean | null),
@@ -103,7 +103,7 @@ export function diagnosticsReport(): DiagnosticsReport {
     },
     register: { bytes: registerBytes, rows: registerRows, warnings },
     propertyBytes,
-    recentErrors: safe("errors", () => recentErrors().slice(0, 10), []),
+    recentErrors: safe("errors", () => errorLog.recentErrors().slice(0, 10), []),
     failures,
   };
 }

@@ -16,6 +16,9 @@ import { RULE_BY_ID } from "../../../domain/rules";
 import { RULE_PARAMS, TAB_NAMES, applyPatch, sheetIdFrom, validateSettings } from "../../../domain/settings";
 import { TAB_KEYS } from "../../../domain/types";
 
+/** The line under the Settings tabs, shared by the page and its loading frame. */
+export const SETTINGS_NOTE = "Changes apply to everyone who opens CCCP after you save.";
+
 export const SETTINGS_TABS = [
   { key: "source", label: "Data source", help: "Sheet and tabs CCCP reads" },
   { key: "fields", label: "Field mapping", help: "Which column feeds which field" },

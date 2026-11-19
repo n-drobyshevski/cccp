@@ -97,14 +97,21 @@ body[data-boot] .shell { min-height: 100vh; justify-content: center; padding-blo
 .ld-dqp b { font-size: 12px; }
 @media (max-width: 1000px) { .ld-app { grid-template-columns: minmax(0, 1fr); } }
 
-/* settings */
-.ld-set { display: flex; flex-direction: column; gap: 14px; }
-.ld-stabs { display: flex; gap: 2px; border-bottom: 1px solid var(--border); overflow: hidden; color: var(--text-muted); font-weight: 500; }
-.ld-stabs span { padding: 10px 14px; border-bottom: 2px solid transparent; white-space: nowrap; }
-.ld-stabs .on { color: var(--text); border-bottom-color: var(--accent); }
-.ld-sbody { display: flex; flex-direction: column; gap: 10px; }
-.ld-set .ld-kv { padding-left: 0; }
+/* settings: the frame reuses the page's .stw/.stside/.stmain layout (settings.css) */
+.ld .stside h1 { font-size: 20px; }
+.ld .stside .backbtn { cursor: default; }
+.ld-stabs span { padding: 11px 20px; font-weight: 500; font-size: 15px; color: var(--text); box-shadow: inset 3px 0 0 transparent; white-space: nowrap; }
+.ld-stabs .on { background: var(--accent-soft); font-weight: 600; box-shadow: inset 3px 0 0 var(--accent); }
+.ld-sbox { display: flex; flex-direction: column; gap: 8px; padding: 14px 16px; background: var(--surface-2); border-radius: var(--radius); }
+.ld-srow { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 16px; align-items: center; padding: 14px 0; border-top: 1px solid var(--border); }
+.ld-sl { display: flex; flex-direction: column; gap: 8px; }
 .sk-lbl { display: block; }
+/* Same breakpoint as the page (settings.css): the tab names become a row. */
+@media (max-width: 899px) {
+  .ld-stabs span { padding: 11px 16px; box-shadow: inset 0 -3px 0 transparent; }
+  .ld-stabs .on { box-shadow: inset 0 -3px 0 var(--accent); }
+  .ld-srow { grid-template-columns: minmax(0, 1fr); gap: 8px; }
+}
 
 @media (max-width: 760px) {
   .ld-hide-s { display: none !important; }
@@ -112,7 +119,6 @@ body[data-boot] .shell { min-height: 100vh; justify-content: center; padding-blo
   .ld-tr { gap: 6px; }
   .ld-th { letter-spacing: 0; font-size: 10px; }
   .ld-r-list .ld-tr { grid-template-columns: minmax(0, 2fr) repeat(2, minmax(0, 1fr)) !important; }
-  .ld-stabs span { padding: 10px 10px; }
 }
 
 /* ---------- the refresh bar under the app bar ---------- */

@@ -105,7 +105,7 @@ function render(el) {
       if (!cancelSlow) cancelSlow = armSlow(el);
       return;
     }
-    show(el, s.booted ? skeleton(s.route === "list" && s.lens !== "table" ? s.lens : s.route) : splashView(b.step));
+    show(el, s.booted ? skeleton(s.route === "list" && s.lens !== "table" ? s.lens : s.route, undefined, { tab: s.tab }) : splashView(b.step));
     cancelSlow = armSlow(el);
     return;
   }

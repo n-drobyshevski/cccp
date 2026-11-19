@@ -26,3 +26,6 @@ Masked: `[data-loaded]` (Settings "Last loaded" time). Animations disabled, redu
 | dist/server.js | 119292 |
 | dist/js_app.html | 181890 |
 | dist/styles.html | 59220 |
+
+CI (`CI=true`) skips `shots.spec.ts`: the baselines are this machine's Chromium and fonts, and a
+CI runner draws text a few pixels differently. Set `SHOTS=1` to run them there anyway.

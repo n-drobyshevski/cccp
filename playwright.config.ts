@@ -4,6 +4,10 @@ import { defineConfig } from "@playwright/test";
 // Playwright's chromium. Traces are off.
 export default defineConfig({
   testDir: "e2e",
+  // The pixel baselines (e2e/shots.spec.ts) are rendered by one pinned local Chromium and its
+  // fonts; a CI runner renders text differently, so CI skips them unless SHOTS=1. Run them locally
+  // with PW_CHROMIUM_PATH before any UI change is committed (see e2e/BASELINE.md).
+  ...(process.env.CI && !process.env.SHOTS ? { testIgnore: ["shots.spec.ts"] } : {}),
   timeout: 30_000,
   fullyParallel: true,
   reporter: [["list"]],

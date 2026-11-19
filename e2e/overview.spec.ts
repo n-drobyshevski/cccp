@@ -12,7 +12,7 @@ test("overview shows 4 KPIs, pillar bars and the domains", async ({ page }) => {
   const bad = watchConsole(page);
   await page.goto("/?r=overview");
   await expect(page.locator("[data-page=overview]")).toBeVisible();
-  await expect(page.locator(".kpi")).toHaveCount(4);
+  await expect(page.locator(".gk-kpiTile")).toHaveCount(4);
   await expect(page.locator(".pbar")).toHaveCount(4);
   const rows = await page.locator("table[data-table=domains] tbody tr").count();
   expect(rows).toBeGreaterThan(0);
@@ -26,8 +26,8 @@ test("overview shows 4 KPIs, pillar bars and the domains", async ({ page }) => {
 
 test("the Tier 1 tile lands on List with the same count", async ({ page }) => {
   await page.goto("/?r=overview");
-  const tile = page.locator('.kpi[data-kpi=t1gap]');
-  const value = num(await tile.locator("[data-value]").innerText());
+  const tile = page.locator('[data-k=kpi-t1gap]');
+  const value = num(await tile.locator(".gk-kpiTile__value").innerText());
   await tile.click();
   await expect(page.locator("table[data-table=list]")).toBeVisible();
   expect(num(await page.locator("[data-count=visible]").innerText())).toBe(value);
@@ -37,9 +37,9 @@ test("the Tier 1 tile lands on List with the same count", async ({ page }) => {
 });
 
 test("every KPI and pillar lands on List with its count", async ({ page }) => {
-  for (const sel of ['.kpi[data-kpi=gap]', '.kpi[data-kpi=noso]', '.kpi[data-kpi=eol]']) {
+  for (const sel of ['[data-k=kpi-gap]', '[data-k=kpi-noso]', '[data-k=kpi-eol]']) {
     await page.goto("/?r=overview");
-    const value = num(await page.locator(sel + " [data-value]").innerText());
+    const value = num(await page.locator(sel + " .gk-kpiTile__value").innerText());
     await page.locator(sel).click();
     await expect(page.locator("table[data-table=list], [data-page=list]").first()).toBeVisible();
     expect(num(await page.locator("[data-count=visible]").innerText())).toBe(value);
@@ -61,8 +61,11 @@ test("the title line, four mono figures with Open in inventory, and the pillar n
   await page.setViewportSize({ width: 1440, height: 900 });
   await page.goto("/?r=overview");
   await expect(page.locator("[data-page=overview] .ovh")).toContainText(/applications · read /);
-  await expect(page.locator(".kpi .kgo")).toHaveText(["Open in inventory ›", "Open in inventory ›", "Open in inventory ›", "Open in inventory ›"]);
-  const fam = await page.locator(".kpi b").first().evaluate((e) => getComputedStyle(e).fontFamily);
+  // The words are drawn after the tile's text (CSS content), so they are in the tile's accessible name too.
+  const after = await page.locator(".gk-kpiTile").evaluateAll((els) => els.map((e) => getComputedStyle(e, "::after").content));
+  expect(after).toEqual(Array(4).fill('"Open in inventory ›"'));
+  await expect(page.locator(".kpis").getByRole("button", { name: /Open in inventory/ })).toHaveCount(4);
+  const fam = await page.locator(".gk-kpiTile__value").first().evaluate((e) => getComputedStyle(e).fontFamily);
   expect(fam).toMatch(/IBM Plex Mono|monospace/);
   const cols = await page.locator(".pbar .pn").evaluateAll((els) => els.map((e) => getComputedStyle(e).color));
   expect(new Set(cols).size).toBe(4);
@@ -110,7 +113,7 @@ test("Open in inventory keeps the lens the viewer was on", async ({ page }) => {
   await page.goto("/?r=list&lens=landscape");
   await expect(page.locator(".land")).toBeVisible();
   await page.locator('[data-k="nav-overview"]').click();
-  await page.locator(".kpi[data-kpi=gap]").click();
+  await page.locator("[data-k=kpi-gap]").click();
   await expect(page.locator(".land")).toBeVisible();
   expect(new URL(page.url()).searchParams.get("lens")).toBe("landscape");
 });

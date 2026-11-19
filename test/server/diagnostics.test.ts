@@ -1,14 +1,14 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import * as access from "../../src/server/access";
+import { __resetMemosForTest } from "../../src/server/access";
 import * as api from "../../src/server/api";
 import { diagnosticsReport, diagnosticsText } from "../../src/server/diagnostics";
-import { recordError } from "../../src/server/errors";
+import { errorLog } from "../../src/server/errorLog";
 import { REGISTER_WARN_ROWS } from "../../src/domain/payload";
-import { cacheGetJson, cacheKey, cachePutJson } from "../../src/server/serverCache";
+import { cache, registerKey } from "../../src/server/serverCache";
 import { useGasEnv } from "../gasEnv";
 
 const fakes = useGasEnv({ workbook: true, seed: true });
-const as = (who: string) => { access.__resetMemosForTest(); fakes().setActiveUser(who); };
+const as = (who: string) => { __resetMemosForTest(); fakes().setActiveUser(who); };
 
 beforeEach(() => {
   vi.restoreAllMocks();
@@ -20,7 +20,7 @@ describe("diagnostics report", () => {
   it("reports owner, mode, list sizes, tabs, versions, cache, sizes and recent errors", () => {
     as("admin@example.com");
     api.getRegister();
-    recordError("saveSettings", new Error("boom"));
+    errorLog.recordError("saveSettings", new Error("boom"));
     const res = api.getDiagnostics();
     expect(res.ok).toBe(true);
     const r = res.data!;
@@ -84,10 +84,9 @@ describe("diagnostics report", () => {
 
   it("warns when the register is over the limits", () => {
     api.getRegister();
-    const key = cacheKey("register", undefined);
-    const entry = cacheGetJson(key) as { register: { codec: { rows: unknown[] } } };
+    const entry = cache.get("register1", registerKey()) as { register: { codec: { rows: unknown[] } } };
     entry.register.codec.rows = new Array(REGISTER_WARN_ROWS + 1).fill(null);
-    cachePutJson(key, entry, 600);
+    cache.put("register1", registerKey(), entry, 600);
     const r = diagnosticsReport();
     expect(r.register.warnings.join(" ")).toContain("rows: above " + REGISTER_WARN_ROWS);
   });
@@ -96,7 +95,9 @@ describe("diagnostics report", () => {
 describe("diagnosticsText", () => {
   it("prints a readable summary with each tab", () => {
     const t = diagnosticsText();
-    expect(t).toMatch(/^CCCP diagnostics /);
+    // The kit's text: a header line, then one line per check (the format changed with the kit).
+    expect(t).toMatch(/^Diagnostics (OK|FAILED) at /);
+    expect(t).toMatch(/build: /);
     expect(t).toMatch(/Apps: \d+ rows/);
     expect(t).toMatch(/DRP: .*missing/);
   });

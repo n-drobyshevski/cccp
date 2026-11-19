@@ -18,13 +18,13 @@ const admitted = (page: Page, email: string) => page.evaluate((e) => {
   const w = window as any;
   // The access decision is memoised for one execution; a deployment starts each call afresh.
   w.__gasFakes.setActiveUser(e);
-  w.Server.access.__resetMemosForTest();
+  w.Server.access.resetMemo();
   const ok = w.api_bootstrap({}).ok === true;
   w.__gasFakes.setActiveUser(w.__gasFakes.OWNER);
-  w.Server.access.__resetMemosForTest();
+  w.Server.access.resetMemo();
   return ok;
 }, email);
-const dialog = (page: Page) => page.getByRole("alertdialog");
+const dialog = (page: Page) => page.getByRole("alertdialog").or(page.getByRole("dialog", { name: /Let everyone|Go back to the list/ }));
 const people = (page: Page) => page.locator("[data-people]");
 
 async function open(page: Page, qs = "") {
@@ -74,7 +74,7 @@ test("org mode asks first, naming the domain; then a same-domain user is admitte
 
   await page.locator(".rcard", { has: page.locator("input[data-mode=org]") }).click();
   await dialog(page).getByRole("button", { name: /Allow example.com/ }).click();
-  await expect(page.locator(".toast")).toContainText("Everyone at example.com can now open CCCP");
+  await expect(page.locator(".gk-toast")).toContainText("Everyone at example.com can now open CCCP");
   await expect(page.locator("input[data-mode=org]")).toBeChecked();
   expect(await admitted(page, "newbie@example.com")).toBe(true);
   expect(await admitted(page, "stranger@other.com")).toBe(false);
@@ -84,7 +84,7 @@ test("org mode asks first, naming the domain; then a same-domain user is admitte
   await page.locator(".rcard", { has: page.locator("input[data-mode=list]") }).click();
   await expect(dialog(page)).toContainText("3 people keep access");
   await dialog(page).getByRole("button", { name: "Use the list" }).click();
-  await expect(page.locator(".toast").last()).toContainText("3 people keep access");
+  await expect(page.locator(".gk-toast").last()).toContainText("3 people keep access");
   await expect(page.locator("input[data-mode=list]")).toBeChecked();
   expect(await admitted(page, "newbie@example.com")).toBe(false);
 });
@@ -118,7 +118,7 @@ test("a typed address that was never added is part of the save", async ({ page }
   await open(page);
   await page.locator("input[data-add=users]").fill("typed@example.com");
   await page.getByRole("button", { name: "Save access" }).click();
-  await expect(page.locator(".toast")).toContainText("Access updated.");
+  await expect(page.locator(".gk-toast")).toContainText("Access updated.");
   expect((await roster(page)).users).toContain("typed@example.com");
   await expect(people(page).locator('[data-person="typed@example.com"]')).toBeVisible();
   await expect(page.locator("input[data-add=users]")).toHaveValue("");
@@ -132,7 +132,7 @@ test("a typed address that was never added is part of the save", async ({ page }
 test("an unchanged roster says so and sends nothing", async ({ page }) => {
   await open(page);
   await page.getByRole("button", { name: "Save access" }).click();
-  await expect(page.locator(".toast")).toContainText("No changes to save.");
+  await expect(page.locator(".gk-toast")).toContainText("No changes to save.");
   const log = await rpcLog(page);
   expect(log).not.toContain("saveAccess");
   expect(log).not.toContain("saveAdmins");
@@ -148,7 +148,7 @@ test("a removal is confirmed by name, again after a later save", async ({ page }
   expect((await roster(page)).users).toContain("viewer@example.com");
   await page.getByRole("button", { name: "Save access" }).click();
   await dialog(page).getByRole("button", { name: "Remove" }).click();
-  await expect(page.locator(".toast")).toContainText("Access updated.");
+  await expect(page.locator(".gk-toast")).toContainText("Access updated.");
   expect((await roster(page)).users).not.toContain("viewer@example.com");
   // the baseline moved with the save: the next removal is confirmed too
   await page.locator("input[data-add=users]").fill("a@example.com");
@@ -156,12 +156,12 @@ test("a removal is confirmed by name, again after a later save", async ({ page }
   await page.locator("input[data-add=users]").fill("b@example.com");
   await page.locator("input[data-add=users]").press("Enter");
   await page.getByRole("button", { name: "Save access" }).click();
-  await expect(page.locator(".toast").last()).toContainText("Access updated.");
+  await expect(page.locator(".gk-toast").last()).toContainText("Access updated.");
   await people(page).locator('[data-person="a@example.com"] [data-act=a-remove]').click();
   await page.getByRole("button", { name: "Save access" }).click();
   await expect(dialog(page)).toContainText("a@example.com");
   await dialog(page).getByRole("button", { name: "Remove" }).click();
-  await expect(page.locator(".toast").last()).toContainText("Access updated.");
+  await expect(page.locator(".gk-toast").last()).toContainText("Access updated.");
 });
 
 test("an address the server did not keep is named, not reported as saved", async ({ page }) => {
@@ -176,8 +176,8 @@ test("an address the server did not keep is named, not reported as saved", async
   await page.locator("input[data-add=users]").fill("kept@example.com");
   await page.locator("input[data-add=users]").press("Enter");
   await page.getByRole("button", { name: "Save access" }).click();
-  await expect(page.locator(".toast")).toContainText("Not saved: lost@example.com");
-  await expect(page.locator(".toast")).not.toContainText("Access updated.");
+  await expect(page.locator(".gk-toast")).toContainText("Not saved: lost@example.com");
+  await expect(page.locator(".gk-toast")).not.toContainText("Access updated.");
   await expect(people(page).locator('[data-person="kept@example.com"]')).toBeVisible();
   await expect(people(page).locator('[data-person="lost@example.com"]')).toHaveCount(0);
 });
@@ -189,7 +189,7 @@ test("the owner adds and removes admins; they are saved with saveAdmins", async 
   await box.press("Enter");
   await expect(page.locator('[data-admins-editor] [data-person="boss@example.com"]')).toBeVisible();
   await page.getByRole("button", { name: "Save access" }).click();
-  await expect(page.locator(".toast")).toContainText("Access updated.");
+  await expect(page.locator(".gk-toast")).toContainText("Access updated.");
   expect(await rpcLog(page)).toContain("saveAdmins");
   expect(await rpcLog(page)).not.toContain("saveAccess");
   expect((await roster(page)).admins).toContain("boss@example.com");
@@ -197,7 +197,7 @@ test("the owner adds and removes admins; they are saved with saveAdmins", async 
   await page.getByRole("button", { name: "Save access" }).click();
   await expect(dialog(page)).toContainText("admin@example.com");
   await dialog(page).getByRole("button", { name: "Remove" }).click();
-  await expect(page.locator(".toast").last()).toContainText("Access updated.");
+  await expect(page.locator(".gk-toast").last()).toContainText("Access updated.");
   await expect.poll(async () => (await roster(page)).admins).toEqual(["boss@example.com"]);
 });
 
@@ -206,7 +206,7 @@ test("an admin adds a person with saveAccess only", async ({ page }) => {
   await page.locator("input[data-add=users]").fill("fresh@example.com");
   await page.locator("input[data-add=users]").press("Enter");
   await page.getByRole("button", { name: "Save access" }).click();
-  await expect(page.locator(".toast")).toContainText("Access updated.");
+  await expect(page.locator(".gk-toast")).toContainText("Access updated.");
   const log = await rpcLog(page);
   expect(log).toContain("saveAccess");
   expect(log).not.toContain("saveAdmins");
@@ -221,7 +221,7 @@ test("the guard asks while an edit is staged or an address is typed, not after a
   await page.locator("input[data-add=users]").press("Enter");
   expect(await ask()).toBe(true);
   await page.getByRole("button", { name: "Save access" }).click();
-  await expect(page.locator(".toast")).toContainText("Access updated.");
+  await expect(page.locator(".gk-toast")).toContainText("Access updated.");
   expect(await ask()).toBe(false);
 });
 

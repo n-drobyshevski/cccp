@@ -11,9 +11,11 @@ const FILTERED = ["list"];
 const LENS_ROUTES = ["heatmap", "landscape"];
 const LOCATION_TIMEOUT_MS = 400;
 
+/** @type {string | null} */
 let lastQuery = null;
 let applying = false;
 let defaultRoute = "list";
+/** @type {((s: any) => void) | null} */
 let onApplied = null;
 
 const bridge = () => (typeof google !== "undefined" && google.script ? google.script : null);

@@ -1,0 +1,19 @@
+/* Anatomy and styling ported from shadcn/ui new-york v4 (MIT; see THIRD_PARTY_NOTICES.md). Tokens only. */
+.gk-card {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-5);
+  padding: var(--space-5) 0;
+  border: 1px solid var(--border);
+  border-radius: var(--card-radius);
+  background: var(--surface);
+  color: var(--text);
+  box-shadow: var(--shadow-sm);
+}
+.gk-card__header { display: flex; align-items: flex-start; justify-content: space-between; gap: var(--space-2); padding: 0 var(--space-5); }
+.gk-card__heading { display: flex; flex-direction: column; gap: var(--space-2); min-width: 0; }
+.gk-card__title { margin: 0; font-size: var(--fs-md); font-weight: var(--fw-semibold); line-height: 1; }
+.gk-card__description { margin: 0; color: var(--text-muted); font-size: var(--fs-md); line-height: var(--lh); }
+.gk-card__action { flex: none; }
+.gk-card__content { padding: 0 var(--space-5); }
+.gk-card__footer { display: flex; align-items: center; gap: var(--space-2); padding: 0 var(--space-5); }

@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { COLUMNS, COLUMN_BY_KEY, DEFAULT_COLUMN_KEYS, choiceOf, toggleColumnKey, visibleColumnDefs } from "../../src/domain/columns";
+import { COLUMNS, COLUMN_BY_KEY, DEFAULT_COLUMN_KEYS, deviationsOf, toggleColumnKey, visibleColumnDefs } from "../../src/domain/columns";
 
 describe("column registry", () => {
   it("matches the lx3 COLDEF keys, labels and order", () => {
@@ -23,7 +23,10 @@ describe("column registry", () => {
     expect(toggleColumnKey([], "h")).toEqual(["+h"]);
     expect(toggleColumnKey(["+h"], "h")).toEqual([]);
     expect(toggleColumnKey([], "d")).toEqual(["-d"]);
-    expect(choiceOf(["-zzz", "+h"])).toEqual({ off: [], on: ["h"] });
+    expect(deviationsOf(["-zzz", "+h"])).toEqual(["+h"]);
+    expect(deviationsOf(["+h", "-so", "-d"])).toEqual(["-d", "-so", "+h"]);
+    expect(deviationsOf(["so"])).toEqual(["-so"]);
+    expect(deviationsOf(["-h", "+h", "-n"])).toEqual(["+h"]);
   });
 
   it("shows a hidden-by-default column that is the sort key", () => {

@@ -1,0 +1,29 @@
+/* Extracted from the author's production Apps Script apps; adapted. Tokens only. */
+.gk-settingsShell { display: flex; flex-direction: column; gap: var(--space-4); max-width: 880px; }
+.gk-settingsShell__title { margin: 0; font-size: var(--fs-2xl); font-weight: var(--fw-semibold); }
+.gk-settingsShell__intro { margin: var(--space-1) 0 0; color: var(--text-muted); }
+.gk-settingsShell__tabs { display: flex; flex-wrap: wrap; gap: var(--space-1); border-bottom: 1px solid var(--border); }
+.gk-settingsShell__tab {
+  min-height: 36px;
+  margin-bottom: -1px;
+  padding: var(--space-2) var(--space-3);
+  background: transparent;
+  color: var(--text-muted);
+  border: 0;
+  border-bottom: 2px solid transparent;
+  font: inherit;
+  font-size: var(--fs-md);
+  font-weight: var(--fw-medium);
+  cursor: pointer;
+  transition: color var(--dur-2) var(--ease-standard), border-color var(--dur-2) var(--ease-standard);
+}
+/* Line variant: the 2px underline marks the active tab, and the weight repeats it. */
+.gk-settingsShell__tab:hover { color: var(--text); }
+.gk-settingsShell__tab.is-active { color: var(--text); font-weight: var(--fw-semibold); border-bottom-color: var(--accent); }
+.gk-settingsShell__tab:focus-visible,
+.gk-settingsShell__panel:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.gk-settingsShell__mark.is-bad { color: var(--bad-fg); }
+.gk-settingsShell__mark.is-dirty { color: var(--accent); }
+.gk-settingsShell__panel { padding: var(--space-2) 0; min-width: 0; }
+.gk-settingsShell__bar { position: sticky; bottom: 0; z-index: 2; }
+.gk-settingsShell__empty { color: var(--text-muted); padding: var(--space-5); border: 1px dashed var(--border-strong); border-radius: var(--radius-md); }

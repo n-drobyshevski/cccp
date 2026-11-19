@@ -1,14 +1,14 @@
 import { build } from "esbuild";
 import { readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
-import { guardJs } from "../../build/guards.mjs";
+import { guardJs } from "@gas-kit/tooling/build/guards.mjs";
 
 const root = new URL("../../", import.meta.url).pathname;
 
 describe("html tag lowering", () => {
   it("bundles with no backtick and renders the expected escaped markup", async () => {
     const sample = [
-      'import { html, raw } from "./src/client/lib/html.js";',
+      'import { html, raw } from "@gas-kit/client/html.js";',
       "const evil = '<img src=x onerror=\"a\">&';",
       "globalThis.__out = String(html`<p class=\"${'a\"b'}\">${evil}${raw('<b>ok</b>')}${[1, html`<i>${'<'}</i>`]}${null}${false}</p>`);",
     ].join("\n");
@@ -26,13 +26,19 @@ describe("html tag lowering", () => {
     );
   });
 
-  it("html.js source itself has no backtick", () => {
-    const src = readFileSync(root + "src/client/lib/html.js", "utf8");
-    expect(src).not.toContain("`");
+  it("the kit html.js has no backtick in its code (its JSDoc comments may name parameters in backticks)", () => {
+    const src = readFileSync(root + "src/kit/client/src/html.js", "utf8");
+    const code = src.replace(/\/\*[\s\S]*?\*\//g, "").replace(/^[ \t]*\/\/.*$/gm, "");
+    expect(code).not.toContain("`");
   });
 });
 
 describe("index.html", () => {
+  it("carries the kit's own pre-paint theme script for the cccp. prefix, light when nothing is stored", async () => {
+    const { themeBootScript } = await import("../../src/kit/client/src/theme.js");
+    const text = readFileSync(root + "src/client/index.html", "utf8");
+    expect(text).toContain("<script>" + themeBootScript({ prefix: "cccp.", default: "light" }) + "</script>");
+  });
   const index = readFileSync(root + "src/client/index.html", "utf8");
   it("includes styles, the boot-data slot and js_app", () => {
     expect(index).toContain("include('styles')");

@@ -1,0 +1,45 @@
+/* Anatomy and styling ported from shadcn/ui new-york v4 (MIT; see THIRD_PARTY_NOTICES.md). Tokens only.
+   The filled part of the track is the custom property --gk-pct (0 to 100) on the input. */
+.gk-slider { display: flex; flex-direction: column; gap: var(--space-2); min-width: 160px; }
+.gk-slider__head { display: flex; align-items: baseline; justify-content: space-between; gap: var(--space-3); }
+.gk-slider__value { font-size: var(--fs-md); color: var(--text-muted); font-variant-numeric: tabular-nums; }
+.gk-slider__input {
+  --gk-pct: 0;
+  appearance: none;
+  width: 100%;
+  height: 16px;
+  margin: 0;
+  background: transparent;
+  cursor: pointer;
+}
+.gk-slider__input::-webkit-slider-runnable-track {
+  height: 6px;
+  border-radius: var(--radius-pill);
+  background: linear-gradient(to right, var(--accent) calc(var(--gk-pct) * 1%), var(--surface-2) calc(var(--gk-pct) * 1%));
+}
+.gk-slider__input::-moz-range-track { height: 6px; border-radius: var(--radius-pill); background: var(--surface-2); }
+.gk-slider__input::-moz-range-progress { height: 6px; border-radius: var(--radius-pill); background: var(--accent); }
+.gk-slider__input::-webkit-slider-thumb {
+  appearance: none;
+  width: 16px;
+  height: 16px;
+  margin-top: -5px;
+  border: 1px solid var(--accent);
+  border-radius: var(--radius-pill);
+  background: var(--bg);
+  box-shadow: var(--shadow-sm);
+  transition: box-shadow var(--dur-2) var(--ease-standard);
+}
+.gk-slider__input::-moz-range-thumb {
+  width: 14px;
+  height: 14px;
+  border: 1px solid var(--accent);
+  border-radius: var(--radius-pill);
+  background: var(--bg);
+  box-shadow: var(--shadow-sm);
+}
+.gk-slider__input:hover::-webkit-slider-thumb { box-shadow: 0 0 0 4px var(--ring-soft); }
+.gk-slider__input:focus-visible { outline: none; box-shadow: none; }
+.gk-slider__input:focus-visible::-webkit-slider-thumb { outline: 2px solid var(--accent); outline-offset: 2px; box-shadow: 0 0 0 4px var(--ring-soft); }
+.gk-slider__input:focus-visible::-moz-range-thumb { outline: 2px solid var(--accent); outline-offset: 2px; }
+.gk-slider__input:disabled { opacity: 0.5; cursor: not-allowed; }

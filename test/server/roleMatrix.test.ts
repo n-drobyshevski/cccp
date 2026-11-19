@@ -4,10 +4,11 @@
 import { readFileSync } from "node:fs";
 import vm from "node:vm";
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { exportedNames } from "../../build/guards.mjs";
+import { exportedNames } from "@gas-kit/tooling/build/guards.mjs";
 import * as server from "../../src/server/index";
-import * as access from "../../src/server/access";
-import { ENDPOINT_ROLES, roleAllows, type Role } from "../../src/server/roles";
+import { __resetMemosForTest } from "../../src/server/access";
+import { roleAllows, type Role } from "@gas-kit/server";
+import { ENDPOINT_ROLES } from "../../src/server/roles";
 import { useGasEnv } from "../gasEnv";
 
 const fakes = useGasEnv({ workbook: true, seed: true });
@@ -61,7 +62,7 @@ describe("the role matrix", () => {
       for (const who of IDENTITIES) {
         const allowed = roleAllows(who.role, need);
         it((allowed ? "runs for " : "is refused for ") + who.label + " (needs " + need + ")", () => {
-          access.__resetMemosForTest();
+          __resetMemosForTest();
           fakes().setActiveUser(who.email);
           const entry = loadEntry();
           expect(typeof entry["api_" + name]).toBe("function");
@@ -81,7 +82,7 @@ describe("the role matrix", () => {
   }
 
   it("the owner's calls all succeed with sensible parameters, and none touches the source", () => {
-    access.__resetMemosForTest();
+    __resetMemosForTest();
     fakes().setActiveUser("owner@example.com");
     const entry = loadEntry();
     for (const name of NAMES) {
@@ -93,7 +94,7 @@ describe("the role matrix", () => {
   });
 
   it("an admin sheetId patch is refused through entry.js and a rules patch is accepted", () => {
-    access.__resetMemosForTest();
+    __resetMemosForTest();
     fakes().setActiveUser("admin@example.com");
     const entry = loadEntry();
     const refused = entry["api_saveSettings"]!({ patch: { source: { sheetId: "someone_elses_sheet" } }, baseGen: 0 });
@@ -106,7 +107,7 @@ describe("the role matrix", () => {
 
   it("org mode: a same-domain address is a viewer, so admin endpoints refuse it", () => {
     PropertiesService.getScriptProperties().setProperty("ACCESS_MODE", "org");
-    access.__resetMemosForTest();
+    __resetMemosForTest();
     fakes().setActiveUser("colleague@example.com");
     const entry = loadEntry();
     expect(entry["api_bootstrap"]!({}).ok).toBe(true);

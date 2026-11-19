@@ -1,5 +1,23 @@
 /* Stylesheet entry. Later work packages add @import lines for the views. */
-@import "./tokens.css";
+/* The kit's token layer, then this app's brand (its accent family), then the Identity G theme that sets
+   the kit token names to the approved values. The kit's base.css is not loaded: it would change the
+   page's reset and type. */
+@import "@gas-kit/ui/styles/tokens.base.css";
+@import "./brand.css";
+@import "./theme.css";
+/* Kit component styles, then the app's overrides of them (base.css). C5a: button, toast, confirm; C5d: kpiTile, tags. */
+@import "@gas-kit/ui/components/button.css";
+@import "@gas-kit/ui/components/toast.css";
+@import "@gas-kit/ui/components/confirm.css";
+@import "@gas-kit/ui/components/facetList.css";
+@import "@gas-kit/ui/components/dropdownMenu.css";
+@import "@gas-kit/ui/components/exportMenu.css";
+@import "@gas-kit/ui/components/kbd.css";
+@import "@gas-kit/ui/components/columnChooser.css";
+@import "@gas-kit/ui/components/switch.css";
+@import "@gas-kit/ui/components/savebar.css";
+@import "@gas-kit/ui/components/kpiTile.css";
+@import "@gas-kit/ui/components/tags.css";
 @import "./base.css";
 @import "./loading.css";
 @import "./appbar.css";

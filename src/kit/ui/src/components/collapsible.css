@@ -1,0 +1,5 @@
+/* Anatomy and styling ported from shadcn/ui new-york v4 (MIT; see THIRD_PARTY_NOTICES.md).
+   The collapsible trigger, chevron and height animation are styled in accordion.css (shared
+   selectors); this file only holds what is specific to a lone disclosure. */
+.gk-collapsible { display: block; }
+.gk-collapsible__trigger { padding: var(--space-2) 0; }

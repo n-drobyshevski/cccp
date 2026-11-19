@@ -10,10 +10,10 @@ fixing: the audit found no violation, so no source file changed in WP21.
 | step | result |
 |---|---|
 | `npm ci` | exit 0 |
-| `npm run check` (typecheck, lint, vendor:verify, test, test:build) | exit 0; build guards 203 tests pass |
+| `npm run check` (typecheck, lint, test, test:build, kit:verify) | exit 0; build guards 203 tests pass |
 | `npm run e2e` (CI=1, 2 workers) | 156 passed, 0 failed (2.8 min) |
 | `TZ=Pacific/Kiritimati npm test` | 54 files, 829 passed, 1 skipped (the sample-CSV test, file absent) |
-| `npm run vendor:verify` | `vendor:verify ok (16 files @ 77bcf22)` |
+| `npm run kit:verify` | `kit:verify ok: src/kit matches kit.lock.json and imports stay inside the kit.` |
 
 Environment note: this container has Playwright chromium build 1243 but `@playwright/test` pins
 1254, so the stock `CI=1 npm run e2e` cannot launch a browser here (`Executable doesn't exist`).
@@ -28,12 +28,12 @@ UTC+14 as well as UTC.
 
 | invariant | command (from repo root) | result |
 |---|---|---|
-| `SpreadsheetApp` only in `sourceSheet.ts` | `grep -rln SpreadsheetApp src` excluding vendor | `src/server/sourceSheet.ts` only |
-| Sheets and Drive advanced services only in `exportSheet.ts` | `grep -rnE "\b(Sheets\|Drive)\.[A-Za-z]" src --include=*.ts --include=*.js` excluding vendor; also `grep -rlE "\bSheets\b\|\bDrive\b" src/server src/gas` | calls in `src/server/exportSheet.ts` only (`Sheets!.Spreadsheets!.create/update/batchUpdate`, `Drive!.Permissions!.create`); the only other hit is the service declaration in `src/gas/appsscript.json` |
-| `innerHTML` only in `renderRegion` | `grep -rn "innerHTML\|outerHTML\|insertAdjacentHTML" src` excluding vendor | `src/client/lib/dom.js:57` (`el.innerHTML = String(safe)`) plus a comment on line 2; no `outerHTML`, no `insertAdjacentHTML` |
+| `SpreadsheetApp` only in `sourceSheet.ts` (app) and the kit's `sheetSource.ts`, `openById` only | `grep -rln SpreadsheetApp src` excluding the kit | `src/server/sourceSheet.ts` and `src/kit/server/src/sheetSource.ts` |
+| Sheets and Drive advanced services in no app file (the kit's `sheetExport.ts` only) | `grep -rnE "\b(Sheets\|Drive)\.[A-Za-z]" src --include=*.ts --include=*.js` excluding the kit; also `grep -rlE "\bSheets\b\|\bDrive\b" src/server src/gas` | calls in `src/kit/server/src/sheetExport.ts` only (`Sheets!.Spreadsheets!.create/update/batchUpdate`, `Drive!.Permissions!.create`); the only other hit is the service declaration in `src/gas/appsscript.json` |
+| `innerHTML` only in `renderRegion` | `grep -rn "innerHTML\|outerHTML\|insertAdjacentHTML" src` excluding the kit | the kit's `src/kit/client/src/dom.js` (`el.innerHTML = String(safe)`; since C3a the app has no sink of its own, so the grep excludes `src/kit` too); no `outerHTML`, no `insertAdjacentHTML` |
 | No source mutators in `src/server` | `grep -rn "setValue\|appendRow\|clearContent\|setValues\|insertSheet\|deleteSheet\|mutat" src/server` | no match |
 | No `title` attributes | `grep -rnE "title=\|\.title\s*=\|setAttribute\(.title" src/client`; `test/build/noTitleAttr.test.js` | no attribute use (the one hit is `m.title === ""`, a data field); static test passes |
-| No colour literals outside tokens | `grep -rlE "#[0-9a-fA-F]{3,8}\b\|rgba?\(\|hsla?\(" src/client`; `test/build/noHexOutsideTokens.test.js` | `src/client/styles/tokens.css` only; static test passes |
+| No colour literals outside tokens | `grep -rlE "#[0-9a-fA-F]{3,8}\b\|rgba?\(\|hsla?\(" src/client`; `test/build/noHexOutsideTokens.test.js` | `src/client/styles/theme.css` and the generated `brand.css` only; static test passes |
 | No `//` violations | `test/build/guards.test.js` and `htmlLowering.test.js` replay the middlebox comment stripping over the built JS and CSS; no backticks in the bundle | pass. The only `//` in client sources are comments and the two `https://fonts.googleapis.com` attributes in `src/client/index.html`, which are HTML attribute values outside the guarded JS and CSS (`dist/js_app.html` and `dist/styles.html` contain none) |
 | Every export in `roles.ts` and `entry.js` | script over `exportedNames(api.ts)`, plus `roleMatrix` "covers every export of api.ts" and `roles` "classifies every export of api.ts" | 14 exports, all 14 in `ENDPOINT_ROLES` and all 14 in `entry.js` (15 `timedApi_` references: 14 delegators and the definition) |
 | Manifest has exactly 4 scopes | `test/build/manifestScopes.test.js`; `dist/appsscript.json` | `spreadsheets` (SpreadsheetApp.openById refuses `.readonly`; the source stays read-only by code and static scans), `drive.file`, `userinfo.email`, `script.scriptapp`; webapp `DOMAIN` / `USER_DEPLOYING`; advanced services Sheets v4 and Drive v3 |

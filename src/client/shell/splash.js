@@ -2,8 +2,8 @@
 // turn, the name, one line of what is happening and a row of three steps driven by the real
 // boot events. The same markup is baked into index.html so it paints before any script runs;
 // the router keeps that copy and only updates the line and the steps in place.
-import { renderRegion } from "../lib/dom.js";
-import { html } from "../lib/html.js";
+import { renderRegion } from "@gas-kit/client/dom.js";
+import { html } from "@gas-kit/client/html.js";
 
 /** The boot steps in order: the bootstrap call, the register fetch, deriving the status. */
 export const BOOT_STEPS = [

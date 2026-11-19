@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
-import { getJsonProp, getProp, putJsonProp, PROP_KEYS, PROP_MAX_BYTES, setProp } from "../../src/server/props";
+import { getJsonProp, getProp, putJsonProp, PROP_MAX_BYTES, setProp } from "@gas-kit/server";
+import { PROP_KEYS } from "../../src/server/config";
 import { useGasEnv } from "../gasEnv";
 
 useGasEnv();

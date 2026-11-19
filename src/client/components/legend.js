@@ -1,6 +1,6 @@
 // The status legend of the Overview: one square per status with its word, in the order the
 // mockup shows. The 'No data' square is dashed, so the legend never relies on colour alone.
-import { html } from "../lib/html.js";
+import { html } from "@gas-kit/client/html.js";
 import { STATUS_WORD } from "../../domain/facets";
 
 export const LEGEND_ORDER = ["ok", "warn", "bad", "none"];

@@ -1,9 +1,20 @@
-/* The Export menu (components/exportMenu.js): the round-3 menu2 look inside a popover. */
-.pop-menu { min-width: 230px; padding: 6px; }
-.pop-menu .mlbl { padding: 6px 9px 2px; }
-.pop-menu .menu { gap: 0; }
-.mitem { display: flex; align-items: center; gap: 9px; width: 100%; border: 0; background: none; text-align: left; padding: 7px 9px; border-radius: var(--r); white-space: nowrap; color: var(--fg); font: inherit; cursor: pointer; }
-.mitem:hover:not(:disabled) { background: var(--surface2); }
-.mitem:disabled { color: var(--muted); cursor: default; }
-.mitem svg { width: 15px; height: 15px; color: var(--muted); flex: none; }
-.mitem small { margin-left: auto; color: var(--muted); font: 500 11px var(--mono); padding-left: 12px; }
+/* The Export and Columns menus (kit exportMenu and columnChooser): the triggers read as the text links of
+   the results toolbar (no caret or icon), the panels as the app's popover surface. Tokens only. */
+.rtools .gk-menu__trigger, .rtools .gk-columnChooser__trigger { height: auto; padding: 2px 0; gap: 0; border: 0; background: none; box-shadow: none; color: var(--accent); font-weight: 600; font-size: 13px; }
+.rtools .gk-menu__trigger:hover, .rtools .gk-columnChooser__trigger:hover { background: none; color: var(--accent); text-decoration: underline; text-underline-offset: 2px; filter: none; }
+.rtools .gk-menu__trigger > svg, .rtools .gk-columnChooser__trigger > svg { display: none; }
+.rtools .gk-menu__trigger:focus-visible, .rtools .gk-columnChooser__trigger:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.gk-menu__panel, .gk-columnChooser__panel { padding: 6px; border-radius: var(--radius); font-size: 14px; z-index: 60; }
+.gk-columnChooser__panel { width: 230px; }
+.gk-menu__panel { min-width: 230px; }
+.gk-menu__label, .gk-columnChooser__heading { font: 700 11px var(--font-sans); letter-spacing: 0.08em; text-transform: uppercase; color: var(--text-muted); padding: 6px 9px 2px; }
+.gk-menu__item { gap: 9px; padding: 7px 9px; border-radius: var(--radius); white-space: nowrap; font-size: inherit; }
+.gk-menu__item:hover:not(:disabled), .gk-menu__item:focus-visible { background: var(--surface-2); }
+.gk-menu__item:disabled { color: var(--text-muted); opacity: 1; }
+.gk-exportMenu .gk-menu__shortcut .gk-kbd { font: 500 11px var(--font-mono); }
+.gk-columnChooser__item { gap: 9px; padding: 4px 6px; border-radius: var(--radius); font-size: inherit; }
+.gk-columnChooser__box { width: 16px; height: 16px; border: 1.5px solid var(--line2); border-radius: 2px; background: var(--surface); box-shadow: none; }
+.gk-columnChooser__box:checked { background: var(--accent); border-color: var(--accent); }
+.gk-columnChooser__foot { margin-top: 6px; padding: 6px 4px 0; }
+.gk-columnChooser__reset.gk-btn { width: auto; padding: 0; border: 0; background: none; color: var(--accent); font-weight: 600; font-size: 12px; }
+.gk-columnChooser__reset.gk-btn:hover { text-decoration: underline; text-underline-offset: 2px; }

@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { FIELD_KEYS } from "../../src/domain/fields";
-import * as access from "../../src/server/access";
+import { __resetMemosForTest } from "../../src/server/access";
 import * as api from "../../src/server/api";
 import { cfgGen, dataVersion } from "../../src/server/serverCache";
 import { loadSettings } from "../../src/server/settingsStore";
@@ -9,7 +9,7 @@ import { getSettingsView } from "../../src/server/settingsStore";
 import { useGasEnv } from "../gasEnv";
 
 const fakes = useGasEnv({ workbook: true, seed: true });
-const as = (who: string) => { access.__resetMemosForTest(); fakes().setActiveUser(who); };
+const as = (who: string) => { __resetMemosForTest(); fakes().setActiveUser(who); };
 const prop = (k: string) => PropertiesService.getScriptProperties().getProperty(k);
 let log: { mock: { calls: unknown[][] } };
 

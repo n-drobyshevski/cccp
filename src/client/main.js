@@ -1,8 +1,9 @@
 // Boot. 1) read the bootstrap the page carried, else ask for it; 2) theme; 3) the register:
 // inline, else fetched behind the splash; 4) the address. Then the router draws the page.
 import { isNoSource } from "./state/noSource.js";
-import { initTip } from "./lib/tip.js";
-import * as rpc from "./lib/rpc.js";
+import { installTips } from "@gas-kit/client/tip.js";
+import { boot as bootPayload } from "@gas-kit/client/rpc.js";
+import { errorText } from "./lib/errorText.js";
 import { homeRoute, mountAppbar } from "./shell/appbar.js";
 import { startRouter } from "./shell/router.js";
 import "./pages/overview.js";
@@ -16,23 +17,11 @@ import * as register from "./state/register.js";
 import { store } from "./state/store.js";
 import * as url from "./state/url.js";
 
-/** The bootstrap envelope doGet rendered into the page, or null (empty, unreadable, not ok). */
-export function inlineBootstrap() {
-  const el = document.getElementById("boot-data");
-  const text = el ? String(el.textContent || "").trim() : "";
-  if (!text) return null;
-  try {
-    const env = JSON.parse(text);
-    return env && env.ok === true && env.data && env.data.core && env.data.live ? env.data : null;
-  } catch (e) { return null; }
-}
-
-
 function failure(e) {
   if (e && e.kind === "forbidden") {
     return { status: "denied", message: e.message, contact: e.contact || "", contactUrl: e.contactUrl || "" };
   }
-  return { status: "error", message: (e && e.message) || "The register could not be loaded." };
+  return { status: "error", message: errorText(e, "The register could not be loaded.") };
 }
 
 let ran = 0;
@@ -44,7 +33,8 @@ export async function boot() {
   const mine = ++ran;
   store.set({ boot: { status: "loading", message: "", step: "access" } });
   try {
-    const data = inlineBootstrap() || (await rpc.call("bootstrap"));
+    // The kit reads the inline payload once (and removes it), so a Retry asks the server.
+    const data = await bootPayload({ id: "boot-data", endpoint: "bootstrap" });
     if (mine !== ran) return;
     const { core, live } = data;
     theme.init(core.publicSettings.display.theme);
@@ -71,7 +61,7 @@ function start() {
   const bar = document.getElementById("appbar");
   const main = document.getElementById("main");
   if (!bar || !main) return;
-  initTip();
+  installTips(document);
   theme.init("light");
   mountAppbar(bar);
   startRouter(main, { retry: () => boot() });

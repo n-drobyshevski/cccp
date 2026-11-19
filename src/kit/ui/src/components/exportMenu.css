@@ -1,0 +1,13 @@
+/* Export menu: a dropdownMenu (ship dropdownMenu.css, kbd.css and button.css too). Tokens only.
+   The file extension rides in the item's shortcut slot; here it reads as a muted hint, not a key cap. */
+.gk-exportMenu { display: inline-block; }
+.gk-exportMenu .gk-menu__shortcut .gk-kbd {
+  min-width: 0;
+  height: auto;
+  padding: 0;
+  background: transparent;
+  color: var(--text-muted);
+  font-family: var(--font-mono);
+  font-weight: var(--fw-normal);
+}
+.gk-exportMenu .gk-menu__item:disabled .gk-menu__shortcut .gk-kbd { color: inherit; }

@@ -1,0 +1,10 @@
+/* barChart: needs chartParts.css. */
+.gk-chart__bar { stroke: none; transform-box: fill-box; transform-origin: 50% 100%; }
+.gk-chart__bar.is-neg { transform-origin: 50% 0; }
+.gk-chart__bar.is-h { transform-origin: 0 50%; }
+.gk-chart__bar.is-active { fill-opacity: 0.8; stroke: var(--c); stroke-width: 2px; stroke-dasharray: 4; }
+.gk-chart[data-enter] .gk-chart__bar { transition: transform var(--dur-5) var(--ease-enter), opacity var(--dur-4) var(--ease-enter); }
+@starting-style {
+  .gk-chart[data-enter] .gk-chart__bar { transform: scaleY(calc(1 - var(--motion-scale))); opacity: 0; }
+  .gk-chart[data-enter] .gk-chart__bar.is-h { transform: scaleX(calc(1 - var(--motion-scale))); }
+}

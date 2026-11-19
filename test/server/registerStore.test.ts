@@ -1,17 +1,19 @@
 // The register read-through cache and the version counters.
 import { beforeEach, describe, expect, it, vi } from "vitest";
+import { beginExecution } from "@gas-kit/server";
 import { decodeRegister, payloadBytes, REGISTER_INLINE_MAX_BYTES } from "../../src/domain/payload";
-import * as access from "../../src/server/access";
+import { __resetMemosForTest } from "../../src/server/access";
 import * as api from "../../src/server/api";
 import { diagnosticsReport, diagnosticsText } from "../../src/server/diagnostics";
 import { getRegisterPayload, registerEntry, reloadRegister, UNREACHABLE } from "../../src/server/registerStore";
 import { cfgGen, dataVersion } from "../../src/server/serverCache";
-import { recentErrors } from "../../src/server/errors";
+import { errorLog } from "../../src/server/errorLog";
+const recentErrors = () => errorLog.recentErrors();
 import { genOneTabWorkbook, genWorkbook } from "../../dev/genTabs.mjs";
 import { useGasEnv } from "../gasEnv";
 
 const fakes = useGasEnv({ workbook: true, seed: true });
-const as = (who: string) => { access.__resetMemosForTest(); fakes().setActiveUser(who); };
+const as = (who: string) => { __resetMemosForTest(); fakes().setActiveUser(who); };
 const wb = genWorkbook();
 
 beforeEach(() => {
@@ -52,12 +54,15 @@ describe("getRegister", () => {
   });
 
   it("reads again after cacheMinutes", () => {
+    // Each call is its own execution: the kit cache keeps what an execution read in memory.
     const open = vi.spyOn(SpreadsheetApp, "openById");
     getRegisterPayload();
     fakes().advance(9 * 60 * 1000);
+    beginExecution();
     getRegisterPayload();
     expect(open).toHaveBeenCalledTimes(1);
     fakes().advance(2 * 60 * 1000);
+    beginExecution();
     getRegisterPayload();
     expect(open).toHaveBeenCalledTimes(2);
   });

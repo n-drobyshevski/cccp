@@ -1,9 +1,9 @@
 // The list and export column registry, matching the approved list mockup's COLDEF. Application
-// is fixed (it cannot be hidden). The vendored tableModel reads `key`, `label`, `pinned` and
-// `defaultHidden`; the rest is ours: how a column sorts and what it exports.
+// is fixed (it cannot be hidden). The kit's tableModel reads `key`, `label`, `pinned` and `hidden`
+// (here `defaultHidden`, mapped by kitColumns); the rest is ours: how a column sorts and what it exports.
 
 import { PILLARS } from "./types";
-import { encodeColumnChoice, parseColumnChoice, toggleColumn, visibleColumns } from "../vendor/gas_shared/ui/tableModel";
+import { parseDeviations, toggleColumn, visibleColumns } from "@gas-kit/ui/components/tableModel.js";
 import type { Row } from "./facets";
 import { PILLAR_LABEL, STATUS_WORD, lifecycleLabel } from "./facets";
 
@@ -14,9 +14,9 @@ export interface Column {
   label: string;
   /** Application: always drawn. */
   fixed: boolean;
-  /** Read by the vendored tableModel (pinned columns cannot be hidden). */
+  /** Read by the kit tableModel (pinned columns cannot be hidden). */
   pinned: boolean;
-  /** Off until the reader turns it on (read by tableModel). */
+  /** Off until the reader turns it on (the kit's `hidden`). */
   defaultHidden: boolean;
   /** Which way a first header click sorts. */
   descFirst: boolean;
@@ -83,28 +83,36 @@ export function isColumnKey(k: unknown): k is string {
   return typeof k === "string" && Object.prototype.hasOwnProperty.call(COLUMN_BY_KEY, k);
 }
 
-/** A reader's column choice: signed deviations from the defaults ('-key' hidden, '+key' shown). */
-export type ColumnChoice = { off: string[]; on: string[] };
-
-/** Signed keys (as held in ViewState.cols) to a choice; unknown keys are dropped. */
-export function choiceOf(signed: readonly string[]): ColumnChoice {
-  const c = parseColumnChoice(signed.join(","));
-  return { off: c.off.filter((k: string) => isColumnKey(k) && !COLUMN_BY_KEY[k]!.pinned), on: c.on.filter(isColumnKey) };
+/**
+ * The kit's column shape for the registry. `hidden` is the default AS THE SORT LEAVES IT: a column that
+ * is off by default but is the one the list is sorted by is on screen, so the order always has a
+ * column that explains it. A reader's own '-key' still wins over that.
+ */
+function kitColumns(sortKey?: string): { key: string; label: string; pinned: boolean; hidden: boolean }[] {
+  return COLUMNS.map((c) => ({ key: c.key, label: c.label, pinned: c.pinned, hidden: c.defaultHidden && c.key !== sortKey }));
 }
 
-/** The choice back to signed keys, in column order. */
-export function signedKeys(choice: ColumnChoice): string[] {
-  const text = encodeColumnChoice(choice);
-  return text === "" ? [] : text.split(",");
+/**
+ * A reader's column choice as signed deviations from the defaults ('-key' hidden, '+key' shown), the
+ * form held in ViewState.cols, in the URL and under 'cccp.cols'. Unknown keys and pinned columns are
+ * dropped; an unsigned key reads as hidden (a hand-typed '?cols=so'); a key both hidden and shown is
+ * shown. The result is canonical: hidden keys then shown keys, each in column order.
+ */
+export function deviationsOf(signed: readonly string[]): string[] {
+  const signedAll = signed.filter((k) => typeof k === "string" && k !== "").map((k) => (k[0] === "-" || k[0] === "+" ? k : "-" + k));
+  const kept = parseDeviations(signedAll, kitColumns()) as string[];
+  const on = new Set(kept.filter((k) => k[0] === "+").map((k) => k.slice(1)));
+  const off = new Set(kept.filter((k) => k[0] === "-").map((k) => k.slice(1)).filter((k) => !COLUMN_BY_KEY[k]!.pinned && !on.has(k)));
+  return COLUMN_KEYS.filter((k) => off.has(k)).map((k) => "-" + k).concat(COLUMN_KEYS.filter((k) => on.has(k)).map((k) => "+" + k));
 }
 
 /** The columns drawn for a choice, in registry order. A sort on a hidden-by-default column shows it. */
 export function visibleColumnDefs(signed: readonly string[], sortKey?: string): Column[] {
-  return visibleColumns(COLUMNS as Column[], choiceOf(signed), sortKey) as Column[];
+  const shown = new Set((visibleColumns(kitColumns(sortKey), deviationsOf(signed)) as { key: string }[]).map((c) => c.key));
+  return COLUMNS.filter((c) => shown.has(c.key)) as Column[];
 }
 
-/** Toggle one column in the signed list; the vendored rules keep Application and at least one column. */
+/** Toggle one column in the signed list; Application (pinned) and unknown keys do nothing. */
 export function toggleColumnKey(signed: readonly string[], key: string, sortKey?: string): string[] {
-  const next = toggleColumn(COLUMNS as Column[], choiceOf(signed), key, sortKey) as ColumnChoice;
-  return signedKeys(next);
+  return deviationsOf(toggleColumn(kitColumns(sortKey), deviationsOf(signed), key) as string[]);
 }

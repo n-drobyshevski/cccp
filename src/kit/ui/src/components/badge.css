@@ -1,0 +1,29 @@
+/* Anatomy and styling ported from shadcn/ui new-york v4 (MIT; see THIRD_PARTY_NOTICES.md). Tokens only. */
+.gk-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-1);
+  width: fit-content;
+  padding: 2px var(--space-2);
+  border: 1px solid transparent;
+  border-radius: var(--radius-pill);
+  font-size: var(--fs-sm);
+  font-weight: var(--fw-medium);
+  line-height: 1.33;
+  white-space: nowrap;
+}
+.gk-badge.is-default { background: var(--accent); color: var(--accent-ink); }
+.gk-badge.is-secondary { background: var(--surface-2); color: var(--text); }
+.gk-badge.is-outline { border-color: var(--border-strong); color: var(--text); }
+.gk-badge.is-destructive { background: var(--destructive); color: var(--destructive-ink); }
+.gk-badge.is-ok { background: var(--ok-bg); color: var(--ok-fg); }
+.gk-badge.is-warn { background: var(--warn-bg); color: var(--warn-fg); }
+.gk-badge.is-bad { background: var(--bad-bg); color: var(--bad-fg); }
+.gk-badge.is-info { background: var(--info-bg); color: var(--info-fg); }
+/* The status shape differs per status, so colour is never the only cue. */
+.gk-badge__shape { flex: none; width: 8px; height: 8px; background: currentColor; }
+.gk-badge.is-ok .gk-badge__shape { border-radius: var(--radius-pill); }
+.gk-badge.is-warn .gk-badge__shape { clip-path: polygon(50% 0, 100% 100%, 0 100%); }
+.gk-badge.is-bad .gk-badge__shape { border-radius: 1px; }
+.gk-badge.is-info .gk-badge__shape { clip-path: polygon(50% 0, 100% 50%, 50% 100%, 0 50%); }

@@ -3,7 +3,7 @@ import { existsSync, mkdtempSync, readFileSync, readdirSync, rmSync, writeFileSy
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { describe, expect, it } from "vitest";
-import { guardCss, guardEntryDrift, guardJs, stripCommentsLikeMiddlebox } from "../../build/guards.mjs";
+import { guardCss, guardEntryDrift, guardJs, stripCommentsLikeMiddlebox } from "@gas-kit/tooling/build/guards.mjs";
 
 const root = new URL("../../", import.meta.url).pathname;
 
@@ -51,7 +51,7 @@ describe("build", () => {
   it("writes the six dist files with the stamp", () => {
     const out = mkdtempSync(join(tmpdir(), "cccp-dist-"));
     try {
-      const log = execFileSync("node", [join(root, "build/esbuild.config.mjs")], {
+      const log = execFileSync("node", [join(root, "tools/build.mjs")], {
         env: { ...process.env, CCCP_DIST: out },
         encoding: "utf8",
       });
@@ -73,7 +73,7 @@ describe("build", () => {
     try {
       writeFileSync(join(out, "Code.js"), "function myFunction() {}\n");
       writeFileSync(join(out, "notes.txt"), "kept\n");
-      execFileSync("node", [join(root, "build/esbuild.config.mjs")], { env: { ...process.env, CCCP_DIST: out }, encoding: "utf8" });
+      execFileSync("node", [join(root, "tools/build.mjs")], { env: { ...process.env, CCCP_DIST: out }, encoding: "utf8" });
       expect(readdirSync(out).sort()).toEqual(
         ["appsscript.json", "entry.js", "index.html", "js_app.html", "notes.txt", "server.js", "styles.html"],
       );
@@ -84,8 +84,14 @@ describe("build", () => {
 });
 
 describe("push", () => {
-  it("overwrites the remote manifest, since clasp otherwise asks, defaults to No and skips the push", () => {
+  it("builds, checks the fresh build, then overwrites the remote manifest (clasp otherwise asks, defaults to No and skips the push)", () => {
     const pkg = JSON.parse(readFileSync(join(root, "package.json"), "utf8"));
-    expect(pkg.scripts.push).toMatch(/clasp push --force$/);
+    expect(pkg.scripts.push).toBe("node tools/push.mjs");
+    const tool = readFileSync(join(root, "tools/push.mjs"), "utf8");
+    expect(tool).toContain("build/push.mjs");
+    const kit = readFileSync(join(root, "src/kit/tooling/src/build/push.mjs"), "utf8");
+    expect(kit).toContain('["push", "--force"]');
+    expect(kit.indexOf('["run", "build"]')).toBeGreaterThan(-1);
+    expect(kit.indexOf('["run", "build"]')).toBeLessThan(kit.indexOf('["run", opts.checkScript'));
   });
 });

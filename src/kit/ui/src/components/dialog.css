@@ -1,0 +1,53 @@
+/* Anatomy and styling ported from shadcn/ui new-york v4 (MIT; see THIRD_PARTY_NOTICES.md). Tokens only.
+   Open and close both animate: display and overlay flip at the end of the exit. Movement is
+   multiplied by --motion-scale, so reduced motion is a fade only. */
+.gk-dialog {
+  width: calc(100% - var(--space-6));
+  max-width: 32rem;
+  max-height: calc(100dvh - var(--space-6));
+  margin: auto;
+  padding: 0;
+  overflow: visible;
+  border: 1px solid var(--border);
+  border-radius: var(--card-radius);
+  background: var(--bg);
+  color: var(--text);
+  box-shadow: var(--shadow-lg);
+  opacity: 0;
+  scale: calc(1 - 0.05 * var(--motion-scale));
+  transition: opacity var(--dur-3) var(--ease-exit), scale calc(var(--dur-3) * var(--motion-scale)) var(--ease-exit), display var(--dur-3) allow-discrete, overlay var(--dur-3) allow-discrete;
+}
+.gk-dialog[open] {
+  opacity: 1;
+  scale: 1;
+  transition: opacity var(--dur-3) var(--ease-enter), scale calc(var(--dur-3) * var(--motion-scale)) var(--ease-enter), display var(--dur-3) allow-discrete, overlay var(--dur-3) allow-discrete;
+}
+@starting-style {
+  .gk-dialog[open] { opacity: 0; scale: calc(1 - 0.05 * var(--motion-scale)); }
+}
+.gk-dialog::backdrop {
+  background: var(--scrim);
+  opacity: 0;
+  transition: opacity var(--dur-3) var(--ease-standard), display var(--dur-3) allow-discrete, overlay var(--dur-3) allow-discrete;
+}
+.gk-dialog[open]::backdrop { opacity: 1; }
+@starting-style {
+  .gk-dialog[open]::backdrop { opacity: 0; }
+}
+
+.gk-dialog__panel {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  padding: var(--space-5);
+}
+.gk-dialog__header { display: flex; flex-direction: column; gap: var(--space-2); padding-right: var(--space-5); }
+.gk-dialog__title { margin: 0; font-size: var(--fs-lg); font-weight: var(--fw-semibold); line-height: 1; }
+.gk-dialog__description { margin: 0; font-size: var(--fs-md); color: var(--text-muted); }
+.gk-dialog__body { font-size: var(--fs-md); }
+.gk-dialog__footer { display: flex; flex-direction: column-reverse; gap: var(--space-2); }
+@media (min-width: 640px) {
+  .gk-dialog__footer { flex-direction: row; justify-content: flex-end; }
+}
+.gk-dialog__close.gk-btn { position: absolute; top: var(--space-3); right: var(--space-3); width: 28px; height: 28px; }

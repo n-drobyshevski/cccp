@@ -3,7 +3,9 @@
 // active-filter tags and the escaping of hostile values. The DOM behaviour (selection, drawer,
 // keyboard, tips, one-row and no-overflow checks) is in e2e/filters.spec.ts and e2e/toolbar.spec.ts.
 import { describe, expect, it } from "vitest";
-import { checklist, findOptions } from "../../src/client/components/facetList.js";
+import { readFileSync } from "node:fs";
+import { checklist } from "../../src/client/components/facetList.js";
+import { findOptions } from "@gas-kit/ui/components/facetList.js";
 import { PANEL_FACETS, TOP_N, facetPanelView, toggled, visibleOptions, withFacet } from "../../src/client/components/facetPanel.js";
 import { activeTags, headView } from "../../src/client/pages/list.js";
 import * as register from "../../src/client/state/register.js";
@@ -72,16 +74,18 @@ describe("counts follow the skip rule", () => {
   });
   it("renders zero-count values as muted rows and keeps them listed", () => {
     const options = facetOptions(rows, { q: "", f: { tier: ["T2"] } }, "lc");
-    const out = s(checklist({ key: "lc", options, find: "", scope: "side" }));
-    expect(out).toContain('<label class="ck zero">');
-    const zero = [...out.matchAll(/<label class="ck( zero)?">.*?<small>(\d+)<\/small>/g)].map((m) => [!!m[1], m[2]]);
+    const out = s(checklist({ key: "lc", label: "Lifecycle", options, find: "", scope: "side" }));
+    expect(out).toContain('<label class="gk-facetList__opt is-zero">');
+    const zero = [...out.matchAll(/<label class="gk-facetList__opt( is-zero)?">.*?gk-facetList__count">(\d+)</g)].map((m) => [!!m[1], m[2]]);
     for (const [muted, n] of zero) expect(muted).toBe(n === "0");
     expect(zero.some(([muted]) => muted)).toBe(true);
     expect(zero.some(([muted]) => !muted)).toBe(true);
   });
-  it("a gap row carries a bad dot", () => {
-    const out = s(checklist({ key: "gap", options: [{ value: "Cyber", count: 2, selected: false }], find: "", scope: "side" }));
-    expect(out).toContain('class="dot bad"');
+  it("a gap row is marked for its bad dot, which the stylesheet draws", () => {
+    const out = s(checklist({ key: "gap", label: "Gaps", options: [{ value: "Cyber", count: 2, selected: false }], find: "", scope: "side" }));
+    expect(out).toContain('data-facet="gap"');
+    const css = readFileSync("src/client/styles/checklist.css", "utf8");
+    expect(css).toMatch(/:has\(input\[data-facet="gap"\]\)::before[^}]*var\(--bad-fg\)/);
   });
 });
 
@@ -94,15 +98,15 @@ describe("find", () => {
     expect(findOptions(opts, "  ").length).toBe(opts.length);
   });
   it("says so when nothing matches", () => {
-    expect(s(checklist({ key: "so", options: opts, find: "qqqq", scope: "side" }))).toContain("Nothing matches");
+    expect(s(checklist({ key: "so", label: "Owner", options: opts, find: "qqqq", scope: "side" }))).toContain("Nothing matches");
   });
 });
 
 describe("checkbox focus keys", () => {
   it("each checkbox has a stable data-k and the scrolling list keeps its position", () => {
     const options = [{ value: "NORTH", count: 1, selected: true }];
-    const out = s(checklist({ key: "dom", options, find: "", scope: "side" }));
-    expect(out).toContain('data-k="side-dom-NORTH"');
+    const out = s(checklist({ key: "dom", label: "Domain", options, find: "", scope: "side" }));
+    expect(out).toContain('data-k="side-dom:NORTH"');
     expect(out).toContain("checked");
     expect(out).toContain('data-keep-scroll="side-dom"');
   });
@@ -111,11 +115,12 @@ describe("checkbox focus keys", () => {
 describe("the tier list", () => {
   it("counts like the others and shows No tier with a dashed none dot", () => {
     const options = facetOptions(rows, { q: "", f: {} }, "tier");
-    const out = s(checklist({ key: "tier", options, find: "", scope: "side" }));
+    const out = s(checklist({ key: "tier", label: "Tier", options, find: "", scope: "side" }));
     expect([...out.matchAll(/data-v="([^"]*)"/g)].map((m) => m[1])).toEqual(["T1", "T2", "No tier"]);
-    expect(out).toMatch(/data-v="T1"[^>]*>.*?<small>2<\/small>/);
-    expect(out).toMatch(/class="dot none".*<span>No tier<\/span><small>1<\/small>/);
-    expect((out.match(/class="dot none"/g) || []).length).toBe(1);
+    expect(out).toMatch(/data-v="T1".*?gk-facetList__count">2</);
+    expect(out).toMatch(/data-v="No tier".*?>No tier<\/span><span class="gk-facetList__count">1</);
+    const css = readFileSync("src/client/styles/checklist.css", "utf8");
+    expect(css).toMatch(/data-v="No tier"\]\)::before[^}]*dashed/);
   });
 });
 
@@ -179,7 +184,7 @@ describe("hostile values are escaped in every view", () => {
   const views = {
     panel: facetPanelView(st, rows, open),
     head: headView(st, 1, 1, 0),
-    checklist: checklist({ key: "dom", options: facetOptions(rows, { q: "", f }, "dom"), find: BAD, scope: "side" }),
+    checklist: checklist({ key: "dom", label: "Domain", options: facetOptions(rows, { q: "", f }, "dom"), find: BAD, scope: "side" }),
   };
   for (const [name, v] of Object.entries(views)) {
     it(name + " carries no live tag or event attribute from a value", () => {

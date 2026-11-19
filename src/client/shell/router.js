@@ -2,12 +2,11 @@
 // theirs with registerPage(). Until then every route has a placeholder. A sequence number
 // guards async work: a page that resolved after the viewer moved on sees ctx.current() false.
 // Popovers, tips and the previous page's teardown run on every navigation.
-import { renderRegion, delegate } from "../lib/dom.js";
-import { html } from "../lib/html.js";
-import { count } from "../lib/format.js";
+import { renderRegion, delegate } from "@gas-kit/client/dom.js";
+import { html } from "@gas-kit/client/html.js";
+import { pluralize } from "@gas-kit/client/format.js";
 import { runQuery } from "../../domain/query";
-import { closePopovers } from "../lib/popover.js";
-import { closeTips } from "../lib/tip.js";
+import { closeTips } from "@gas-kit/client/tip.js";
 import * as register from "../state/register.js";
 import { store } from "../state/store.js";
 import { navigate } from "../state/url.js";
@@ -17,7 +16,9 @@ import { accessCard, armSlow, errorState, noSource, notFound, onlyAdmins, skelet
 
 const pages = new Map();
 let seq = 0;
+/** @type {(() => void) | null} */
 let teardown = null;
+/** @type {(() => void) | null} */
 let cancelSlow = null;
 let hooks = {};
 
@@ -46,7 +47,7 @@ function placeholder(route) {
         const hid = register.hiddenCount();
         const body = route === "app"
           ? html`<p class="mut">${row.app.name}</p>`
-          : html`<p class="mut"><span data-count="visible">${count(vis, "application")}</span> in view${vis !== all.length ? html`<span data-count="of"> of ${count(all.length, "application")}</span>` : ""}${hid ? html`<span data-count="hidden"> and ${count(hid, "application")} hidden by the display settings</span>` : ""}.</p>`;
+          : html`<p class="mut"><span data-count="visible">${pluralize(vis, "application")}</span> in view${vis !== all.length ? html`<span data-count="of"> of ${pluralize(all.length, "application")}</span>` : ""}${hid ? html`<span data-count="hidden"> and ${pluralize(hid, "application")} hidden by the display settings</span>` : ""}.</p>`;
         renderRegion(el, html`<section class="ph" data-page="${route}">
           ${route === "app" ? html`<button type="button" class="btn" data-act="back" data-k="back">Back to the list</button>` : ""}
           <h1>${TITLES[route] || route}</h1>
@@ -92,7 +93,6 @@ function show(el, safe) {
 
 function render(el) {
   const mine = ++seq;
-  closePopovers(false);
   closeTips();
   const s = store.get();
   const b = s.boot;
@@ -131,6 +131,7 @@ const keyOf = (s) => [s.route, s.app, s.route === "settings" ? "" : s.tab, s.boo
 // Keyboard focus follows the route: into a fact sheet it lands on the title, and back out of one it
 // returns to the control that opened it (the name button, or the landscape tile), if it is drawn.
 function restoreFocus(el, s, p) {
+  /** @type {string | null} */
   let target = null;
   if (s.route === "app") target = '[data-k="fs-title"]';
   else if (p.route === "app" && p.app) target = '[data-k="open-' + p.app + '"],[data-k="tile-' + p.app + '"]';

@@ -1,15 +1,15 @@
 # CCCP
 
 Cyber, Compliance, Continuity, Platform: a view-only application register as a standalone Google
-Apps Script web app. Agents: read `CLAUDE.md` first. Provenance of reused code: `VENDOR.md`.
+Apps Script web app. Agents: read `CLAUDE.md` first. The kit this app is built on, how to take a newer one, and what is deliberately app-owned: `KIT.md`.
 Release audit results and the manual live `/exec` checklist: `VERIFY.md`.
 
 ## Dev loop
 
 ```
 npm install
-npm run check          # typecheck, lint, vendor:verify, test
-npm run vendor:verify  # sha256 + import containment of src/vendor
+npm run check          # typecheck, lint, test, test:build, kit:verify
+npm run kit:verify     # src/kit (gas-kit) against kit.lock.json; kit:diff and kit:sync take a newer kit
 ```
 
 Other scripts:
@@ -40,14 +40,10 @@ Never start the dev server on :8791 and leave it running: `test/server/devServer
 `.github/workflows/ci.yml`: Node 22, `TZ=UTC`, `npm ci`, `npm run check`, install chromium,
 `npm run e2e`; screenshots and, on failure, `test-results` are uploaded as artifacts.
 
-## Vendoring
+## The kit
 
-`src/vendor` is verbatim sidekick code pinned at `77bcf22` (see `VENDOR.md`). Re-sync:
-
-```
-npm run vendor:diff -- --to <sha>
-node tools/vendor.mjs sync --from /home/user/sidekick --commit <sha>
-```
+`src/kit` is gas-kit, pinned by `kit.lock.json`; never edited here. To take a newer kit run `npm run kit:diff`,
+`npm run kit:sync -- --from <kit checkout>` and `npm run kit:verify` (see `KIT.md`).
 
 ## Deploy
 

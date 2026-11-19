@@ -1,0 +1,84 @@
+/* Extracted from the author's production Apps Script apps; adapted. Tokens only.
+   Styled as a shadcn table: hairline row borders, muted header text, row hover on --surface-2. */
+.gk-dataTable { display: flex; flex-direction: column; min-width: 0; }
+.gk-dataTable__scroll {
+  position: relative; /* clips sr-only text inside the scroller, so it cannot widen the page */
+  overflow: auto;
+  max-height: 70vh;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  background: var(--surface);
+}
+.gk-dataTable__table { width: 100%; border-collapse: separate; border-spacing: 0; font-size: var(--fs-md); }
+.gk-dataTable__caption { text-align: left; padding: var(--space-2) var(--space-3); color: var(--text-muted); font-size: var(--fs-sm); caption-side: top; }
+.gk-dataTable__th {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  text-align: left;
+  padding: 0;
+  background: var(--surface);
+  color: var(--text-muted);
+  border-bottom: 1px solid var(--border);
+  font-weight: var(--fw-medium);
+  font-size: var(--fs-md);
+  white-space: nowrap;
+}
+.gk-dataTable__th.is-end { text-align: right; }
+.gk-dataTable__th.is-plain { padding: var(--space-3); }
+.gk-dataTable__sort {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  width: 100%;
+  min-height: 40px;
+  padding: var(--space-2) var(--space-3);
+  background: transparent;
+  color: inherit;
+  border: 0;
+  font: inherit;
+  text-align: inherit;
+  cursor: pointer;
+}
+.gk-dataTable__th.is-end .gk-dataTable__sort { justify-content: flex-end; }
+.gk-dataTable__sort:hover { background: var(--surface-2); color: var(--text); }
+.gk-dataTable__glyph { color: var(--text-muted); font-size: var(--fs-xs); }
+.gk-dataTable__th.is-sorted { color: var(--text); }
+.gk-dataTable__th.is-sorted .gk-dataTable__glyph { color: var(--text); }
+/* The arrow glyph is the shape cue; the underline repeats it. */
+.gk-dataTable__th.is-sorted { box-shadow: inset 0 -2px 0 var(--accent); }
+.gk-dataTable__td { padding: var(--space-3); border-bottom: 1px solid var(--border); vertical-align: top; }
+.gk-dataTable__td.is-end { text-align: right; }
+.gk-dataTable__td.is-ell { max-width: 28ch; }
+.gk-dataTable__ell { display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.gk-dataTable__row:last-child .gk-dataTable__td { border-bottom: 0; }
+.gk-dataTable__row:hover .gk-dataTable__td { background: var(--surface-2); }
+.gk-dataTable__link { color: var(--accent); font-weight: var(--fw-medium); text-decoration: underline; text-underline-offset: 2px; }
+.gk-dataTable__link:focus-visible,
+.gk-dataTable__sort:focus-visible,
+.gk-dataTable__hint:focus-visible,
+.gk-dataTable__scroll:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.gk-dataTable__foot { display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-3); padding: var(--space-3) 0; }
+.gk-dataTable__count { color: var(--text-muted); font-size: var(--fs-sm); font-variant-numeric: tabular-nums; }
+.gk-dataTable__state {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--space-2);
+  padding: var(--space-5);
+  border: 1px dashed var(--border-strong);
+  border-radius: var(--radius-md);
+  background: var(--surface);
+}
+.gk-dataTable.is-error .gk-dataTable__state { border-style: solid; color: var(--bad-fg); background: var(--bad-bg); }
+.gk-dataTable__hint-text { color: var(--text-muted); }
+.gk-dataTable__bar { display: block; height: 12px; width: 70%; border-radius: var(--radius-sm); background: var(--surface-2); animation: gk-dataTable-pulse calc(var(--dur-5) * 3) var(--ease-standard) infinite; }
+@keyframes gk-dataTable-pulse { 50% { opacity: 0.45; } }
+@media (prefers-reduced-motion: reduce) { .gk-dataTable__bar { animation: none; } }
+/* Motion. Colour changes ease over --dur-2; the press scale (base.css) over --dur-1. */
+.gk-dataTable__sort { transition: background var(--dur-2) var(--ease-standard), color var(--dur-2) var(--ease-standard), border-color var(--dur-2) var(--ease-standard), transform var(--dur-1) var(--ease-standard); }
+/* Rows rendered by "Show more" carry data-key; an app that renders through swap gets data-enter on the new ones, which fade in. Existing rows are never replayed. */
+.gk-dataTable__row { opacity: 1; transition: opacity var(--dur-3) var(--ease-enter); }
+@starting-style {
+  .gk-dataTable__row[data-enter] { opacity: 0; }
+}

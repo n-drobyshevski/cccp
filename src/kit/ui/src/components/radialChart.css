@@ -1,0 +1,14 @@
+/* radialChart: needs chartParts.css. */
+.gk-chart__track { fill: none; stroke: var(--surface-2); stroke-linecap: round; }
+.gk-chart__ring { fill: none; stroke: var(--c); outline: none; cursor: default; }
+.gk-chart__ring.is-round { stroke-linecap: round; }
+.gk-chart__ring:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.gk-chart[data-enter] .gk-chart__ring {
+  stroke-dasharray: 1;
+  stroke-dashoffset: 0;
+  transition: stroke-dashoffset var(--dur-5) var(--ease-enter), opacity var(--dur-4) var(--ease-enter);
+  transition-delay: calc(var(--i, 0) * var(--dur-1));
+}
+@starting-style {
+  .gk-chart[data-enter] .gk-chart__ring { stroke-dashoffset: var(--motion-scale); opacity: 0; }
+}

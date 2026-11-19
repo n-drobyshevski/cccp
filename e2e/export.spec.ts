@@ -21,7 +21,7 @@ async function ready(page: Page, query = "") {
 
 const openMenu = async (page: Page) => {
   await page.locator(".rtools").getByRole("button", { name: "Export" }).click();
-  await expect(page.getByRole("dialog", { name: "Export" })).toBeVisible();
+  await expect(page.getByRole("menu", { name: "Export" })).toBeVisible();
 };
 
 test.describe("export", () => {
@@ -30,23 +30,29 @@ test.describe("export", () => {
     await ready(page);
     await openMenu(page);
     const n = await visible(page);
-    await expect(page.locator(".pop .mlbl")).toHaveText("Export " + n.toLocaleString("en-US") + " applications");
-    await expect(page.getByRole("button", { name: /CSV file/ })).toBeVisible();
-    await expect(page.getByRole("button", { name: /Excel workbook/ })).toBeVisible();
-    await expect(page.getByRole("button", { name: /New Google Sheet/ })).toBeVisible();
+    await expect(page.locator(".gk-menu__label")).toHaveText("Export " + n.toLocaleString("en-US") + " applications");
+    await expect(page.getByRole("menuitem", { name: /CSV file/ })).toBeVisible();
+    await expect(page.getByRole("menuitem", { name: /Excel workbook/ })).toBeVisible();
+    await expect(page.getByRole("menuitem", { name: /New Google Sheet/ })).toBeVisible();
     await page.keyboard.press("Escape");
-    await expect(page.getByRole("dialog", { name: "Export" })).toHaveCount(0);
+    await expect(page.getByRole("menu", { name: "Export" })).toHaveCount(0);
     expect(bad).toEqual([]);
   });
 
-  test("Tab inside the menu wraps and never leaves the popover open behind lost focus", async ({ page }) => {
+  test("the arrow keys move through the menu; Tab closes it and focus stays on the trigger", async ({ page }) => {
     await ready(page);
     await openMenu(page);
-    for (let i = 0; i < 4; i++) await page.keyboard.press("Tab");
-    await expect(page.getByRole("dialog", { name: "Export" })).toBeVisible();
-    expect(await page.evaluate(() => !!document.activeElement?.closest(".pop"))).toBe(true);
-    await page.keyboard.press("Shift+Tab");
-    expect(await page.evaluate(() => !!document.activeElement?.closest(".pop"))).toBe(true);
+    const item = (n: string) => page.getByRole("menuitem", { name: n });
+    await expect(item(/CSV file/ as any)).toBeFocused();
+    await page.keyboard.press("ArrowDown");
+    await expect(item(/Excel workbook/ as any)).toBeFocused();
+    await page.keyboard.press("End");
+    await expect(item(/New Google Sheet/ as any)).toBeFocused();
+    await page.keyboard.press("ArrowDown");
+    await expect(item(/CSV file/ as any)).toBeFocused();
+    await page.keyboard.press("Tab");
+    await expect(page.getByRole("menu", { name: "Export" })).toHaveCount(0);
+    expect(await page.evaluate(() => !!document.activeElement?.closest(".rtools"))).toBe(true);
   });
 
   test("CSV downloads every filtered row, not the drawn page, with BOM and CRLF", async ({ page }) => {
@@ -56,7 +62,7 @@ test.describe("export", () => {
     const n = await visible(page);
     expect(n).toBeGreaterThan(50);
     await openMenu(page);
-    const [dl] = await Promise.all([page.waitForEvent("download"), page.getByRole("button", { name: /CSV file/ }).click()]);
+    const [dl] = await Promise.all([page.waitForEvent("download"), page.getByRole("menuitem", { name: /CSV file/ }).click()]);
     expect(dl.suggestedFilename()).toMatch(/^cccp-list-\d{4}-\d{2}-\d{2}\.csv$/);
     const text = readFileSync((await dl.path())!, "utf8");
     expect(text.charCodeAt(0)).toBe(0xfeff);
@@ -64,14 +70,14 @@ test.describe("export", () => {
     expect(lines[lines.length - 1]).toBe("");
     expect(lines.length - 2).toBeGreaterThanOrEqual(n);
     expect(lines[0].startsWith("Application,")).toBe(true);
-    await expect(page.locator(".toast")).toContainText("Downloaded " + dl.suggestedFilename());
+    await expect(page.locator(".gk-toast")).toContainText("Downloaded " + dl.suggestedFilename());
     expect(bad).toEqual([]);
   });
 
   test("CSV columns follow the visible columns", async ({ page }) => {
     await ready(page, "&cols=-d,%2Bsd");
     await openMenu(page);
-    const [dl] = await Promise.all([page.waitForEvent("download"), page.getByRole("button", { name: /CSV file/ }).click()]);
+    const [dl] = await Promise.all([page.waitForEvent("download"), page.getByRole("menuitem", { name: /CSV file/ }).click()]);
     const head = readFileSync((await dl.path())!, "utf8").slice(1).split("\r\n")[0];
     expect(head).toContain("Subdomain");
     expect(head).not.toContain("Domain,");
@@ -81,7 +87,7 @@ test.describe("export", () => {
     const bad = watchConsole(page);
     await ready(page);
     await openMenu(page);
-    const [dl] = await Promise.all([page.waitForEvent("download"), page.getByRole("button", { name: /Excel workbook/ }).click()]);
+    const [dl] = await Promise.all([page.waitForEvent("download"), page.getByRole("menuitem", { name: /Excel workbook/ }).click()]);
     expect(dl.suggestedFilename()).toMatch(/^cccp-list-\d{4}-\d{2}-\d{2}\.xlsx$/);
     const bytes = readFileSync((await dl.path())!);
     expect(bytes.subarray(0, 4)).toEqual(Buffer.from([0x50, 0x4b, 3, 4]));
@@ -92,7 +98,7 @@ test.describe("export", () => {
   test("Excel: the browser itself parses every XML part", async ({ page }) => {
     await ready(page);
     await openMenu(page);
-    const [dl] = await Promise.all([page.waitForEvent("download"), page.getByRole("button", { name: /Excel workbook/ }).click()]);
+    const [dl] = await Promise.all([page.waitForEvent("download"), page.getByRole("menuitem", { name: /Excel workbook/ }).click()]);
     const b64 = readFileSync((await dl.path())!).toString("base64");
     const bad = await page.evaluate((data) => {
       const bin = atob(data);
@@ -117,8 +123,8 @@ test.describe("export", () => {
     const bad = watchConsole(page);
     await ready(page);
     await openMenu(page);
-    await page.getByRole("button", { name: /New Google Sheet/ }).click();
-    const link = page.locator(".toast a");
+    await page.getByRole("menuitem", { name: /New Google Sheet/ }).click();
+    const link = page.locator(".gk-toast a");
     await expect(link).toBeVisible();
     await expect(link).toHaveText("Open Sheet");
     expect(await link.getAttribute("href")).toMatch(/^https:\/\/docs\.google\.com\/spreadsheets\/d\/export-\d+\/edit$/);
@@ -131,12 +137,12 @@ test.describe("export", () => {
     await ready(page);
     for (let i = 0; i < 5; i++) {
       await openMenu(page);
-      await page.getByRole("button", { name: /New Google Sheet/ }).click();
-      await expect(page.locator(".toast a")).toHaveCount(i + 1);
+      await page.getByRole("menuitem", { name: /New Google Sheet/ }).click();
+      await expect(page.locator(".gk-toast a")).toHaveCount(i + 1);
     }
     await openMenu(page);
-    await page.getByRole("button", { name: /New Google Sheet/ }).click();
-    await expect(page.locator(".toast.err")).toContainText("5 Google Sheets");
+    await page.getByRole("menuitem", { name: /New Google Sheet/ }).click();
+    await expect(page.locator(".gk-toast.is-bad")).toContainText("5 Google Sheets");
   });
 
   test("an empty result disables the exports", async ({ page }) => {
@@ -144,7 +150,7 @@ test.describe("export", () => {
     await expect(page.locator(".empty")).toBeVisible();
     await expect(page.locator("[data-count=visible]")).toHaveText("0");
     await openMenu(page);
-    await expect(page.getByRole("button", { name: /CSV file/ })).toBeDisabled();
-    await expect(page.getByRole("button", { name: /New Google Sheet/ })).toBeDisabled();
+    await expect(page.getByRole("menuitem", { name: /CSV file/ })).toBeDisabled();
+    await expect(page.getByRole("menuitem", { name: /New Google Sheet/ })).toBeDisabled();
   });
 });

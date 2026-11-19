@@ -1,0 +1,95 @@
+/* Anatomy and styling ported from shadcn/ui new-york v4 (MIT; see THIRD_PARTY_NOTICES.md). Tokens only.
+   The active row is aria-selected="true" (set by commandIsland); focus stays in the field. */
+.gk-command {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  overflow: hidden;
+  border-radius: var(--radius-md);
+  background: var(--bg);
+  color: var(--text);
+}
+.gk-command__field {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: 0 var(--space-3);
+  border-bottom: 1px solid var(--border);
+}
+.gk-command__field:focus-within { box-shadow: inset 0 -2px 0 var(--accent); }
+.gk-command__field > svg { flex: none; width: 16px; height: 16px; color: var(--text-muted); opacity: 0.5; }
+.gk-command__input {
+  flex: 1 1 auto;
+  min-width: 0;
+  height: 44px;
+  padding: var(--space-3) 0;
+  border: 0;
+  outline: none;
+  background: transparent;
+  color: var(--text);
+  font-family: inherit;
+  font-size: var(--fs-md);
+}
+.gk-command__input::placeholder { color: var(--text-muted); }
+.gk-command__input:focus-visible { outline: none; box-shadow: none; }
+.gk-command__list {
+  max-height: 300px;
+  overflow-x: hidden;
+  overflow-y: auto;
+  scroll-padding-block: var(--space-1);
+}
+.gk-command__group { padding: var(--space-1); overflow: hidden; }
+.gk-command__group[hidden],
+.gk-command__item[hidden],
+.gk-command__empty[hidden] { display: none; }
+.gk-command__heading {
+  padding: 6px var(--space-2);
+  font-size: var(--fs-sm);
+  font-weight: var(--fw-medium);
+  color: var(--text-muted);
+}
+.gk-command__item {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  min-height: 32px;
+  padding: 6px var(--space-2);
+  border-radius: var(--radius-sm);
+  font-size: var(--fs-md);
+  cursor: default;
+  user-select: none;
+  transition: background-color var(--dur-1) var(--ease-standard);
+}
+.gk-command__item > svg { flex: none; width: 16px; height: 16px; color: var(--text-muted); pointer-events: none; }
+.gk-command__item[aria-selected="true"] { background: var(--surface-2); }
+.gk-command__item[aria-disabled="true"] { opacity: 0.5; pointer-events: none; }
+.gk-command__label { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.gk-command__sub { flex: none; font-size: var(--fs-sm); color: var(--text-muted); }
+.gk-command__shortcut { margin-left: auto; padding-left: var(--space-2); color: var(--text-muted); }
+.gk-command__empty { padding: var(--space-5) 0; text-align: center; font-size: var(--fs-md); color: var(--text-muted); }
+.gk-command__note { margin: 0; padding: var(--space-2) var(--space-3); border-top: 1px solid var(--border); font-size: var(--fs-sm); color: var(--text-muted); }
+@media (prefers-reduced-motion: reduce) {
+  .gk-command__item { transition: none; }
+}
+
+/* The dialog variant: the kit dialog with no header or padding, sized like a search box. */
+.gk-dialog.gk-command-dialog { max-width: 512px; overflow: hidden; }
+.gk-command-dialog .gk-dialog__panel { gap: 0; padding: 0; }
+.gk-command-dialog .gk-dialog__header { display: none; }
+.gk-command-dialog .gk-dialog__body { font-size: inherit; }
+.gk-command-dialog .gk-command { border-radius: 0; }
+.gk-command-dialog .gk-command__field { padding-right: 44px; }
+.gk-command-dialog .gk-dialog__close.gk-btn { top: 8px; right: var(--space-2); }
+.gk-command-dialog__hints {
+  display: flex;
+  align-items: center;
+  gap: var(--space-4);
+  min-height: 40px;
+  padding: 0 var(--space-3);
+  border-top: 1px solid var(--border);
+  background: var(--surface-2);
+  font-size: var(--fs-sm);
+  color: var(--text-muted);
+}
+.gk-command-dialog__hints > span { display: inline-flex; align-items: center; gap: var(--space-1); }

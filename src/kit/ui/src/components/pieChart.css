@@ -1,0 +1,10 @@
+/* pieChart: needs chartParts.css. */
+.gk-chart__slice { stroke: var(--surface); stroke-width: 2px; outline: none; cursor: default; }
+.gk-chart__slice:focus-visible { stroke: var(--accent); stroke-width: 2px; }
+.gk-chart[data-enter] .gk-chart__slice {
+  transition: opacity var(--dur-4) var(--ease-enter);
+  transition-delay: calc(var(--i, 0) * var(--dur-1));
+}
+@starting-style {
+  .gk-chart[data-enter] .gk-chart__slice { opacity: 0; }
+}

@@ -1,0 +1,35 @@
+/* Anatomy and styling ported from shadcn/ui new-york v4 (MIT; see THIRD_PARTY_NOTICES.md). Tokens only.
+   The check is a clip-path polygon filled with the accent ink: no image, no data URI. */
+.gk-checkbox { display: flex; align-items: flex-start; gap: var(--space-2); }
+.gk-checkbox__box {
+  position: relative;
+  flex: none;
+  appearance: none;
+  -webkit-appearance: none;
+  width: 16px;
+  height: 16px;
+  margin: 2px 0 0;
+  border: 1px solid var(--border-strong);
+  border-radius: 4px;
+  background: var(--bg);
+  box-shadow: var(--shadow-xs);
+  cursor: pointer;
+  transition: background var(--dur-2) var(--ease-standard), border-color var(--dur-2) var(--ease-standard);
+}
+.gk-checkbox__box::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: var(--accent-ink);
+  clip-path: polygon(14% 52%, 28% 38%, 42% 52%, 72% 20%, 86% 34%, 42% 80%);
+  transform: scale(0);
+  transition: transform calc(var(--dur-2) * var(--motion-scale)) var(--ease-standard);
+}
+.gk-checkbox__box:checked { background: var(--accent); border-color: var(--accent); }
+.gk-checkbox__box:checked::after { transform: scale(1); }
+.gk-checkbox__box[aria-invalid="true"] { border-color: var(--destructive); }
+.gk-checkbox__box:disabled { opacity: 0.5; cursor: not-allowed; }
+.gk-checkbox__text { display: flex; flex-direction: column; gap: var(--space-1); }
+.gk-checkbox__label { color: var(--text); font-size: var(--fs-md); font-weight: var(--fw-medium); line-height: 1.25; cursor: pointer; }
+.gk-checkbox__desc { color: var(--text-muted); font-size: var(--fs-md); line-height: var(--lh); }
+.gk-checkbox.is-disabled .gk-checkbox__label { opacity: 0.5; cursor: not-allowed; }

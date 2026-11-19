@@ -1,0 +1,31 @@
+/* Anatomy and styling ported from shadcn/ui new-york v4 (MIT; see THIRD_PARTY_NOTICES.md). Tokens only.
+   gk-input is the shared class for a native input, textarea or select. Its outline is --border-strong
+   (3:1), not the pale shadcn input border. The kit focus style from base.css applies on :focus-visible. */
+.gk-input {
+  display: block;
+  width: 100%;
+  min-width: 0;
+  height: 36px;
+  padding: var(--space-1) var(--space-3);
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-md);
+  background: var(--bg);
+  color: var(--text);
+  font-family: inherit;
+  font-size: var(--fs-md);
+  line-height: var(--lh);
+  box-shadow: var(--shadow-xs);
+  transition: border-color var(--dur-2) var(--ease-standard), box-shadow var(--dur-2) var(--ease-standard);
+}
+.gk-input::placeholder { color: var(--text-muted); opacity: 1; }
+.gk-input:hover:not(:disabled) { border-color: var(--text-muted); }
+.gk-input:focus-visible { border-color: var(--accent); }
+.gk-input[aria-invalid="true"] { border-color: var(--destructive); }
+.gk-input:disabled { opacity: 0.5; cursor: not-allowed; }
+.gk-input[readonly] { background: var(--surface-2); }
+.gk-input[type="search"]::-webkit-search-cancel-button { cursor: pointer; }
+.gk-input[type="date"],
+.gk-input[type="time"],
+.gk-input[type="datetime-local"],
+.gk-input[type="month"],
+.gk-input[type="week"] { min-width: 0; }

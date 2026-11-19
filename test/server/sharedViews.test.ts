@@ -1,12 +1,13 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import * as access from "../../src/server/access";
+import { resetPropsMemo } from "@gas-kit/server";
+import { __resetMemosForTest } from "../../src/server/access";
 import * as api from "../../src/server/api";
 import { cfgGen, viewsGen } from "../../src/server/serverCache";
 import { listSharedViews } from "../../src/server/sharedViews";
 import { useGasEnv } from "../gasEnv";
 
 const fakes = useGasEnv({ workbook: true, seed: true });
-const as = (who: string) => { access.__resetMemosForTest(); fakes().setActiveUser(who); };
+const as = (who: string) => { __resetMemosForTest(); fakes().setActiveUser(who); };
 const prop = (k: string) => PropertiesService.getScriptProperties().getProperty(k);
 
 beforeEach(() => {
@@ -130,8 +131,10 @@ describe("what viewers see", () => {
   });
   it("drops a malformed stored entry rather than showing it", () => {
     PropertiesService.getScriptProperties().setProperty("SHARED_VIEWS", JSON.stringify([{ nonsense: true }, { id: "abc", name: "Good", scope: "shared", route: "list", state: {} }]));
+    resetPropsMemo(); // a write that bypasses the kit helpers drops the per-execution snapshot
     expect(listSharedViews().map((v) => v.name)).toEqual(["Good"]);
     PropertiesService.getScriptProperties().setProperty("SHARED_VIEWS", "{oops");
+    resetPropsMemo();
     expect(listSharedViews()).toEqual([]);
   });
 });

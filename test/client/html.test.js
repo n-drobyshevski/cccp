@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { escapeHtml, html, isSafe, raw } from "../../src/client/lib/html.js";
+import { escapeHtml, html, isSafe, raw } from "@gas-kit/client/html.js";
 
 describe("html tag", () => {
   it("escapes hostile strings", () => {

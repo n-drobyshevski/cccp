@@ -1,0 +1,78 @@
+/* Anatomy and styling ported from shadcn/ui new-york v4 (MIT; see THIRD_PARTY_NOTICES.md). Tokens only.
+   gk-inputGroup is the shared class. The group draws the input box (height, --border-strong outline,
+   radius-md, shadow-xs) and the kit focus ring while the input has focus; the inner gk-input is
+   borderless and transparent. Addons are gk-inputGroup__addon with data-side start or end; data-kind
+   icon sizes the svg, data-kind button tightens the padding round a gk-btn. */
+.gk-inputGroup__field { display: grid; gap: var(--space-2); min-width: 0; }
+.gk-inputGroup__label {
+  color: var(--text);
+  font-size: var(--fs-md);
+  font-weight: var(--fw-medium);
+  line-height: 1;
+}
+
+.gk-inputGroup {
+  position: relative;
+  display: flex;
+  align-items: center;
+  width: 100%;
+  min-width: 0;
+  height: 36px;
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-md);
+  background: var(--bg);
+  box-shadow: var(--shadow-xs);
+  transition: border-color var(--dur-2) var(--ease-standard), box-shadow var(--dur-2) var(--ease-standard);
+}
+.gk-inputGroup:hover { border-color: var(--text-muted); }
+.gk-inputGroup:focus-within {
+  border-color: var(--accent);
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+  box-shadow: 0 0 0 4px var(--ring-soft);
+}
+/* Focus on a control inside an addon: that control draws its own ring, so the group steps back. */
+.gk-inputGroup:has(.gk-inputGroup__addon :focus) {
+  border-color: var(--border-strong);
+  outline-color: transparent;
+  box-shadow: var(--shadow-xs);
+}
+.gk-inputGroup:has(> .gk-inputGroup__input:disabled) { opacity: 0.5; cursor: not-allowed; }
+.gk-inputGroup:has(> .gk-inputGroup__input[aria-invalid="true"]) { border-color: var(--destructive); }
+
+.gk-inputGroup > .gk-inputGroup__input {
+  flex: 1 1 auto;
+  width: auto;
+  height: 100%;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+}
+.gk-inputGroup > .gk-inputGroup__input:hover:not(:disabled) { border-color: transparent; }
+/* The ring is on the group (see :focus-within above). */
+.gk-inputGroup > .gk-inputGroup__input:focus-visible { outline-color: transparent; box-shadow: none; }
+.gk-inputGroup > .gk-inputGroup__input:disabled { opacity: 1; }
+.gk-inputGroup > .gk-inputGroup__addon[data-side="start"] ~ .gk-inputGroup__input { padding-left: var(--space-2); }
+.gk-inputGroup:has(> .gk-inputGroup__addon[data-side="end"]) > .gk-inputGroup__input { padding-right: var(--space-2); }
+
+.gk-inputGroup__addon {
+  display: flex;
+  flex: none;
+  align-items: center;
+  gap: var(--space-2);
+  height: 100%;
+  color: var(--text-muted);
+  font-size: var(--fs-md);
+  line-height: 1;
+  white-space: nowrap;
+  user-select: none;
+}
+.gk-inputGroup__addon[data-side="start"] { padding-left: var(--space-3); }
+.gk-inputGroup__addon[data-side="end"] { padding-right: var(--space-3); }
+.gk-inputGroup__addon > svg,
+.gk-inputGroup__addon[data-kind="icon"] svg { flex: none; width: 16px; height: 16px; pointer-events: none; }
+.gk-inputGroup__addon[data-kind="button"][data-side="start"] { padding-left: var(--space-1); }
+.gk-inputGroup__addon[data-kind="button"][data-side="end"] { padding-right: var(--space-1); }
+.gk-inputGroup__addon > .gk-btn { height: 28px; padding: 0 var(--space-2); border-radius: calc(var(--radius-md) - 2px); }
+.gk-inputGroup__addon > .gk-btn[data-size="icon"] { width: 28px; padding: 0; }

@@ -1,0 +1,5 @@
+/* Anatomy and styling ported from shadcn/ui new-york v4 (MIT; see THIRD_PARTY_NOTICES.md). Tokens only. */
+.gk-field { display: flex; flex-direction: column; gap: var(--space-2); width: 100%; }
+.gk-field__desc { margin: 0; color: var(--text-muted); font-size: var(--fs-md); line-height: var(--lh); }
+.gk-field__error { margin: 0; color: var(--destructive); font-size: var(--fs-md); font-weight: var(--fw-medium); line-height: var(--lh); }
+.gk-field.is-invalid .gk-label { color: var(--destructive); }

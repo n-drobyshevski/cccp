@@ -68,7 +68,7 @@ describe("facet panel", () => {
     expect(visibleOptions(opts, "dom", true).hidden).toBe(0);
     const open = s(facetPanelView(state(), rows, { open: new Set(["dom"]), finds: {} }));
     expect(open).toContain("Show fewer");
-    expect(open).toContain('data-find="dom"');
+    expect(open).toContain('data-act="facetList:find" data-facet="dom"');
   });
   it("keeps a selected value visible even when it ranks below the cut, and offers Clear", () => {
     const h = s(facetPanelView(state({ f: { dom: ["H"] } }), rows, st));
@@ -114,10 +114,10 @@ describe("the lens switch", () => {
     }
   });
   it("Columns belongs to the table lens only, Export to all", () => {
-    expect(s(headView(state({ lens: "table" }), 1, 1, 0))).toContain('data-act="cols"');
-    expect(s(headView(state({ lens: "heatmap" }), 1, 1, 0))).not.toContain('data-act="cols"');
-    expect(s(headView(state({ lens: "landscape" }), 1, 1, 0))).not.toContain('data-act="cols"');
-    for (const lens of ["table", "heatmap", "landscape"]) expect(s(headView(state({ lens }), 1, 1, 0))).toContain('data-act="export"');
+    expect(s(headView(state({ lens: "table" }), 1, 1, 0))).toContain('popovertarget="cols"');
+    expect(s(headView(state({ lens: "heatmap" }), 1, 1, 0))).not.toContain('popovertarget="cols"');
+    expect(s(headView(state({ lens: "landscape" }), 1, 1, 0))).not.toContain('popovertarget="cols"');
+    for (const lens of ["table", "heatmap", "landscape"]) expect(s(headView(state({ lens }), 1, 1, 0))).toContain('popovertarget="export"');
   });
 });
 

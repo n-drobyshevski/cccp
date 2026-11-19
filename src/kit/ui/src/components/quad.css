@@ -1,0 +1,53 @@
+/* Extracted from the author's production Apps Script apps; adapted. */
+.gk-quad {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  grid-template-areas: "y table" ". x";
+  gap: var(--space-2);
+  align-items: center;
+}
+.gk-quad__y {
+  grid-area: y;
+  writing-mode: vertical-rl;
+  transform: rotate(180deg);
+  text-align: center;
+  font-size: var(--fs-sm);
+  font-weight: var(--fw-bold);
+  color: var(--text-muted);
+}
+.gk-quad__x { grid-area: x; text-align: center; font-size: var(--fs-sm); font-weight: var(--fw-bold); color: var(--text-muted); }
+.gk-quad__table { grid-area: table; border-collapse: separate; border-spacing: var(--space-2); width: 100%; table-layout: fixed; }
+.gk-quad__table th { font-size: var(--fs-sm); font-weight: var(--fw-normal); color: var(--text-muted); text-align: center; padding: var(--space-1); }
+.gk-quad__table tbody th { text-align: right; width: 22%; }
+.gk-quad__cell {
+  height: 96px;
+  padding: 0;
+  text-align: center;
+  vertical-align: middle;
+  background: var(--surface-2);
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius);
+}
+.gk-quad__cell.is-ok { background: var(--surface); border-style: solid; border-width: 1px; }
+.gk-quad__cell.is-warn { border-width: 2px; border-style: dotted; }
+.gk-quad__cell.is-bad { border-width: 3px; border-style: solid; }
+.gk-quad__cell.is-none { border-style: dashed; }
+.gk-quad__cell.is-zero .gk-quad__count { color: var(--text-muted); }
+.gk-quad__body {
+  all: unset;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-1);
+  width: 100%;
+  min-height: 96px;
+  color: var(--text);
+}
+.gk-quad__link { cursor: pointer; }
+.gk-quad__link:hover { background: var(--accent-soft); }
+.gk-quad__link:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.gk-quad__count { font-size: var(--fs-2xl); font-weight: var(--fw-bold); line-height: 1.1; }
+.gk-quad__label, .gk-quad__pct, .gk-quad__tone { font-size: var(--fs-xs); color: var(--text-muted); }
+.gk-quad.is-empty .gk-quad__cell { border-style: dashed; }

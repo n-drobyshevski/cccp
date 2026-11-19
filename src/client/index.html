@@ -5,14 +5,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>CCCP</title>
-<script>
-(function () {
-  try {
-    var t = window.localStorage.getItem('cccp.theme');
-    document.documentElement.setAttribute('data-theme', t === 'dark' ? 'dark' : 'light');
-  } catch (e) { document.documentElement.setAttribute('data-theme', 'light'); }
-})();
-</script>
+<script>var t='light';try{var v=localStorage.getItem("cccp.theme");if(v){try{v=JSON.parse(v)}catch(e){}if(v==='light'||v==='dark')t=v}}catch(e){}try{document.documentElement.setAttribute('data-theme',t)}catch(e){}</script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Source+Sans+3:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
 <?!= include('styles'); ?>

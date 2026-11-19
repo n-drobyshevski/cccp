@@ -1,0 +1,19 @@
+/* Anatomy and styling ported from shadcn/ui new-york v4 (MIT; see THIRD_PARTY_NOTICES.md). Tokens only. */
+.gk-alert {
+  display: grid;
+  grid-template-columns: 16px 1fr;
+  align-items: start;
+  gap: var(--space-1) var(--space-3);
+  width: 100%;
+  padding: var(--space-3) var(--space-4);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  background: var(--surface);
+  color: var(--text);
+  font-size: var(--fs-md);
+}
+.gk-alert__icon { grid-row: 1 / span 2; margin-top: 2px; }
+.gk-alert__title { grid-column: 2; min-height: 1em; font-weight: var(--fw-medium); line-height: 1.25; }
+.gk-alert__description { grid-column: 2; color: var(--text-muted); line-height: var(--lh); }
+.gk-alert.is-destructive { border-color: var(--destructive); color: var(--destructive); }
+.gk-alert.is-destructive .gk-alert__description { color: var(--destructive); }

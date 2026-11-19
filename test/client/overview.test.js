@@ -1,3 +1,4 @@
+import { readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
 import { kpiTile } from "../../src/client/components/kpiTile.js";
 import { stackBar } from "../../src/client/components/stackBar.js";
@@ -19,12 +20,14 @@ describe("overview views", () => {
   });
   it("a tile carries its target", () => {
     const h = s(kpiTile(m.kpis[1]));
-    expect(h).toContain("data-go=");
+    expect(h).toContain('data-act="go"');
+    expect(h).toContain("data-v=");
+    expect(h).toContain('data-k="kpi-t1gap"');
     expect(h).toContain("Tier 1 with a gap");
   });
   it("the page draws 4 tiles, 4 pillar bars and the domains", () => {
     const h = s(overviewView(m, 0, ""));
-    expect((h.match(/class="kpi /g) || []).length).toBe(4);
+    expect((h.match(/class="gk-kpiTile is-interactive"/g) || []).length).toBe(4);
     expect((h.match(/class="pbar pc-/g) || []).length).toBe(4);
     expect(h).toContain("Domains with the most gaps");
   });
@@ -34,8 +37,10 @@ describe("overview views", () => {
   });
   it("every figure says where it goes: 'Open in inventory'", () => {
     const h = s(overviewView(m, 0, ""));
-    expect((h.match(/Open in inventory ›/g) || []).length).toBe(4);
-    expect(s(kpiTile(m.kpis[0]))).toContain('class="num mono" data-value');
+    // The words are CSS content on the kit tile (overview.css), so four tiles are four buttons that go.
+    expect((h.match(/class="gk-kpiTile is-interactive" data-act="go"/g) || []).length).toBe(4);
+    expect(readFileSync(new URL("../../src/client/styles/overview.css", import.meta.url), "utf8")).toContain('content: "Open in inventory \\203A"');
+    expect(s(kpiTile(m.kpis[0]))).toContain('class="gk-kpiTile__value num"');
   });
   it("the bars stack OK, Attention, Gap, No data, and the gap count is mono", () => {
     const h = s(stackBar({ bad: 2, warn: 1, none: 3, ok: 5 }));

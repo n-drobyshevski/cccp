@@ -2,7 +2,7 @@
 // click), cells and their escaping, the Columns choice and its persistence, Show more and the
 // empty state. The DOM behaviour (clicks, keyboard, Back and scroll) is in e2e/list.spec.ts.
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
-import { chooserRows, chooserView, readCols, writeCols } from "../../src/client/components/columnChooser.js";
+import { chooserView, readCols, writeCols } from "../../src/client/components/columnChooser.js";
 import { PAGE_STEP, cell, emptyView, headCell, lifecycleClass, moreView, sortAfter, tableView } from "../../src/client/components/table.js";
 import { headView, resultsView } from "../../src/client/pages/list.js";
 import * as register from "../../src/client/state/register.js";
@@ -12,7 +12,8 @@ import { COLUMNS, COLUMN_BY_KEY, DEFAULT_COLUMN_KEYS, statusKey, toggleColumnKey
 import { runQuery } from "../../src/domain/query";
 import { DEFAULT_RULES } from "../../src/domain/rules";
 import { fromQuery } from "../../src/domain/viewState";
-import { columnShown, toggleColumn, visibleColumns } from "../../src/vendor/gas_shared/ui/tableModel";
+import { toggleColumn, visibleColumns } from "@gas-kit/ui/components/tableModel.js";
+import { installLocalStorage, installRefusingLocalStorage, removeLocalStorage } from "./localStorageFake.js";
 import { mk } from "../domain/mk";
 
 const today = "2026-11-11";
@@ -138,9 +139,9 @@ describe("columns", () => {
   const mem = new Map();
   beforeEach(() => {
     mem.clear();
-    globalThis.window = { localStorage: { getItem: (k) => (mem.has(k) ? mem.get(k) : null), setItem: (k, v) => { mem.set(k, String(v)); }, removeItem: (k) => { mem.delete(k); } } };
+    installLocalStorage({ getItem: (k) => (mem.has(k) ? mem.get(k) : null), setItem: (k, v) => { mem.set(k, String(v)); }, removeItem: (k) => { mem.delete(k); } });
   });
-  afterEach(() => { delete globalThis.window; });
+  afterEach(() => { removeLocalStorage(); });
 
   it("the defaults are the lx3 set, in the registry order", () => {
     expect(visibleColumnDefs([], "n").map((c) => c.key)).toEqual(DEFAULT_COLUMN_KEYS.slice());
@@ -148,10 +149,28 @@ describe("columns", () => {
   });
   it("Application is fixed: it cannot be switched off", () => {
     expect(toggleColumnKey([], "n", "n")).toEqual([]);
-    const r = chooserRows([], "n").find((c) => c.key === "n");
-    expect(r.hideable).toBe(false);
-    expect(r.shown).toBe(true);
-    expect(s(chooserView([], "n"))).toMatch(/data-col="n"[^>]*checked[^>]*disabled/);
+    const box = s(chooserView([], "n")).match(/<input[^>]*data-col="n"[^>]*>/)[0];
+    expect(box).toContain("checked");
+    expect(box).toContain("disabled");
+  });
+  it("a list stored by an earlier build reads back and draws the same boxes", () => {
+    mem.set("cccp.cols", '["-so","+ty"]');
+    expect(readCols()).toEqual(["-so", "+ty"]);
+    const out = s(chooserView(readCols(), "n"));
+    const box = (k) => out.match(new RegExp("<input[^>]*data-col=\"" + k + "\"[^>]*>"))[0];
+    expect(box("so")).not.toContain("checked");
+    expect(box("ty")).toContain("checked");
+    expect(out).toContain("Reset to default");
+    mem.set("cccp.cols", '["-zz","bogus",5]');
+    expect(readCols()).toEqual([]);
+    writeCols(["-so"]);
+    expect(mem.get("cccp.cols")).toBe('["-so"]');
+    writeCols([]);
+    expect(mem.has("cccp.cols")).toBe(false);
+  });
+  it("the sorted column is passed as always shown", () => {
+    const out = s(chooserView([], "so"));
+    expect(out.match(/<input[^>]*data-col="so"[^>]*>/)[0]).toContain("disabled");
   });
   it("a toggle records a deviation, a toggle back removes it", () => {
     const off = toggleColumnKey([], "so", "n");
@@ -183,21 +202,22 @@ describe("columns", () => {
     expect(readCols()).not.toContain("-gone");
   });
   it("a refusing storage reads as no choice and writes return false", () => {
-    globalThis.window = { get localStorage() { throw new Error("blocked"); } };
+    installRefusingLocalStorage();
     expect(readCols()).toEqual([]);
     expect(writeCols(["-so"])).toBe(false);
   });
   it("a column added later shows by default for a reader with an old choice", () => {
     const before = [{ key: "n", label: "Name", pinned: true }, { key: "a", label: "A" }, { key: "b", label: "B" }];
-    const after = [...before, { key: "c", label: "C" }, { key: "d", label: "D", defaultHidden: true }];
-    const choice = toggleColumn(before, null, "a");
+    const after = [...before, { key: "c", label: "C" }, { key: "d", label: "D", hidden: true }];
+    const choice = toggleColumn(before, [], "a");
     expect(visibleColumns(before, choice).map((c) => c.key)).toEqual(["n", "b"]);
     expect(visibleColumns(after, choice).map((c) => c.key)).toEqual(["n", "b", "c"]);
-    expect(columnShown(after[4], choice)).toBe(false);
+    expect(visibleColumns(after, choice).map((c) => c.key)).not.toContain("d");
   });
   it("the chooser lists every column; Reset appears only with a deviation", () => {
     const out = s(chooserView(["-so"], "n"));
-    expect([...out.matchAll(/data-act="col"/g)].length).toBe(COLUMNS.length);
+    expect([...out.matchAll(/data-act="columnChooser:toggle"/g)].length).toBe(COLUMNS.length - COLUMNS.filter((c) => c.pinned).length);
+    expect([...out.matchAll(/data-col="/g)].length).toBe(COLUMNS.length);
     expect(out).toContain("Reset to default");
     expect(s(chooserView([], "n"))).not.toContain("Reset to default");
   });
@@ -218,10 +238,10 @@ describe("Show more, the count and the empty state", () => {
     expect(s(headView(state(), 1, 1, 3))).toContain("and 3 applications hidden by the display settings");
     expect(s(headView(state(), 1, 1, 0))).toContain("of 1 application<");
   });
-  it("the head holds Columns and Export as text links, and Filters for the drawer", () => {
+  it("the head holds the Columns and Export menus, and Filters for the drawer", () => {
     const h = s(headView(state(), 4, 4, 0));
-    expect(h).toMatch(/<button type="button" class="tlink" data-act="cols"[^>]*>Columns<\/button>/);
-    expect(h).toMatch(/<button type="button" class="tlink" data-act="export"[^>]*>Export<\/button>/);
+    expect(h).toMatch(/<button[^>]*id="cols-trigger"[^>]*>.*?Columns<\/button>/);
+    expect(h).toMatch(/<button[^>]*id="export-trigger"[^>]*>Export<svg/);
     expect(h).toContain('data-act="fopen"');
     expect(h).toContain(">Filters<");
     expect(s(headView(state({ f: { tier: ["T1"], dom: ["A", "B"] } }), 4, 4, 0))).toContain(">Filters (3)<");

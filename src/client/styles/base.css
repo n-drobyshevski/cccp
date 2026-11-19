@@ -1,8 +1,8 @@
-/* Reset, type, buttons, scrollbars and the small shared widgets (tip, popover, toast, dialog,
+/* Reset, type, buttons, scrollbars and the small shared widgets (tip, toast, dialog,
    state cards, skeleton). Everything uses tokens; colours live in tokens.css only. */
 *, *::before, *::after { box-sizing: border-box; }
 html { -webkit-text-size-adjust: 100%; }
-body { margin: 0; background: var(--bg); color: var(--fg); font: 14px/1.45 var(--sans); }
+body { margin: 0; background: var(--bg); color: var(--text); font: 14px/1.45 var(--font-sans); }
 button, input, select, textarea { font: inherit; color: inherit; }
 button { cursor: pointer; }
 button[disabled] { cursor: default; opacity: 0.6; }
@@ -12,9 +12,9 @@ h1 { font-size: 24px; font-weight: 700; }
 h2 { font-size: 16px; font-weight: 700; }
 p { margin: 0; }
 a { color: var(--accent); }
-.mut { color: var(--muted); }
+.mut { color: var(--text-muted); }
 .num { font-variant-numeric: tabular-nums; }
-.mono { font-family: var(--mono); }
+.mono { font-family: var(--font-mono); }
 .sr-only { position: absolute; width: 1px; height: 1px; margin: -1px; padding: 0; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0; }
 
 .shell {
@@ -32,69 +32,82 @@ a { color: var(--accent); }
 
 /* ---------- scroll bars ---------- */
 * { scrollbar-width: thin; scrollbar-color: var(--line2) transparent; }
-*:hover { scrollbar-color: var(--none) transparent; }
+*:hover { scrollbar-color: var(--none-fg) transparent; }
 ::-webkit-scrollbar { width: 10px; height: 10px; }
 ::-webkit-scrollbar-track { background: transparent; }
 ::-webkit-scrollbar-thumb { background: var(--line2); border-radius: 10px; border: 3px solid transparent; background-clip: padding-box; }
-::-webkit-scrollbar-thumb:hover { background: var(--none); background-clip: padding-box; }
+::-webkit-scrollbar-thumb:hover { background: var(--none-fg); background-clip: padding-box; }
 ::-webkit-scrollbar-corner { background: transparent; }
 ::-webkit-scrollbar-button { display: none; width: 0; height: 0; }
 
 /* ---------- buttons ---------- */
-.btn { display: inline-flex; align-items: center; gap: 6px; border: 1px solid var(--line2); background: var(--surface); border-radius: var(--r); padding: 6px 14px; font-weight: 600; text-decoration: none; color: var(--fg); }
+.btn { display: inline-flex; align-items: center; gap: 6px; border: 1px solid var(--line2); background: var(--surface); border-radius: var(--radius); padding: 6px 14px; font-weight: 600; text-decoration: none; color: var(--text); }
 .btn:hover { border-color: var(--accent); color: var(--accent); }
-.btn.primary { background: var(--accent); color: var(--on-accent); border-color: var(--accent); }
-.btn.primary:hover { color: var(--on-accent); filter: brightness(1.08); }
-.btn.danger { background: var(--bad); color: var(--on-accent); border-color: var(--bad); }
-.btn.danger:hover { color: var(--on-accent); filter: brightness(1.08); }
+.btn.primary { background: var(--accent); color: var(--accent-ink); border-color: var(--accent); }
+.btn.primary:hover { color: var(--accent-ink); filter: brightness(1.08); }
+.btn.danger { background: var(--bad-fg); color: var(--accent-ink); border-color: var(--bad-fg); }
+.btn.danger:hover { color: var(--accent-ink); filter: brightness(1.08); }
 .btn.sm { padding: 3px 10px; font-size: 12px; }
-.icon-btn { display: inline-grid; place-items: center; width: 34px; height: 34px; border: 1px solid var(--line); background: var(--surface); border-radius: var(--r); color: var(--muted); padding: 0; }
-.icon-btn:hover { color: var(--fg); border-color: var(--line2); }
+.icon-btn { display: inline-grid; place-items: center; width: 34px; height: 34px; border: 1px solid var(--border); background: var(--surface); border-radius: var(--radius); color: var(--text-muted); padding: 0; }
+.icon-btn:hover { color: var(--text); border-color: var(--line2); }
 .icon-btn svg { width: 17px; height: 17px; }
 
 /* ---------- status glyphs (components/glyph.js): a check on light green, "!" on light amber, a
    white cross on solid red, an empty dashed box for no data. Shape differs per status. ---------- */
 .gl { display: inline-flex; align-items: center; justify-content: center; width: 22px; height: 20px; border-radius: 3px; flex: none; vertical-align: middle; }
 .gl svg { width: 11px; height: 11px; stroke-width: 2.6; }
-.gl.ok { background: var(--tint-ok); color: var(--ok); }
-.gl.warn { background: var(--tint-warn); color: var(--warn); }
-.gl.bad { background: var(--bad); color: var(--on-bad); }
-.gl.none { color: var(--none); border: 1px dashed var(--none); }
+.gl.ok { background: var(--ok-bg); color: var(--ok-fg); }
+.gl.warn { background: var(--warn-bg); color: var(--warn-fg); }
+.gl.bad { background: var(--bad-fg); color: var(--destructive-ink); }
+.gl.none { color: var(--none-fg); border: 1px dashed var(--none-fg); }
 .gl.lg { width: 24px; height: 22px; }
 
 /* ---------- status dots: colour plus shape, the "none" dot is dashed ---------- */
-.dot { display: inline-block; width: 10px; height: 10px; border-radius: 50%; background: var(--c, var(--none)); }
-.dot.ok { --c: var(--ok); }
+.dot { display: inline-block; width: 10px; height: 10px; border-radius: 50%; background: var(--c, var(--none-fg)); }
+.dot.ok { --c: var(--ok-fg); }
 .dot.warn { --c: var(--warn-fill); }
-.dot.bad { --c: var(--bad); }
-.dot.none { background: none; border: 1.5px dashed var(--none); }
+.dot.bad { --c: var(--bad-fg); }
+.dot.none { background: none; border: 1.5px dashed var(--none-fg); }
 
 /* ---------- tooltip (lib/tip.js) ---------- */
-.tip { position: fixed; z-index: 70; max-width: 260px; padding: 5px 9px; border-radius: 6px; background: var(--tip-bg); color: var(--tip-fg); font: 500 12px/1.35 var(--sans); pointer-events: none; }
+.tip { position: fixed; z-index: 70; max-width: 260px; padding: 5px 9px; border-radius: 6px; background: var(--tip-bg); color: var(--tip-fg); font: 500 12px/1.35 var(--font-sans); pointer-events: none; }
 .tip[hidden] { display: none; }
 
-/* ---------- popover (lib/popover.js) ---------- */
-.pop { position: fixed; z-index: 60; width: 280px; max-width: calc(100vw - 16px); max-height: min(420px, calc(100vh - 16px)); overflow: auto; background: var(--surface); border: 1px solid var(--line); border-radius: var(--r); box-shadow: var(--shadow); padding: 8px; }
-.pop:focus { outline: none; }
+/* ---------- kit overrides: Identity G on the kit's classes (tokens only) ---------- */
+/* Buttons: the kit's gk-btn drawn as the app's .btn (quiet outline; primary and danger filled). */
+.gk-btn { height: auto; gap: 6px; border: 1px solid var(--line2); background: var(--surface); border-radius: var(--radius); padding: 6px 14px; font-weight: 600; color: var(--text); box-shadow: none; }
+.gk-btn:hover { border-color: var(--accent); color: var(--accent); background: var(--surface); opacity: 1; }
+.gk-btn[data-variant="default"] { background: var(--accent); color: var(--accent-ink); border-color: var(--accent); }
+.gk-btn[data-variant="default"]:hover { color: var(--accent-ink); background: var(--accent); filter: brightness(1.08); opacity: 1; }
+.gk-btn[data-variant="destructive"] { background: var(--bad-fg); color: var(--accent-ink); border-color: var(--bad-fg); }
+.gk-btn[data-variant="destructive"]:hover { color: var(--accent-ink); background: var(--bad-fg); filter: brightness(1.08); opacity: 1; }
+.gk-btn[data-variant="ghost"] { border-color: transparent; background: none; }
+.gk-btn[data-size="sm"] { height: auto; padding: 3px 10px; font-size: 12px; }
+.gk-btn:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
 
-/* ---------- toast (lib/toast.js) ---------- */
-.toasts { position: fixed; left: 50%; bottom: calc(20px + env(safe-area-inset-bottom, 0px)); transform: translateX(-50%); z-index: 80; display: flex; flex-direction: column; gap: 8px; align-items: center; pointer-events: none; }
-.toast { pointer-events: auto; background: var(--tip-bg); color: var(--tip-fg); padding: 9px 16px; border-radius: var(--r); box-shadow: var(--shadow); font-weight: 500; display: flex; gap: 8px; align-items: center; }
-.toast a { color: inherit; text-decoration: underline; }
-.toast.err { border-left: 4px solid var(--bad); }
+/* Toast (lib/toast.js): the dark tip pill, centred at the bottom. The kind word stays (status is never colour alone). */
+.toasts.gk-toast-host { inset: auto auto calc(20px + env(safe-area-inset-bottom, 0px)) 50%; transform: translateX(-50%); z-index: 80; align-items: center; width: max-content; max-width: min(520px, calc(100vw - 32px)); gap: 8px; }
+.toasts .gk-toast-stack { align-items: center; gap: 8px; }
+.toasts .gk-toast { background: var(--tip-bg); color: var(--tip-fg); border: 0; padding: 9px 16px; border-radius: var(--radius); box-shadow: var(--shadow-md); font-weight: 500; font-size: inherit; gap: 8px; }
+.toasts .gk-toast__kind { padding: 1px 7px; border-radius: 9px; font: 700 10px var(--font-sans); letter-spacing: 0.06em; color: inherit; background: none; border: 1px solid currentColor; }
+.toasts .gk-toast__link { color: inherit; text-decoration: underline; }
+.toasts .gk-toast__close.gk-btn { width: 22px; height: 22px; padding: 0; border: 0; background: none; color: inherit; opacity: 0.75; font-size: 16px; }
+.toasts .gk-toast__close.gk-btn:hover { opacity: 1; color: inherit; }
+.toasts .gk-toast__close:focus-visible, .toasts .gk-toast__link:focus-visible { outline: 2px solid var(--tip-fg); outline-offset: 2px; }
 
-/* ---------- dialog (lib/confirm.js) ---------- */
-.scrim { position: fixed; inset: 0; z-index: 90; display: grid; place-items: center; background: var(--scrim); padding: 16px; }
-.dlg { width: min(420px, 100%); background: var(--surface); border: 1px solid var(--line); border-radius: var(--rc); box-shadow: var(--shadow); padding: 20px; display: flex; flex-direction: column; gap: 10px; }
-.dlg p { color: var(--muted); }
-.dlg-act { display: flex; justify-content: flex-end; gap: 8px; margin-top: 6px; }
+/* Confirm dialog (lib/confirm.js). */
+.gk-confirm { z-index: 90; padding: 16px; }
+.gk-confirm__dialog { width: min(420px, 100%); border-radius: var(--card-radius); box-shadow: var(--shadow-md); padding: 20px; }
+.gk-confirm__title { font-size: 16px; font-weight: 700; line-height: inherit; }
+.gk-confirm__body { margin: 10px 0 0; font-size: inherit; }
+.gk-confirm__actions { margin-top: 16px; gap: 8px; }
 
 /* ---------- state cards (shell/states.js) ---------- */
-.state { display: flex; flex-direction: column; align-items: flex-start; gap: 8px; max-width: 520px; margin: 56px auto 0; padding: 24px; background: var(--surface); border: 1px solid var(--line); border-radius: var(--rc); }
+.state { display: flex; flex-direction: column; align-items: flex-start; gap: 8px; max-width: 520px; margin: 56px auto 0; padding: 24px; background: var(--surface); border: 1px solid var(--border); border-radius: var(--card-radius); }
 .state h1 { font-size: 20px; }
-.state p { color: var(--muted); }
+.state p { color: var(--text-muted); }
 .state-ico { display: inline-grid; place-items: center; width: 40px; height: 40px; border-radius: 50%; background: var(--accent-soft); color: var(--accent); }
-.state.error .state-ico { color: var(--bad); }
+.state.error .state-ico { color: var(--bad-fg); }
 .state-act { margin-top: 6px; }
 
 /* ---------- placeholder pages (until each page ships) ---------- */

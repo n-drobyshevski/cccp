@@ -2,17 +2,19 @@
 // refused, the file shared to the viewer, five per ten minutes, strangers forbidden.
 import { readFileSync } from "node:fs";
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import * as access from "../../src/server/access";
+import { __resetMemosForTest } from "../../src/server/access";
 import * as api from "../../src/server/api";
 import { EXPORT_LIMIT, SHEET_TAB } from "../../src/server/exportSheet";
-import { recentErrors } from "../../src/server/errors";
+import { errorLog } from "../../src/server/errorLog";
 import { registerEntry } from "../../src/server/registerStore";
 import { decodeRegister } from "../../src/domain/payload";
 import { genWorkbook } from "../../dev/genTabs.mjs";
 import { useGasEnv } from "../gasEnv";
+import { UNEXPECTED_ERROR_MESSAGE } from "@gas-kit/server";
 
 const fakes = useGasEnv({ workbook: true, seed: true });
-const as = (who: string) => { access.__resetMemosForTest(); fakes().setActiveUser(who); };
+const recentErrors = () => errorLog.recentErrors();
+const as = (who: string) => { __resetMemosForTest(); fakes().setActiveUser(who); };
 const ids = (n: number) => decodeRegister(registerEntry().register).slice(0, n).map((a) => a.id);
 const names = () => fakes().calls().map((c) => c.svc);
 
@@ -21,6 +23,25 @@ beforeEach(() => {
   vi.spyOn(console, "log").mockImplementation(() => {});
   vi.spyOn(console, "warn").mockImplementation(() => {});
   as("viewer@example.com");
+});
+
+describe("an unexpected fault", () => {
+  it("answers the fixed sentence and a reference; the text goes to the log and to an admin only, redacted", () => {
+    api.getRegister(); // warm the cache so only the export hits the fault
+    vi.spyOn(Utilities, "formatDate").mockImplementation(() => { throw new Error("service said Bearer abcdefghij0123456789"); });
+    const viewer = api.exportToSheet({ ids: ids(1), columns: ["n"], title: "x" });
+    expect(viewer).toMatchObject({ ok: false, errorKind: "error", error: UNEXPECTED_ERROR_MESSAGE });
+    expect(viewer.ref).toMatch(/^[A-Za-z0-9-]{1,32}$/);
+    expect(JSON.stringify(viewer)).not.toContain("service said");
+    expect(recentErrors()[0]).toMatchObject({ op: "exportToSheet", ref: viewer.ref });
+    expect(recentErrors()[0]!.message).toContain("service said");
+    expect(recentErrors()[0]!.message).not.toContain("abcdefghij0123456789");
+    as("admin@example.com");
+    const admin = api.exportToSheet({ ids: ids(1), columns: ["n"], title: "x" });
+    expect(admin).toMatchObject({ ok: false, error: UNEXPECTED_ERROR_MESSAGE });
+    expect(admin.detail).toContain("service said");
+    expect(admin.detail).not.toContain("abcdefghij0123456789");
+  });
 });
 
 describe("exportToSheet", () => {
@@ -52,18 +73,31 @@ describe("exportToSheet", () => {
     expect(grid[0]![0]).toBe("Application");
   });
 
-  it("creates the spreadsheet BEFORE writing values, writes RAW, then bolds the header, then shares", () => {
+  it("creates the spreadsheet, locks re-sharing, THEN writes values RAW, bolds the header, then shares", () => {
     api.exportToSheet({ ids: ids(2), columns: ["n"], title: "Order" });
     expect(names()).toEqual([
-      "Sheets.Spreadsheets.create", "Sheets.Spreadsheets.Values.update", "Sheets.Spreadsheets.batchUpdate", "Drive.Permissions.create",
+      "Sheets.Spreadsheets.create", "Drive.Files.update", "Sheets.Spreadsheets.Values.update", "Sheets.Spreadsheets.batchUpdate", "Drive.Permissions.create",
     ]);
     const calls = fakes().calls();
-    expect(calls[1]!.args.optionalArgs).toEqual({ valueInputOption: "RAW" });
+    // The kit puts the file in a state where its writers cannot re-share it before any value is written.
+    expect(calls[1]!.args.resource).toEqual({ writersCanShare: false });
+    expect(calls[2]!.args.optionalArgs).toEqual({ valueInputOption: "RAW" });
     const create = calls[0]!.args.resource as { properties: { title: string }; sheets: { properties: { title: string; gridProperties: { frozenRowCount: number } } }[] };
     expect(create.properties.title).toMatch(/^CCCP export · Order · \d{4}-\d{2}-\d{2} \d{2}:\d{2}$/);
     expect(create.sheets[0]!.properties.gridProperties.frozenRowCount).toBe(1);
-    expect(calls[1]!.args.range).toBe("'" + SHEET_TAB + "'!A1");
-    expect(JSON.stringify(calls[2]!.args.resource)).toContain("\"bold\":true");
+    expect(calls[2]!.args.range).toBe("'" + SHEET_TAB + "'!A1");
+    expect(JSON.stringify(calls[3]!.args.resource)).toContain("\"bold\":true");
+  });
+
+  it("trashes the new file and answers one fixed sentence when a step after the create fails", () => {
+    vi.spyOn(console, "error").mockImplementation(() => {});
+    vi.spyOn(Sheets!.Spreadsheets!.Values!, "update").mockImplementation(() => { throw new Error("quota for file 1AbC"); });
+    const res = api.exportToSheet({ ids: ids(1), columns: ["n"], title: "x" });
+    expect(res).toMatchObject({ ok: false, errorKind: "error", error: "The export file was not created." });
+    expect(JSON.stringify(res)).not.toContain("quota");
+    const trash = fakes().calls().filter((c) => c.svc === "Drive.Files.update").map((c) => c.args.resource);
+    expect(trash).toEqual([{ writersCanShare: false }, { trashed: true }]);
+    expect(names()).not.toContain("Drive.Permissions.create");
   });
 
   it("keeps a leading '=' as text by writing RAW", () => {
@@ -134,10 +168,10 @@ describe("exportToSheet", () => {
     const cache = CacheService.getScriptCache();
     const put = vi.spyOn(cache, "put");
     api.exportToSheet({ ids: ids(1), columns: ["n"], title: "x" });
-    const keys = put.mock.calls.map((c) => String(c[0])).filter((k) => k.startsWith("cccp:export:"));
+    const keys = put.mock.calls.map((c) => String(c[0])).filter((k) => k.startsWith("export1:"));
     expect(keys).toHaveLength(1);
     expect(keys[0]).not.toContain("viewer");
-    expect(keys[0]).toMatch(/^cccp:export:[0-9a-f]{40}$/);
+    expect(keys[0]).toMatch(/^export1:[0-9a-f]{40}$/);
   });
 
   it("forbids a stranger and touches no service", () => {

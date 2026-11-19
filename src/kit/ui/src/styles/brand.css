@@ -1,0 +1,33 @@
+/* Extracted from the author's production Apps Script apps; adapted.
+   The brand contract: the only five tokens an app sets to make the kit its own. Neutral
+   defaults (the shadcn neutral primary, near-black on white and the reverse in dark) live here. These are the only colour literals allowed outside
+   tokens.base.css, and only on --brand-* names. tokens.base.css maps --accent to them.
+   Dark is declared twice on purpose: the system preference when no choice was made, and an
+   explicit data-theme. An app's own brand.css must declare the same three blocks (light, media dark, attribute dark)
+   and is loaded INSTEAD of this file or concatenated AFTER it: both use equal specificity, so
+   the later one wins. Keep --brand-accent-ink readable on --brand-accent (4.5:1) in both. */
+:root {
+  --brand-accent: #171717;
+  --brand-accent-ink: #fafafa;
+  --brand-accent-soft: #f5f5f5;
+  --brand-mark: #0a0a0a;
+  --brand-mark-ink: #ffffff;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --brand-accent: #e5e5e5;
+    --brand-accent-ink: #171717;
+    --brand-accent-soft: #262626;
+    --brand-mark: #fafafa;
+    --brand-mark-ink: #0a0a0a;
+  }
+}
+
+:root[data-theme="dark"] {
+  --brand-accent: #e5e5e5;
+  --brand-accent-ink: #171717;
+  --brand-accent-soft: #262626;
+  --brand-mark: #fafafa;
+  --brand-mark-ink: #0a0a0a;
+}

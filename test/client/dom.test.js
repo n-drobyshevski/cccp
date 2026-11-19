@@ -1,8 +1,8 @@
 // renderRegion in node, over a small fake element: it must reject anything but SafeHtml, and
 // give back focus (by data-k) and scroll ([data-keep-scroll]) after the markup is replaced.
 import { describe, expect, it } from "vitest";
-import { delegate, renderRegion } from "../../src/client/lib/dom.js";
-import { html, raw } from "../../src/client/lib/html.js";
+import { delegate, renderRegion } from "@gas-kit/client/dom.js";
+import { html, raw } from "@gas-kit/client/html.js";
 
 /** A region whose children are described by `kids`; innerHTML assignment rebuilds them. */
 function fakeRegion(kids, active) {

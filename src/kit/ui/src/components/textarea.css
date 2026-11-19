@@ -1,0 +1,9 @@
+/* Anatomy and styling ported from shadcn/ui new-york v4 (MIT; see THIRD_PARTY_NOTICES.md). Tokens only.
+   The look is gk-input (input.css); this adds the multi-line shape. */
+.gk-textarea {
+  height: auto;
+  min-height: 64px;
+  padding: var(--space-2) var(--space-3);
+  resize: vertical;
+  field-sizing: content;
+}

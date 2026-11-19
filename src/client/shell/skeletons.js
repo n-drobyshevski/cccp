@@ -3,8 +3,8 @@
 // values are pulsing blocks. The words come from the same constants the real pages read, so a
 // renamed column or pillar cannot leave a skeleton behind. Each builder is pure and returns
 // SafeHtml; skeleton(route, label) wraps one in the busy region the router and Settings share.
-import { html } from "../lib/html.js";
-import { icon } from "../lib/icons.js";
+import { html, styleDecls } from "@gas-kit/client/html.js";
+import { icon } from "@gas-kit/client/icons.js";
 import { ALL_VIEW } from "../state/views.js";
 import { DEFAULT_COLUMN_KEYS, COLUMN_BY_KEY } from "../../domain/columns";
 import { DQ_TITLE, factsheetOutline } from "../../domain/factsheet";
@@ -38,7 +38,7 @@ function inventoryBar() {
 function listView() {
   const cols = DEFAULT_COLUMN_KEYS.map((k) => COLUMN_BY_KEY[k]);
   const n = cols.length;
-  const style = "grid-template-columns:2fr repeat(" + (n - 1) + ", minmax(0, 1fr))";
+  const style = styleDecls({ "grid-template-columns": "2fr repeat(" + (n - 1) + ", minmax(0, 1fr))" });
   return html`${inventoryBar()}
     <section class="panel ld-res">
       <div class="ld-head">${bar(14, "h")}<span class="ld-tools"><span>Columns</span><span>Export</span></span></div>
@@ -62,8 +62,9 @@ function overviewView() {
 }
 
 function heatmapView() {
-  const cols = HEATMAP_LEAD_HEADS.concat(PILLARS.map((p) => PILLAR_LABEL[p]));
-  const style = "grid-template-columns:2fr repeat(" + (cols.length - 1) + ", minmax(0, 1fr))";
+  /** @type {string[]} */
+  const cols = [...HEATMAP_LEAD_HEADS, ...PILLARS.map((p) => PILLAR_LABEL[p])];
+  const style = styleDecls({ "grid-template-columns": "2fr repeat(" + (cols.length - 1) + ", minmax(0, 1fr))" });
   return html`${inventoryBar()}
     <section class="panel ld-res">
       <div class="ld-head">${bar(14, "h")}</div>

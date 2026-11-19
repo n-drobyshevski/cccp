@@ -1,18 +1,22 @@
-// The endpoint role table and the gate in run().
+// The endpoint role table and the gate in run() (the kit's createRoleGate and createRun).
 import { readFileSync } from "node:fs";
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { exportedNames } from "../../build/guards.mjs";
-import * as access from "../../src/server/access";
+import { createRoleGate, roleAllows } from "@gas-kit/server";
+import { exportedNames } from "@gas-kit/tooling/build/guards.mjs";
+import { access, __resetMemosForTest } from "../../src/server/access";
 import * as api from "../../src/server/api";
-import { ENDPOINT_ROLES, requireRole, requiredRole, roleAllows } from "../../src/server/roles";
+import { ENDPOINT_ROLES } from "../../src/server/roles";
 import { useGasEnv } from "../gasEnv";
 
 const fakes = useGasEnv();
 const API_SRC = readFileSync(new URL("../../src/server/api.ts", import.meta.url), "utf8");
 const exported = exportedNames(API_SRC);
+const gate = createRoleGate(ENDPOINT_ROLES, () => access.role());
+const requiredRole = gate.requiredRole;
+const requireRole = gate.requireRole;
 
 function as(who: string): void {
-  access.__resetMemosForTest();
+  __resetMemosForTest();
   fakes().setActiveUser(who);
 }
 
@@ -82,7 +86,8 @@ describe("the gate in run()", () => {
     expect(api.bootstrap().ok).toBe(true);
   });
   it("records no refusal or input-validation error in the error log", async () => {
-    const { recentErrors } = await import("../../src/server/errors");
+    const { errorLog } = await import("../../src/server/errorLog");
+    const recentErrors = () => errorLog.recentErrors();
     as("viewer@example.com");
     api.saveAccess({ users: "x@example.com" });
     expect(recentErrors()).toEqual([]);
@@ -92,7 +97,9 @@ describe("the gate in run()", () => {
     expect(recentErrors()).toEqual([]);
   });
   it("keeps an ApiError's kind (busy, conflict) and does not log it", async () => {
-    const { ApiError, recentErrors } = await import("../../src/server/errors");
+    const { ApiError } = await import("@gas-kit/server");
+    const { errorLog } = await import("../../src/server/errorLog");
+    const recentErrors = () => errorLog.recentErrors();
     expect(new ApiError("conflict", "stale").kind).toBe("conflict");
     expect(recentErrors()).toEqual([]);
   });

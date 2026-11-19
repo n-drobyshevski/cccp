@@ -1,0 +1,12 @@
+/* Extracted from the author's production Apps Script apps; adapted. Tokens only.
+   Styled as shadcn pagination: ghost buttons (gk-btn), the current page an outline button with aria-current. */
+.gk-pager { display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-1); padding: var(--space-3) 0; }
+.gk-pager__status { color: var(--text-muted); font-size: var(--fs-sm); font-variant-numeric: tabular-nums; }
+.gk-pager.is-more .gk-pager__status,
+.gk-pager.is-single .gk-pager__status { margin-right: var(--space-2); }
+.gk-pager.is-numbered .gk-pager__status { margin-left: auto; padding-left: var(--space-3); }
+.gk-pager__btn { font-variant-numeric: tabular-nums; }
+.gk-pager__btn.is-current { font-weight: var(--fw-semibold); }
+.gk-pager__gap { padding: 0 var(--space-1); color: var(--text-muted); }
+.gk-pager__btn[aria-disabled="true"] { color: var(--text-muted); border-color: var(--border-strong); border-style: dashed; }
+.gk-pager__status:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }

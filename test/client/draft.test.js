@@ -104,17 +104,25 @@ describe("tab marks, bar and problems", () => {
     const b = barModel(s);
     expect(b.text).toBe("3 unsaved changes");
     expect(b.tabs.map((t) => t.tab)).toEqual(["fields", "display"]);
-    expect(String(savebar({ ...b, busy: false, problems: 0 }))).toContain('data-act="s-save"');
-    expect(String(savebar({ count: 0, text: "", tabs: [] }))).toBe("");
+    expect(String(savebar({ ...b, busy: false, problems: 0 }))).toContain('data-act="savebar:save"');
+    expect(String(savebar({ count: 0, tabs: [] }))).toBe("");
   });
 
   it("the bar says Discard and Save, lists the first two rule changes and counts the rest", () => {
-    const out = String(savebar({ count: 4, text: "4 unsaved changes", tabs: [{ tab: "rules", label: "Status rules" }], notes: ["A: 18 \u2192 24 months (131 \u2192 74 apps)", "B: on \u2192 off", "C: x", "D: y"], busy: false, problems: 0 }));
+    const out = String(savebar({ count: 4, tabs: [{ tab: "rules", label: "Status rules" }], notes: ["A: 18 \u2192 24 months (131 \u2192 74 apps)", "B: on \u2192 off", "C: x", "D: y"], busy: false, problems: 0 }));
     expect(out).toContain("A: 18 \u2192 24 months (131 \u2192 74 apps); B: on \u2192 off and 2 more");
     expect(out).not.toContain("C: x");
-    expect(out).toMatch(/data-act="s-discard"[^>]*>Discard</);
-    expect(out).toMatch(/data-act="s-save"[^>]*>Save</);
-    expect(String(savebar({ count: 1, text: "1 unsaved change", tabs: [], busy: true, problems: 0 }))).toContain("Saving…");
+    expect(out).toContain("4 unsaved changes");
+    expect(out).toMatch(/data-act="savebar:discard"[^>]*>Discard</);
+    expect(out).toMatch(/data-act="savebar:save"[^>]*>Save changes</);
+    expect(out).toContain('data-act="s-tab" data-tab="rules"');
+    const busy = String(savebar({ count: 1, tabs: [], busy: true, problems: 0 }));
+    expect(busy).toContain("Saving…");
+    expect(busy).toContain('data-disabled="true"');
+    // Problems block Save (aria-disabled keeps focus) and say how many to fix.
+    const blocked = String(savebar({ count: 1, tabs: [], busy: false, problems: 2 }));
+    expect(blocked).toContain("Fix 2 problems to save.");
+    expect(blocked).toMatch(/data-act="savebar:save"[^>]*aria-disabled="true"/);
   });
 
   it("problems land on the tab that owns them and block through errors", () => {

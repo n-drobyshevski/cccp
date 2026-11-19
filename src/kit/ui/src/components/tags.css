@@ -1,0 +1,25 @@
+/* Extracted from the author's production Apps Script apps; adapted. Tokens only.
+   Styled as shadcn badges: a pill, secondary fill for the neutral tone, status tones keep their words and fills. */
+.gk-tags { display: flex; flex-wrap: wrap; gap: var(--space-2); margin: 0; padding: 0; list-style: none; }
+.gk-tags__tag {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  padding: var(--space-0) var(--space-2);
+  font-size: var(--fs-sm);
+  font-weight: var(--fw-medium);
+  color: var(--text);
+  background: var(--surface-2);
+  border: 1px solid transparent;
+  border-radius: var(--radius-pill);
+}
+.gk-tags__tag.is-ok { color: var(--ok-fg); background: var(--ok-bg); }
+.gk-tags__tag.is-warn { color: var(--warn-fg); background: var(--warn-bg); }
+.gk-tags__tag.is-bad { color: var(--bad-fg); background: var(--bad-bg); }
+.gk-tags__tag.is-info { color: var(--info-fg); background: var(--info-bg); }
+.gk-tags__more { border-style: dashed; border-color: var(--border-strong); }
+.gk-tags__tag:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.gk-tags__remove.gk-btn { width: 24px; height: 24px; margin-right: calc(var(--space-1) * -1); border-radius: var(--radius-pill); }
+.gk-tags__empty { font-size: var(--fs-sm); color: var(--text-muted); }
+/* Motion. Colour changes ease over --dur-2. */
+.gk-tags__tag { transition: background var(--dur-2) var(--ease-standard), color var(--dur-2) var(--ease-standard), border-color var(--dur-2) var(--ease-standard); }

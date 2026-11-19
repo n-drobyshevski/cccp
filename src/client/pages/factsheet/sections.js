@@ -1,8 +1,8 @@
 // The Sections page body (identity G): the jump select and Find a field, then Overview and the four
 // pillars as collapsible sections, each split into titled subsections. A value that is unknown is
 // drawn as a muted dash. Pure views; the page owns the state (closed sections, the find text).
-import { html } from "../../lib/html.js";
-import { icon } from "../../lib/icons.js";
+import { html } from "@gas-kit/client/html.js";
+import { icon } from "@gas-kit/client/icons.js";
 import { dot } from "../../components/dots.js";
 import { glyphMark } from "../../components/glyph.js";
 import { STATUS_WORD } from "../../../domain/facets";

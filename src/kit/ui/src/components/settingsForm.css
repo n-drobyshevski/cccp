@@ -1,0 +1,16 @@
+/* Extracted from the author's production Apps Script apps; adapted. Tokens only. */
+.gk-settingsForm { max-width: 640px; }
+.gk-settingsForm__set { display: flex; flex-direction: column; gap: var(--space-4); margin: 0; padding: 0; border: 0; min-width: 0; }
+.gk-settingsForm__legend { padding: 0; margin-bottom: var(--space-3); font-size: var(--fs-lg); font-weight: var(--fw-semibold); }
+.gk-settingsForm__field { display: flex; flex-direction: column; gap: var(--space-1); }
+.gk-settingsForm__field.is-toggle { display: grid; grid-template-columns: auto 1fr; align-items: center; column-gap: var(--space-3); }
+.gk-settingsForm__field.is-toggle > .gk-settingsForm__hint,
+.gk-settingsForm__field.is-toggle > .gk-settingsForm__error { grid-column: 2; }
+.gk-settingsForm__label { font-weight: var(--fw-medium); font-size: var(--fs-md); }
+.gk-settingsForm__req { color: var(--text-muted); font-weight: var(--fw-normal); }
+textarea.gk-settingsForm__control { height: auto; resize: vertical; font-family: var(--font-mono); font-size: var(--fs-sm); }
+.gk-settingsForm__switch { width: 20px; height: 20px; accent-color: var(--accent); }
+.gk-settingsForm__hint { color: var(--text-muted); font-size: var(--fs-sm); }
+.gk-settingsForm__error { color: var(--bad-fg); font-size: var(--fs-sm); }
+.gk-settingsForm__field.is-invalid .gk-settingsForm__control { border-color: var(--destructive); border-width: 2px; }
+.gk-settingsForm__switch:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }

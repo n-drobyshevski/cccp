@@ -1,0 +1,38 @@
+/* Anatomy and styling ported from shadcn/ui new-york v4 (MIT; see THIRD_PARTY_NOTICES.md). Tokens only. */
+.gk-radioGroup { display: flex; flex-direction: column; gap: var(--space-2); }
+.gk-radioGroup__label { color: var(--text); font-size: var(--fs-md); font-weight: var(--fw-medium); line-height: 1; }
+.gk-radioGroup__items { display: grid; gap: var(--space-3); }
+.gk-radioGroup.is-horizontal .gk-radioGroup__items { display: flex; flex-wrap: wrap; gap: var(--space-3) var(--space-5); }
+.gk-radioGroup__item { display: flex; align-items: flex-start; gap: var(--space-2); }
+.gk-radioGroup__radio {
+  position: relative;
+  flex: none;
+  appearance: none;
+  -webkit-appearance: none;
+  width: 16px;
+  height: 16px;
+  margin: 2px 0 0;
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-pill);
+  background: var(--bg);
+  box-shadow: var(--shadow-xs);
+  cursor: pointer;
+  transition: border-color var(--dur-2) var(--ease-standard);
+}
+.gk-radioGroup__radio::after {
+  content: "";
+  position: absolute;
+  inset: 3px;
+  border-radius: var(--radius-pill);
+  background: var(--accent);
+  transform: scale(0);
+  transition: transform calc(var(--dur-2) * var(--motion-scale)) var(--ease-standard);
+}
+.gk-radioGroup__radio:checked { border-color: var(--accent); }
+.gk-radioGroup__radio:checked::after { transform: scale(1); }
+.gk-radioGroup[aria-invalid="true"] .gk-radioGroup__radio { border-color: var(--destructive); }
+.gk-radioGroup__radio:disabled { opacity: 0.5; cursor: not-allowed; }
+.gk-radioGroup__text { display: flex; flex-direction: column; gap: var(--space-1); }
+.gk-radioGroup__option { color: var(--text); font-size: var(--fs-md); line-height: 1.25; cursor: pointer; }
+.gk-radioGroup__radio:disabled + .gk-radioGroup__text .gk-radioGroup__option { opacity: 0.5; cursor: not-allowed; }
+.gk-radioGroup__desc { color: var(--text-muted); font-size: var(--fs-md); line-height: var(--lh); }

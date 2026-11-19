@@ -34,8 +34,8 @@ test.describe("facet panel", () => {
     await expect(panel.locator(".fh > span:first-child")).toContainText(["Tier", "Lifecycle", "Domain", "Security officer", "Gap in"]);
     await expect(page.locator('[data-k="fopen"]')).toBeHidden();
     const total = await visible(page);
-    const t1 = panel.locator('[data-k="side-tier-T1"]');
-    const count = Number((await t1.locator("xpath=..").locator("small").innerText()).replace(/,/g, ""));
+    const t1 = panel.locator('[data-k="side-tier:T1"]');
+    const count = Number((await t1.locator("xpath=..").locator(".gk-facetList__count").innerText()).replace(/,/g, ""));
     await t1.check();
     await expect.poll(() => visible(page)).toBe(count);
     expect(urlParam(page, "tier")).toBe("T1");
@@ -51,15 +51,15 @@ test.describe("facet panel", () => {
     await page.setViewportSize({ width: 1280, height: 800 });
     await ready(page);
     const dom = facets(page).locator('section[data-facet="dom"]');
-    const before = await dom.locator(".ck").count();
+    const before = await dom.locator(".gk-facetList__opt").count();
     expect(before).toBe(5);
     await dom.locator('[data-k="fmore-dom"]').click();
-    await expect.poll(() => dom.locator(".ck").count()).toBeGreaterThan(before);
-    await expect(dom.locator("input.find")).toBeVisible();
-    await dom.locator("input.find").fill("qqqqzzzz");
-    await expect(dom.locator(".hint")).toHaveText("Nothing matches");
+    await expect.poll(() => dom.locator(".gk-facetList__opt").count()).toBeGreaterThan(before);
+    await expect(dom.locator("input.gk-facetList__find")).toBeVisible();
+    await dom.locator("input.gk-facetList__find").fill("qqqqzzzz");
+    await expect(dom.locator(".gk-facetList__hint")).toHaveText("Nothing matches");
     await dom.locator('[data-k="fmore-dom"]').click();
-    await expect(dom.locator(".ck")).toHaveCount(5);
+    await expect(dom.locator(".gk-facetList__opt")).toHaveCount(5);
   });
 
   for (const lens of ["table", "heatmap"]) {
@@ -86,7 +86,7 @@ test.describe("facet panel", () => {
       const anchor = panel.locator('section[data-facet="dom"] .fh');
       const before = (await anchor.boundingBox())!.y;
       // Click through the DOM: a Playwright click would scroll the box into view first.
-      await panel.locator('[data-k="side-tier-T1"]').evaluate((el) => (el as HTMLInputElement).click());
+      await panel.locator('[data-k="side-tier:T1"]').evaluate((el) => (el as HTMLInputElement).click());
       await expect.poll(() => urlParam(page, "tier")).toBe("T1");
       expect(Math.abs((await anchor.boundingBox())!.y - before)).toBeLessThan(2);
       expect(await panel.evaluate((el) => el.scrollTop)).toBeGreaterThanOrEqual(400);
@@ -104,7 +104,7 @@ test.describe("facet panel", () => {
     expect(Math.round(m.h)).toBe(800);
     expect(m.sh).toBeGreaterThan(m.ch);
     await panel.locator('[data-k="fmore-so"]').click();
-    await expect(panel.locator('section[data-facet="so"] input.find')).toBeVisible();
+    await expect(panel.locator('section[data-facet="so"] input.gk-facetList__find')).toBeVisible();
   });
 
   test("below 1024 px the panel is behind a Filters button and opens as a drawer", async ({ page }) => {
@@ -116,7 +116,7 @@ test.describe("facet panel", () => {
     await btn.click();
     await expect(facets(page)).toBeVisible();
     await expect(btn).toHaveAttribute("aria-expanded", "true");
-    await facets(page).locator('[data-k="side-tier-T1"]').check();
+    await facets(page).locator('[data-k="side-tier:T1"]').check();
     await page.locator('[data-k="fdone"]').click();
     await expect(facets(page)).toBeHidden();
     await expect(btn).toHaveText("Filters (1)");
@@ -149,7 +149,7 @@ test.describe("pillar tabs", () => {
     await expect(cyber).toHaveAttribute("aria-selected", "true");
     expect(urlParam(page, "gap")).toBe("Cyber");
     await expect.poll(() => visible(page)).toBe(gaps);
-    await expect(facets(page).locator('[data-k="side-gap-Cyber"]')).toBeChecked();
+    await expect(facets(page).locator('[data-k="side-gap:Cyber"]')).toBeChecked();
     // The tabs keep their counts while one is open.
     await expect(cyber.locator("b")).toHaveText(gaps.toLocaleString("en-US"));
     await tabs.nth(0).click();
@@ -157,7 +157,7 @@ test.describe("pillar tabs", () => {
     await expect(tabs.nth(0)).toHaveAttribute("aria-selected", "true");
     // A tier filter narrows every count.
     const allBefore = Number((await tabs.nth(0).locator("b").innerText()).replace(/,/g, ""));
-    await facets(page).locator('[data-k="side-tier-T1"]').check();
+    await facets(page).locator('[data-k="side-tier:T1"]').check();
     await expect.poll(async () => Number((await tabs.nth(0).locator("b").innerText()).replace(/,/g, ""))).toBeLessThan(allBefore);
     // Arrow keys move between tabs.
     await tabs.nth(0).focus();

@@ -1,8 +1,8 @@
 // The cards that stand in for a page: loading skeleton, no access, error with Retry, empty,
 // no source yet, admins only. Each is a pure function returning SafeHtml.
-import { renderRegion } from "../lib/dom.js";
-import { html } from "../lib/html.js";
-import { icon } from "../lib/icons.js";
+import { renderRegion } from "@gas-kit/client/dom.js";
+import { html } from "@gas-kit/client/html.js";
+import { icon } from "@gas-kit/client/icons.js";
 import { SLOW_AFTER_MS, SLOW_TEXT } from "./skeletons.js";
 
 const MAILTO = /^mailto:[^\s<>"']+$/i;
@@ -55,7 +55,7 @@ export function emptyState(o) {
 /** No register Sheet is connected. The owner gets the way to connect one. */
 export function noSource(o) {
   const owner = !!(o && o.owner);
-  return card("nosource", "sheet", "No register connected yet",
+  return card("nosource", "table", "No register connected yet",
     owner ? "Connect the Google Sheet that holds your application register to get started." : "The owner has not connected the register Sheet yet. Ask them to finish the setup.",
     owner ? html`<p class="state-act"><button type="button" class="btn primary" data-act="connect" data-k="connect">Connect a sheet</button></p>` : "");
 }

@@ -1,7 +1,7 @@
 // Local dev bootstrap. Runs after gas-shims.js, the workbook data, dist/server.js and
 // dist/entry.js, and before the client bundle.
 //
-// Derived from sidekick gas_hub/dev/boot.js at commit 77bcf22 (see VENDOR.md). Differences:
+// Derived from the upstream hub app's dev boot (commit 77bcf22; see KIT.md). Differences:
 //   - google.script.run dispatches to window.api_<name>, the delegators in dist/entry.js, so
 //     the access gate and the timing log are exercised exactly as in a deployment.
 //   - Results and parameters pass through JSON, as the real bridge serialises them.
@@ -16,7 +16,8 @@
 //   onetab         the workbook is one tab named Inventory (the synthetic inventory) and the
 //                  Settings are untouched defaults: the single-tab owner's setup
 //   empty          the workbook keeps header rows only
-//   coldcache      CacheService accepts writes but never returns them
+//   coldcache      CacheService accepts writes but never returns them, and the bootstrap carries
+//                  no register (a cold page: the client fetches it behind the splash)
 //   slow=<ms>      artificial RPC latency
 //   tz=<IANA>      the spreadsheet's time zone (default Europe/Paris)
 //   hideprefix=<s> Display setting: hide apps whose name starts with s
@@ -67,6 +68,7 @@
     }
   }
 
+  var COLD = flag("coldcache");
   var SLOW_MS = Math.max(0, Number(query.get("slow")) || 0);
 
   function roundTrip(v) { return v === undefined ? v : JSON.parse(JSON.stringify(v)); }
@@ -90,6 +92,11 @@
               var fn = window[prop];
               if (typeof fn !== "function" || prop.indexOf("api_") !== 0) throw new Error("Unknown RPC " + prop);
               var result = roundTrip(fn(arg));
+              // A cache that never returns a write is a cold page: the register is not warm, so the
+              // bootstrap carries none and the client asks for it. The kit cache keeps what an
+              // execution just built in memory, so the server would attach it; the flag models the
+              // cold page, not the execution, so the bootstrap drops it here.
+              if (COLD && prop === "api_bootstrap" && result && result.data) delete result.data.register;
               if (onSuccess) onSuccess(result);
             } catch (e) {
               if (onFailure) onFailure(e);

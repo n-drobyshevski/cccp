@@ -1,0 +1,20 @@
+/* Extracted from the author's production Apps Script apps; adapted. Tokens only. */
+.gk-select { display: flex; flex-direction: column; gap: var(--space-1); min-width: 0; }
+.gk-select__label { font-size: var(--fs-md); font-weight: var(--fw-medium); color: var(--text); }
+.gk-select__req { font-weight: var(--fw-normal); color: var(--text-muted); }
+.gk-select__wrap { position: relative; display: block; }
+.gk-select__wrap::after {
+  content: "\25be" / "";
+  position: absolute;
+  right: var(--space-3);
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--text-muted);
+  pointer-events: none;
+}
+.gk-select__control.gk-input { appearance: none; padding-right: calc(var(--space-5) + var(--space-3)); }
+.gk-select.is-invalid .gk-select__control { border-color: var(--destructive); border-width: 2px; }
+.gk-select__hint { font-size: var(--fs-sm); color: var(--text-muted); }
+.gk-select__error { font-size: var(--fs-sm); color: var(--bad-fg); }
+.gk-select__label.is-wrapping { display: flex; flex-direction: column; gap: var(--space-1); }
+.gk-select__control:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }

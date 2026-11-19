@@ -3,9 +3,9 @@
 // underline on the active view, the shell search on the right, the gear (owner and admin only)
 // and the light/dark toggle. The search drives the list query (q): on the Inventory page it
 // filters live (debounced); on any other page Enter opens the Inventory with that query.
-import { delegate, renderRegion } from "../lib/dom.js";
-import { html, raw } from "../lib/html.js";
-import { icon } from "../lib/icons.js";
+import { delegate, renderRegion } from "@gas-kit/client/dom.js";
+import { html } from "@gas-kit/client/html.js";
+import { icon } from "@gas-kit/client/icons.js";
 import { store } from "../state/store.js";
 import { navigate, replace } from "../state/url.js";
 import { QUERY_ROUTES, createSearch } from "./search.js";
@@ -14,13 +14,13 @@ import * as theme from "./theme.js";
 export const SEARCH_PLACEHOLDER = "Search applications, people";
 
 export const VIEWS = [
-  { route: "overview", label: "Overview", icon: "overview" },
+  { route: "overview", label: "Overview", icon: "chart" },
   { route: "list", label: "Inventory", icon: "list" },
 ];
 
 function current(route, appRoute, v) {
-  if (route === v.route) return raw(' aria-current="page"');
-  if (route === "app" && v.route === appRoute) return raw(' aria-current="true"');
+  if (route === v.route) return html` aria-current="page"`;
+  if (route === "app" && v.route === appRoute) return html` aria-current="true"`;
   return "";
 }
 
@@ -42,7 +42,7 @@ export function appbarView(s, mode, searchText) {
     ? html`<label class="gs">${icon("search")}<input type="search" data-k="q" placeholder="${SEARCH_PLACEHOLDER}" value="${q}" aria-label="Search applications and people" autocomplete="off"></label>`
     : "";
   const gear = ready && canSettings
-    ? html`<button type="button" class="icon-btn gear" data-act="settings" data-k="gear" aria-label="Settings" data-tip="Settings"${s.route === "settings" ? raw(' aria-current="page"') : ""}>${icon("gear")}</button>`
+    ? html`<button type="button" class="icon-btn gear" data-act="settings" data-k="gear" aria-label="Settings" data-tip="Settings"${s.route === "settings" ? html` aria-current="page"` : ""}>${icon("gear")}</button>`
     : "";
   return html`<div class="abin">
     <button type="button" class="brand" data-act="home" data-k="brand" aria-label="CCCP home">
@@ -76,14 +76,14 @@ export function mountAppbar(el) {
       if (i && search.draft === null && i.value !== search.value(s)) i.value = search.value(s);
     }
   });
-  const offType = delegate(el, "input", "input[data-k=q]", (ev, i) => search.type(i.value));
-  const offKey = delegate(el, "keydown", "input[data-k=q]", (ev, i) => {
+  const offType = delegate(el, "input", "input[data-k=q]", (ev, /** @type {any} */ i) => search.type(i.value));
+  const offKey = delegate(el, "keydown", "input[data-k=q]", (ev, /** @type {any} */ i) => {
     if (ev.key !== "Enter") return;
     ev.preventDefault();
     search.enter(i.value);
   });
   const offTheme = theme.onChange(draw);
-  const offClick = delegate(el, "click", "[data-act]", (ev, b) => {
+  const offClick = delegate(el, "click", "[data-act]", (ev, /** @type {any} */ b) => {
     const act = b.getAttribute("data-act");
     const s = store.get();
     if (act === "go") navigate({ route: b.getAttribute("data-route"), app: null, tab: null, view: null }, "push");

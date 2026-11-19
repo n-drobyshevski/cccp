@@ -25,7 +25,7 @@ async function ready(page: Page, query = "") {
 }
 
 async function tier1(page: Page) {
-  await page.locator('[data-k="side-tier-T1"]').check();
+  await page.locator('[data-k="side-tier:T1"]').check();
 }
 
 async function saveView(page: Page, name: string, share = false) {
@@ -53,7 +53,7 @@ test.describe("personal views", () => {
     await expect(selected(page)).toHaveText("Tier one");
     await expect(page.locator("[data-cue]")).toHaveCount(0);
     // Change the filters: the cue appears, Update stores them.
-    await page.locator('[data-k="side-tier-T2"]').check();
+    await page.locator('[data-k="side-tier:T2"]').check();
     await expect(page.locator("[data-cue]")).toContainText("changed");
     await expect(page.locator("[data-cue] [data-k=vsaveas]")).toHaveText("Save as new");
     await page.locator("[data-cue] [data-k=vupdate]").click();
@@ -68,8 +68,8 @@ test.describe("personal views", () => {
     expect(await visible(page)).toBe(all);
     await row(page, "Tier one").click();
     expect(urlParam(page, "tier")).toContain("T1");
-    await expect(page.locator('[data-k="side-tier-T1"]')).toBeChecked();
-    await expect(page.locator('[data-k="side-tier-T2"]')).toBeChecked();
+    await expect(page.locator('[data-k="side-tier:T1"]')).toBeChecked();
+    await expect(page.locator('[data-k="side-tier:T2"]')).toBeChecked();
     expect(bad).toEqual([]);
   });
 
@@ -102,7 +102,7 @@ test.describe("personal views", () => {
     const n = await visible(page);
     await saveView(page, "Mine");
     await page.getByRole("button", { name: /Copy link/ }).click();
-    await expect(page.locator(".toast", { hasText: "copied" })).toBeVisible();
+    await expect(page.locator(".gk-toast", { hasText: "copied" })).toBeVisible();
     const link = await page.evaluate(() => navigator.clipboard.readText());
     expect(link).not.toContain("view=");
     const u = new URL(link);
@@ -154,7 +154,7 @@ test.describe("shared views", () => {
     await row(v, "Tier one for all").click();
     await expect(v.getByRole("button", { name: /Copy link/ })).toBeVisible();
     await expect(v.getByRole("button", { name: /Delete/ })).toHaveCount(0);
-    await expect(v.locator('[data-k="side-tier-T1"]')).toBeChecked();
+    await expect(v.locator('[data-k="side-tier:T1"]')).toBeChecked();
     // A viewer cannot share: no checkbox in the save form.
     await v.getByRole("button", { name: "+ Save" }).click();
     await expect(v.getByLabel("Share with everyone")).toHaveCount(0);
@@ -170,7 +170,7 @@ test.describe("shared views", () => {
     await saveView(page, "Shared tier one", true);
     await expect(selected(page)).toHaveText("Shared tier one");
     await page.getByRole("button", { name: /Copy link/ }).click();
-    await expect(page.locator(".toast", { hasText: "copied" })).toBeVisible();
+    await expect(page.locator(".gk-toast", { hasText: "copied" })).toBeVisible();
     const link = await page.evaluate(() => navigator.clipboard.readText());
     const u = new URL(link);
     const id = u.searchParams.get("view");
@@ -186,7 +186,7 @@ test.describe("shared views", () => {
     // A link to a view that was deleted says so and shows the whole register.
     const gone = await context.newPage();
     await gone.goto("/?view=deadbeef&as=viewer@example.com");
-    await expect(gone.locator(".toast")).toContainText("no longer exists");
+    await expect(gone.locator(".gk-toast")).toContainText("no longer exists");
   });
 
   test("an admin deletes a shared view", async ({ page }) => {
@@ -272,7 +272,7 @@ test.describe("the side panel", () => {
     await tier1(page);
     await saveView(page, "Mine");
     await expect(page.locator("[data-cue]")).toHaveCount(0);
-    await page.locator('[data-k="side-tier-T2"]').check();
+    await page.locator('[data-k="side-tier:T2"]').check();
     const cue = page.locator("[data-cue]");
     await expect(cue).toContainText("changed");
     await expect(cue.getByRole("button", { name: "Save", exact: true })).toBeVisible();

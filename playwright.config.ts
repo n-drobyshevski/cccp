@@ -4,6 +4,10 @@ import { defineConfig } from "@playwright/test";
 // Playwright's chromium. Traces are off.
 export default defineConfig({
   testDir: "e2e",
+  // The pixel baselines (e2e/shots.spec.ts) are rendered by one pinned local Chromium and its
+  // fonts; a CI runner renders text differently, so CI skips them unless SHOTS=1. Run them locally
+  // with PW_CHROMIUM_PATH before any UI change is committed (see e2e/BASELINE.md).
+  ...(process.env.CI && !process.env.SHOTS ? { testIgnore: ["shots.spec.ts"] } : {}),
   timeout: 30_000,
   fullyParallel: true,
   reporter: [["list"]],
@@ -14,7 +18,11 @@ export default defineConfig({
     trace: "off",
     screenshot: "off",
     video: "off",
-    ...(process.env.CI ? {} : { channel: "chrome" }),
+    // PW_CHROMIUM_PATH points at a preinstalled chromium (sandboxes without Chrome); unset keeps
+    // the behaviour above: installed Chrome locally, Playwright's chromium in CI.
+    ...(process.env.PW_CHROMIUM_PATH
+      ? { launchOptions: { executablePath: process.env.PW_CHROMIUM_PATH } }
+      : process.env.CI ? {} : { channel: "chrome" }),
   },
   webServer: {
     command: "npm run dev",

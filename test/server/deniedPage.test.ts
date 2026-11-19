@@ -1,9 +1,8 @@
-// The denied page, the include guard and the editor-run setup() gate, through entry.js.
+// The denied page (the kit card), the include guard and the editor-run setup() gate, through entry.js.
 import { readFileSync } from "node:fs";
 import { runInNewContext } from "node:vm";
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import * as access from "../../src/server/access";
-import { deniedHtml } from "../../src/server/access";
+import { access, __resetMemosForTest } from "../../src/server/access";
 import { setup } from "../../src/server/setup";
 import { useGasEnv } from "../gasEnv";
 
@@ -12,7 +11,7 @@ const ENTRY = readFileSync(new URL("../../src/gas/entry.js", import.meta.url), "
 const prop = (k: string) => PropertiesService.getScriptProperties().getProperty(k);
 
 function as(who: string): void {
-  access.__resetMemosForTest();
+  __resetMemosForTest();
   fakes().setActiveUser(who);
 }
 
@@ -22,57 +21,42 @@ beforeEach(() => {
   vi.spyOn(console, "log").mockImplementation(() => {});
 });
 
-const D = { allowed: false, email: "stranger@example.com", reason: "not-listed" as const };
-
-describe("deniedHtml", () => {
-  it("names the address it saw, escaped", () => {
-    const html = deniedHtml({ allowed: false, email: 'a<b>&"@x.com', reason: "not-listed" });
-    expect(html).not.toContain("<b>");
-    expect(html).toContain("a&lt;b&gt;&amp;&quot;@x.com");
-  });
-  it("names the owner as a mailto with a subject, and no roster or property name", () => {
-    const html = deniedHtml(D, null, "owner@example.com");
-    expect(html).toContain("mailto:owner@example.com");
-    expect(html).toContain("subject=");
-    for (const s of ["viewer@example.com", "admin@example.com", "ALLOWED_USERS", "ALLOWED_ADMINS", "ACCESS_MODE"]) {
-      expect(html).not.toContain(s);
-    }
-    expect(html).toContain("CCCP");
-  });
-  it("never renders a contact line with nobody in it", () => {
-    for (const c of [undefined, null, "", "   "]) {
-      const html = deniedHtml(D, null, c);
-      expect(html).not.toContain("mailto:");
-      expect(html).toContain("ask whoever runs this dashboard");
-    }
-  });
-  it("explains the domain requirement when it saw no address", () => {
-    expect(deniedHtml({ allowed: false, email: "", reason: "anonymous" })).toMatch(/Workspace domain/);
-  });
-  it("offers the account switcher only with a URL", () => {
-    expect(deniedHtml(D, null)).not.toContain("Switch Google account");
-    expect(deniedHtml(D, "https://accounts.google.com/AccountChooser")).toContain("Switch Google account");
-  });
-});
-
 describe("deniedPage as served", () => {
   it("is null for an allowed caller", () => {
     as("viewer@example.com");
     expect(access.deniedPage()).toBeNull();
   });
-  it("is a page naming the address and the owner mailto, with no roster, for a denied one", () => {
+  it("names the address it saw, escaped, and nothing of the roster", () => {
+    as('a<b>&"@x.com');
+    const html = access.deniedPage()!.getContent();
+    expect(html).not.toContain("<b>");
+    expect(html).toContain("a&lt;b&gt;&amp;&quot;@x.com");
+    for (const s of ["viewer@example.com", "admin@example.com", "ALLOWED_USERS", "ALLOWED_ADMINS", "ACCESS_MODE"]) {
+      expect(html).not.toContain(s);
+    }
+    expect(html).toContain("CCCP");
+  });
+  it("names the owner to a denied caller, with the account switcher and no roster", () => {
     as("stranger@example.com");
     const html = access.deniedPage()!.getContent();
     expect(html).toContain("stranger@example.com");
-    expect(html).toContain("mailto:owner@example.com");
-    expect(html).toContain("subject=");
+    expect(html).toContain("contact owner@example.com");
     expect(html).not.toContain("viewer@example.com");
     expect(html).not.toContain("admin@example.com");
     expect(html).toContain("Switch Google account");
   });
-  it("is served for an unidentified caller too", () => {
+  it("never renders a contact line with nobody in it", () => {
+    as("stranger@example.com");
+    fakes().setEffectiveUser("");
+    const html = access.deniedPage()!.getContent();
+    expect(html).not.toContain("contact ");
+    expect(html).toContain("ask whoever runs this app");
+  });
+  it("is served for an unidentified caller too, explaining the domain requirement", () => {
     as("");
-    expect(access.deniedPage()).not.toBeNull();
+    const page = access.deniedPage();
+    expect(page).not.toBeNull();
+    expect(page!.getContent()).toMatch(/Workspace domain/);
   });
 });
 
@@ -84,6 +68,8 @@ function loadEntry(server: Record<string, unknown>) {
 
 describe("entry.js guards", () => {
   const fakeServer = () => ({
+    beginExecution() {},
+    UNEXPECTED_ERROR_MESSAGE: "unexpected",
     access,
     doGet: () => "APP",
     include: (f: string) => "FILE:" + f,
@@ -104,7 +90,7 @@ describe("entry.js guards", () => {
     as("stranger@example.com");
     const out = ctx.doGet({});
     expect(out).not.toBe("APP");
-    expect(out.getContent()).toContain("mailto:owner@example.com");
+    expect(out.getContent()).toContain("owner@example.com");
     as("viewer@example.com");
     expect(ctx.doGet({})).toBe("APP");
   });
@@ -122,7 +108,7 @@ describe("entry.js guards", () => {
     as("owner@example.com");
     const out = ctx.setup();
     expect(out).toContain("owner@example.com");
-    expect(out).toContain("CCCP diagnostics");
+    expect(out).toMatch(/Diagnostics (OK|FAILED) at/);
   });
 });
 
@@ -134,7 +120,7 @@ describe("setup", () => {
     as("owner@example.com");
     const out = setup("https://docs.google.com/spreadsheets/d/1AbCdEfGhIjKlMnOpQrSt/edit");
     expect(out).toContain("1AbCdEfGhIjKlMnOpQrSt");
-    expect(prop("ALLOWED_USERS")).toBe("owner@example.com");
+    expect(JSON.parse(prop("ALLOWED_USERS")!)).toEqual(["owner@example.com"]);
     for (const k of ["CFG_SOURCE", "CFG_FIELDS", "CFG_RULES", "CFG_DISPLAY"]) expect(prop(k)).not.toBeNull();
     expect(JSON.parse(prop("CFG_SOURCE")!).sheetId).toBe("1AbCdEfGhIjKlMnOpQrSt");
   });

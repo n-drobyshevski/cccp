@@ -1,64 +1,47 @@
-// Guards for the vanilla-JS client and the tooling.
-//  - no-undef over client, dev and tools (catches a deleted import that nothing else notices).
-//  - innerHTML / outerHTML / insertAdjacentHTML are banned everywhere except
-//    src/client/lib/dom.js, whose renderRegion is the single sink for markup.
-//  - a literal title attribute is banned (tooltips go through lib/tip.js, hover and focus).
-// src/vendor is verbatim sidekick code and is never linted or edited.
-const browserGlobals = Object.fromEntries(
-  [
-    "window", "document", "navigator", "location", "history", "localStorage", "sessionStorage",
-    "console", "performance", "fetch", "URL", "URLSearchParams", "crypto", "Blob", "File",
-    "FileReader", "FormData", "Event", "CustomEvent", "MutationObserver", "ResizeObserver",
-    "IntersectionObserver", "AbortController", "Node", "Element", "HTMLElement", "Image",
-    "requestAnimationFrame", "cancelAnimationFrame", "setTimeout", "clearTimeout", "setInterval",
-    "clearInterval", "queueMicrotask", "structuredClone", "globalThis", "self", "atob", "btoa",
-    "DOMParser", "TextEncoder", "TextDecoder", "getComputedStyle", "Uint8Array", "Promise",
-  ].map((k) => [k, "readonly"]),
-);
-const nodeGlobals = Object.fromEntries(
-  ["process", "console", "Buffer", "URL", "URLSearchParams", "setTimeout", "clearTimeout", "TextEncoder", "TextDecoder"].map((k) => [k, "readonly"]),
-);
-const platformGlobals = { google: "readonly", __BUILD_ID__: "readonly" };
+// The app lints itself with the kit's preset (src/kit/tooling/src/eslint/preset.mjs): the rules
+// the kit obeys are the rules the app gets. What the preset does not cover stays below.
+//  - The app has no markup sink of its own: renderRegion is the kit's (src/kit/client/src/dom.js, never
+//    linted), so no app file may write innerHTML and `sinks` is empty (it was src/client/lib/dom.js).
+//  - dev/*.js are classic scripts loaded in order by the dev page; they share window globals.
+//  - src/kit is the vendored kit: never linted or edited.
+import { kitDirs } from "./tools/kitPaths.mjs";
+import { pathToFileURL } from "node:url";
+import { join } from "node:path";
 
-const MARKUP_SINKS = [
-  { selector: "MemberExpression[property.name='innerHTML']", message: "innerHTML is only allowed in src/client/lib/dom.js (renderRegion)." },
-  { selector: "MemberExpression[property.name='outerHTML']", message: "outerHTML is only allowed in src/client/lib/dom.js (renderRegion)." },
-  { selector: "MemberExpression[property.name='insertAdjacentHTML']", message: "insertAdjacentHTML is only allowed in src/client/lib/dom.js (renderRegion)." },
-  { selector: "Literal[value=/\\stitle\\s*=/]", message: "No title attributes: use data-tip (lib/tip.js)." },
-  { selector: "TemplateElement[value.raw=/\\stitle\\s*=/]", message: "No title attributes: use data-tip (lib/tip.js)." },
-  { selector: "MemberExpression[computed=true][property.value=/^(innerHTML|outerHTML|insertAdjacentHTML)$/]", message: "Computed access to a markup sink is banned: use renderRegion (lib/dom.js)." },
-];
+const { gasKitPreset } = await import(pathToFileURL(join(kitDirs().tooling, "eslint/preset.mjs")).href);
+
+const readonly = (names) => Object.fromEntries(names.map((k) => [k, "readonly"]));
+const browserGlobals = readonly([
+  "window", "document", "navigator", "location", "history", "localStorage", "sessionStorage", "console", "fetch",
+  "URL", "URLSearchParams", "setTimeout", "clearTimeout", "setInterval", "clearInterval", "Promise", "Uint8Array",
+  "Intl", "XMLHttpRequest", "Buffer", "process", "TextEncoder", "TextDecoder", "atob", "btoa",
+]);
 
 export default [
-  { ignores: ["src/vendor/**", "dist/**", "node_modules/**", "mockups/**", "test-results/**", "playwright-report/**", "dev/server.dev.js"] },
-  {
-    files: ["src/client/**/*.js"],
-    languageOptions: { ecmaVersion: 2022, sourceType: "module", globals: { ...browserGlobals, ...platformGlobals } },
-    rules: { "no-undef": "error", "no-restricted-syntax": ["error", ...MARKUP_SINKS] },
-  },
-  {
-    // The one place allowed to write markup.
-    files: ["src/client/lib/dom.js"],
-    rules: { "no-restricted-syntax": ["error", MARKUP_SINKS[1], MARKUP_SINKS[2], MARKUP_SINKS[3], MARKUP_SINKS[4]] },
-  },
+  ...gasKitPreset({
+    client: ["src/client/**/*.js"],
+    sinks: [],
+    node: ["tools/**/*.mjs", "dev/**/*.mjs", "*.config.js", "*.config.mjs"],
+    tests: ["test/**/*.js", "test/**/*.mjs"],
+    // Each use of raw() (or html() as a function) is a reviewed decision with its reason. The same
+    // list, with the same reasons, is the noRaw contract's allow in test/contracts.test.ts.
+    rawAllowed: [
+      "src/client/lib/icons.js", // the one icon the kit lacks (bang): a static, hard-coded SVG; no interpolated data
+      "src/client/components/table.js", // raw(icon): the output of icons.js, a static SVG in a header cell
+    ],
+    ignores: [
+      "src/kit/**", "src/gas/**", "dist/**", "node_modules/**", "mockups/**", "test-results/**",
+      "playwright-report/**", "dev/server.dev.js",
+    ],
+  }),
   {
     // Classic scripts loaded in order by the dev page; they share window globals.
     files: ["dev/*.js"],
     languageOptions: {
       ecmaVersion: 2022,
       sourceType: "script",
-      globals: { ...browserGlobals, ...platformGlobals, Server: "readonly", PropertiesService: "readonly", Buffer: "readonly", process: "readonly", XMLHttpRequest: "readonly", Intl: "readonly" },
+      globals: { ...browserGlobals, google: "readonly", __BUILD_ID__: "readonly", Server: "readonly", PropertiesService: "readonly" },
     },
-    rules: { "no-undef": "error" },
-  },
-  {
-    files: ["tools/**/*.mjs", "build/**/*.mjs", "dev/**/*.mjs", "*.config.js", "*.config.mjs"],
-    languageOptions: { ecmaVersion: 2022, sourceType: "module", globals: nodeGlobals },
-    rules: { "no-undef": "error" },
-  },
-  {
-    files: ["test/**/*.js", "test/**/*.mjs"],
-    languageOptions: { ecmaVersion: 2022, sourceType: "module", globals: { ...nodeGlobals, __dirname: "readonly", globalThis: "readonly" } },
     rules: { "no-undef": "error" },
   },
 ];

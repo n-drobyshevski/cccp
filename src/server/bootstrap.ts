@@ -7,7 +7,7 @@
 // REGISTER: attached only when it is already warm in the cache and at most 600 KB, so the page
 // never pays a cold read for it; otherwise the client asks api_getRegister.
 //
-// Pattern from sidekick gas_devsecops/src/server/bootCore.ts at commit 77bcf22: nothing
+// Pattern from the upstream devsecops app's boot core (commit 77bcf22; see KIT.md): nothing
 // per-viewer may ever enter the core. test/server/bootstrap.test.ts pins it with a key
 // allowlist and a scan of the cache for the viewers' addresses.
 
@@ -18,14 +18,14 @@ import {
 import { TAB_KEYS, type FieldKey, type Issues } from "../domain/types";
 import { FIELD_KEYS } from "../domain/fields";
 import type { SourceMeta } from "../domain/payload";
-import { BUILD_ID } from "../vendor/gas_shared/server/buildInfo";
-import * as access from "./access";
+import { buildId } from "@gas-kit/server";
+import { access } from "./access";
 import { peekRegisterEntry, registerEntry } from "./registerStore";
-import { cached, cfgGen, peekCached, TTL_MIN_SEC } from "./serverCache";
+import { cache, cfgGen, coreKey, TTL_MIN_SEC } from "./serverCache";
 import { listSharedViews } from "./sharedViews";
 import { loadSettings } from "./settingsStore";
 
-const CORE = "core";
+const CORE = "core1";
 
 // The cache clamps every TTL to its minimum, so a degraded core is kept for that long.
 const DEGRADED_TTL_SEC = TTL_MIN_SEC;
@@ -70,11 +70,11 @@ export function getCore(): BootstrapCore {
 /** The core and the register entry peeked once after it (building the core may have primed it). */
 function coreWithWarm(): { core: BootstrapCore; warm: ReturnType<typeof peekRegisterEntry> } {
   let ttl = 600;
-  const core = cached<BootstrapCore>(CORE, undefined, () => {
+  const core = cache.getOrCompute<BootstrapCore>(CORE, coreKey(), () => ttl, () => {
     const b = buildCore();
     ttl = b.ttlSec;
     return b.core;
-  }, () => ttl, "cfg");
+  });
   return withFreshestMeta(core);
 }
 
@@ -98,15 +98,15 @@ export function getLive(core: BootstrapCore): BootstrapLive {
   const url = access.serviceUrl() ?? "";
   return {
     viewer: {
-      email: access.check().email,
+      email: access.decide().email,
       role: access.role() ?? "viewer",
       canEditSettings: access.canEditSettings(),
       canEditAdmins: access.canEditAdmins(),
-      canEditSource: access.canEditSource(),
+      canEditSource: access.isOwner(),
       canEditMode: access.canEditMode(),
     },
     serviceUrl: url,
-    buildId: BUILD_ID,
+    buildId: buildId(),
     today: todayIn(core.sourceMeta.tz),
     cfgGen: cfgGen(),
   };
@@ -121,7 +121,7 @@ export function getBootstrap(): BootstrapResponse {
 
 /** The bootstrap only when the core is already in the cache; null on a miss. Never reads the Sheet. */
 export function bootstrapIfWarm(): BootstrapResponse | null {
-  const hit = peekCached(CORE, undefined, "cfg") as BootstrapCore | undefined;
+  const hit = cache.peek(CORE, coreKey()) as BootstrapCore | undefined;
   if (!hit) return null;
   const { core, warm } = withFreshestMeta(hit);
   const res: BootstrapResponse = { core, live: getLive(core) };

@@ -1,0 +1,9 @@
+{
+  "name": "@gas-kit/tooling",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Build factory and guards, ESLint preset, GAS fakes and contracts, dev server and gallery",
+  "license": "MIT",
+  "type": "module",
+  "exports": { ".": "./src/index.ts", "./*": "./src/*" }
+}

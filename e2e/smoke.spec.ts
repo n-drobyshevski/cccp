@@ -42,9 +42,9 @@ test("the walk: every page, the fact sheet and a Settings save, with no console 
   await expect(page.locator("[data-page=settings]")).toBeVisible();
   await page.getByRole("tab", { name: /Display/ }).click();
   await page.locator('[data-key="display.opensOn"][data-v=heatmap]').click();
-  await page.getByRole("button", { name: "Save", exact: true }).click();
-  await expect(page.locator(".toast")).toBeVisible();
-  await expect(page.getByRole("button", { name: "Save", exact: true })).toHaveCount(0);
+  await page.getByRole("button", { name: "Save changes", exact: true }).click();
+  await expect(page.locator(".gk-toast")).toBeVisible();
+  await expect(page.getByRole("button", { name: "Save changes", exact: true })).toHaveCount(0);
   // The dev fakes are per page load, so the stored value is checked in this load: the brand goes
   // to the saved default view.
   await page.getByRole("button", { name: "CCCP home" }).click();
@@ -132,13 +132,13 @@ test.describe("keyboard", () => {
 
   test("a popover opens from the keyboard and Escape returns focus to its trigger", async ({ page }) => {
     await page.goto("/?r=list");
-    const pill = page.locator("[data-region=content] [data-act=cols]");
+    const pill = page.locator("[data-region=content] #cols-trigger");
     await expect(pill).toBeVisible();
     await pill.focus();
     await page.keyboard.press("Enter");
-    await expect(page.locator(".pop")).toBeVisible();
+    await expect(page.locator("#cols")).toBeVisible();
     await page.keyboard.press("Escape");
-    await expect(page.locator(".pop")).toHaveCount(0);
+    await expect(page.locator("#cols")).toBeHidden();
     await expect(pill).toBeFocused();
   });
 

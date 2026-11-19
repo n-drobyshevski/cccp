@@ -1,0 +1,39 @@
+/* Extracted from the author's production Apps Script apps; adapted. Tokens only. */
+.gk-popover { display: inline-block; position: relative; }
+.gk-popover__trigger[aria-expanded="true"] { background: var(--surface-2); }
+.gk-popover__trigger::after { content: " \25be" / ""; }
+.gk-popover__trigger[aria-expanded="true"]::after { content: " \25b4" / ""; }
+.gk-popover__panel {
+  position: fixed;
+  z-index: 900;
+  min-width: 240px;
+  max-width: min(360px, calc(100vw - 2 * var(--space-2)));
+  max-height: 320px;
+  overflow: auto;
+  padding: var(--space-4);
+  background: var(--surface);
+  color: var(--text);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-md);
+  opacity: 1;
+  transform: none;
+  transform-origin: top left;
+  transition: opacity var(--dur-3) var(--ease-enter), transform var(--dur-3) var(--ease-enter), display var(--dur-3) var(--ease-enter);
+  transition-behavior: allow-discrete;
+}
+.gk-popover__panel[data-side="above"] { transform-origin: bottom left; }
+/* Closed: display flips after the exit (allow-discrete). Enter fades and scales 0.96 to 1; reduced motion zeroes --motion-scale, which keeps the fade and drops the scale. */
+.gk-popover__panel[hidden] {
+  display: none;
+  opacity: 0;
+  transform: scale(calc(1 - 0.04 * var(--motion-scale)));
+  transition: opacity var(--dur-2) var(--ease-exit), transform var(--dur-2) var(--ease-exit), display var(--dur-2) var(--ease-exit);
+  transition-behavior: allow-discrete;
+}
+@starting-style {
+  .gk-popover__panel { opacity: 0; transform: scale(calc(1 - 0.04 * var(--motion-scale))); }
+}
+.gk-popover__title { margin: 0 0 var(--space-2); font-size: var(--fs-md); font-weight: var(--fw-medium); }
+.gk-popover__body { overflow-wrap: anywhere; }
+.gk-popover__trigger:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }

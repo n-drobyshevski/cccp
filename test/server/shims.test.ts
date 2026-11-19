@@ -1,3 +1,4 @@
+import { createHash } from "node:crypto";
 import { readFileSync } from "node:fs";
 import { runInNewContext } from "node:vm";
 import { describe, expect, it } from "vitest";
@@ -7,6 +8,16 @@ import { GAS_GLOBALS, installGasEnv, useGasEnv } from "../gasEnv";
 const fakes = useGasEnv({ workbook: true });
 const g = globalThis as any;
 const WRITE = "CCCP must never write to the source sheet";
+
+describe("Utilities.computeDigest", () => {
+  it("is SHA-1 over UTF-8, byte for byte what node computes", () => {
+    for (const text of ["", "abc", "viewer@example.com", "é".repeat(70), "x".repeat(55), "x".repeat(56), "x".repeat(64)]) {
+      const got = Utilities.computeDigest(Utilities.DigestAlgorithm.SHA_1, text, Utilities.Charset.UTF_8).map((b) => (b & 0xff).toString(16).padStart(2, "0")).join("");
+      expect(got).toBe(createHash("sha1").update(text, "utf8").digest("hex"));
+    }
+    expect(() => Utilities.computeDigest("MD5" as never, "x")).toThrow(/algorithm/);
+  });
+});
 
 describe("gasEnv", () => {
   it("installs the globals and restores what was there", () => {
@@ -200,7 +211,7 @@ describe("entry.js through the shims", () => {
       console: { log: (s: string) => logs.push(s) },
       Date,
       JSON,
-      Server: { access: { denyResult: () => null }, api: { bootstrap: () => ({ ok: true, data: 1 }) } },
+      Server: { beginExecution() {}, access: { denyResult: () => null, role: () => "viewer" }, api: { bootstrap: () => ({ ok: true, data: 1 }) } },
     };
     runInNewContext(src, ctx);
     expect(ctx.api_bootstrap({})).toEqual({ ok: true, data: 1 });

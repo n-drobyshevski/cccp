@@ -5,22 +5,71 @@
 // Save access button of its own and its own unsaved-changes guard.
 //
 // THE PANEL IS NOT THE BOUNDARY. Every endpoint behind it checks the role again on the server;
-// what is decided here is only what to draw. The roster rules (owner row locked, outside-domain
-// warning, who a save would lock out, what is sent) are the vendored accessModel, and notKept and
-// guardUnsaved are the vendored accessSave helpers.
+// what is decided here is only what to draw. The roster rules (address parsing, the owner who
+// cannot be removed, the diff of a save, whether the server kept what was sent) are the kit's
+// accessModel; the unsaved guard is the kit's guardUnsaved. The view stays app-owned (Identity G
+// rows, avatars, chips): the kit accessEditor holds the mode in the same draft and has no
+// confirmation step, while here the mode is the owner's own call (saveAccessMode) that names what
+// it will do first.
 //
 // access.js is a controller (createAccess) plus a pure view (accessView). The controller holds
 // the roster being edited and asks page.js to redraw; the view only reads its state.
-import { guardUnsaved, notKept } from "gas_shared/ui/accessSave.js";
 import {
-  ADD_REJECTION, isAddable, isDirty, outsideDomain, pendingSaves, removals, splitRoster,
-} from "../../../vendor/gas_hub/src/client/js/pages/accessModel.js";
-import { delegate } from "../../lib/dom.js";
+  accessDiff, accessPatch, addEmails, createDraft, domainOf, normEmail, notKept, removeEmail,
+} from "@gas-kit/ui/components/accessModel.js";
+import { guardUnsaved } from "@gas-kit/client/unsaved.js";
+import { delegate } from "@gas-kit/client/dom.js";
 import { confirmDialog } from "../../lib/confirm.js";
-import { count } from "../../lib/format.js";
-import { html } from "../../lib/html.js";
-import * as rpc from "../../lib/rpc.js";
+import { pluralize } from "@gas-kit/client/format.js";
+import { html } from "@gas-kit/client/html.js";
+import * as rpc from "@gas-kit/client/rpc.js";
 import { toast } from "../../lib/toast.js";
+import { errorText } from "../../lib/errorText.js";
+
+/** The words each refusal of an address gets. */
+export const ADD_REJECTION = {
+  "not-an-address": "That doesn't look like an email address.",
+  "already-the-owner": "The owner always has access.",
+  "already-listed": "That person is already on the list.",
+  full: "The list is full, so that address does not fit.",
+};
+
+/**
+ * Why the kit refused an address, as one of the keys of ADD_REJECTION. The owner is in the
+ * kit's users list, so adding them reads there as already listed; here it has its own sentence.
+ * @param {{value: string, reason: string}} r
+ * @param {string} owner
+ */
+export function rejectionKey(r, owner) {
+  if (r.value === normEmail(owner) || /owner/.test(r.reason)) return "already-the-owner";
+  if (/already/.test(r.reason)) return "already-listed";
+  if (/full/.test(r.reason)) return "full";
+  return "not-an-address";
+}
+
+/** An address outside the owner's domain can never match a Google account here; flagged, not refused. */
+export const outsideDomain = (email, domain) => !!domain && domainOf(email) !== String(domain).toLowerCase();
+
+/** The editable people of a list: the owner is drawn as a locked row, never in the list. */
+export const editable = (draft, list) => draft[list].filter((e) => e !== draft.owner);
+
+/** Who a save would lock out, by name: the removals from users, then from admins. */
+export function removals(base, draft) {
+  const d = accessDiff(base, draft);
+  return d.users.removed.concat(d.admins.removed);
+}
+
+/** Whether either list moved since it was loaded. */
+export const isDirty = (base, draft) => accessDiff(base, draft).count > 0;
+
+/**
+ * Which save calls a submit needs. An unchanged list is not sent; the admins list is the
+ * owner's, so it is never sent from an admin's panel (the server would refuse a no-op).
+ */
+export function pendingSaves(base, draft, canEditAdmins) {
+  const p = accessPatch(base, draft);
+  return { users: p.users !== undefined, admins: !!canEditAdmins && p.admins !== undefined };
+}
 
 /** Two letters for the avatar: 'jane.doe@x.com' is JD. */
 export function initials(email) {
@@ -60,7 +109,7 @@ export function modeConfirm(mode, info) {
   const n = keepers(info).length;
   return {
     title: "Go back to the list?",
-    body: count(n, "person", "people") + " keep" + (n === 1 ? "s" : "") + " access: the owner, the admins and the people on the list. Everyone else at " + (domain || "your organization") + " loses access on their next request.",
+    body: pluralize(n, "person", "people") + " keep" + (n === 1 ? "s" : "") + " access: the owner, the admins and the people on the list. Everyone else at " + (domain || "your organization") + " loses access on their next request.",
     confirmLabel: "Use the list",
     danger: true,
   };
@@ -69,8 +118,7 @@ export function modeConfirm(mode, info) {
 const emptyState = () => ({
   status: "idle", message: "",
   canEditAdmins: false, canEditMode: false, mode: "list", owner: "", domain: "",
-  users: [], admins: [],
-  baseline: { users: [], admins: [] }, saved: { users: "", admins: "" },
+  draft: createDraft({}), base: createDraft({}),
   typed: { users: "", admins: "" }, note: { users: "", admins: "" },
   busy: false,
 });
@@ -110,14 +158,16 @@ function modeCards(a) {
 
 function peopleBlock(a) {
   const owner = html`<div class="prow locked" data-owner-row><span class="av" aria-hidden="true">${initials(a.owner)}</span><span class="pe">${a.owner}</span><span class="mut">Owner · always has access</span></div>`;
-  const empty = a.users.length ? "" : html`<p class="mut small">Nobody else yet. Only the owner and the admins can open CCCP${a.mode === "org" ? " unless everyone at " + a.domain + " is let in" : ""}.</p>`;
-  return html`${owner}${empty}${a.users.map((e) => personRow(e, a.domain, "users", true))}${addRow(a, "users", "Add someone by email")}`;
+  const users = editable(a.draft, "users");
+  const empty = users.length ? "" : html`<p class="mut small">Nobody else yet. Only the owner and the admins can open CCCP${a.mode === "org" ? " unless everyone at " + a.domain + " is let in" : ""}.</p>`;
+  return html`${owner}${empty}${users.map((e) => personRow(e, a.domain, "users", true))}${addRow(a, "users", "Add someone by email")}`;
 }
 
 function adminsBlock(a) {
   if (!a.canEditAdmins) return "";
-  const empty = a.admins.length ? "" : html`<p class="mut small">No admins. Only the owner can change settings.</p>`;
-  return html`${empty}${a.admins.length ? html`<div class="pchips">${a.admins.map((e) => chip(e, a.domain, "admins"))}</div>` : ""}${addRow(a, "admins", "Add an admin by email")}`;
+  const admins = a.draft.admins;
+  const empty = admins.length ? "" : html`<p class="mut small">No admins. Only the owner can change settings.</p>`;
+  return html`${empty}${admins.length ? html`<div class="pchips">${admins.map((e) => chip(e, a.domain, "admins"))}</div>` : ""}${addRow(a, "admins", "Add an admin by email")}`;
 }
 
 /** ctx: {access}, the controller's state. */
@@ -126,7 +176,7 @@ export function accessView(ctx) {
   if (a.status === "idle" || a.status === "loading") return html`<p class="mut" role="status" aria-busy="true"><span class="spin" aria-hidden="true"></span>Loading who has access…</p>`;
   if (a.status === "error") return html`<div class="callout error" role="alert" data-banner="error"><span>${a.message}</span><button type="button" class="btn sm" data-act="a-retry" data-k="a-retry">Retry</button></div>`;
   if (a.status === "forbidden") return html`<p class="mut" role="status">Only the owner or an admin can see who has access.</p>`;
-  const dirty = isDirty(a, a.saved);
+  const dirty = isDirty(a.base, a.draft);
   return html`<div class="sgrp" data-region="access">
     ${sf("Who can open CCCP", "Everyone opens it read only.", modeCards(a))}
     ${sf("People", "People who can open CCCP, read only. Admins can add and remove them." + (a.canEditAdmins ? "" : " Only the owner can change who is an admin."), html`<div class="acl" data-people>${peopleBlock(a)}</div>`)}
@@ -142,49 +192,47 @@ export function accessView(ctx) {
  */
 export function createAccess({ el, redraw }) {
   const state = emptyState();
-  const baseline = state.baseline;
-  const saved = state.saved;
+  /** @type {Map<string, any>} */
   const addInputs = new Map();
   const typedButNotAdded = () => Array.from(addInputs.values()).some((a) => a.text().trim() !== "");
   const offs = [];
 
   function adopt(info) {
-    const r = splitRoster(info);
-    state.owner = r.owner;
-    state.domain = r.domain;
-    state.users = r.users;
-    state.admins = r.admins;
-    state.mode = info.mode === "org" ? "org" : "list";
+    state.owner = normEmail(info.owner);
+    state.domain = String(info.domain || "");
+    // The owner is in the kit draft's users list, first; the view lifts it out and a save sends the list without it.
+    state.draft = createDraft({ owner: info.owner, users: info.users, admins: info.admins, mode: info.mode });
+    state.base = createDraft({ owner: info.owner, users: info.users, admins: info.admins, mode: info.mode });
+    state.mode = state.draft.mode;
     state.canEditAdmins = !!info.canEditAdmins;
     state.canEditMode = !!info.canEditMode;
-    baseline.users = r.users.slice();
-    baseline.admins = r.admins.slice();
-    saved.users = baseline.users.join(",");
-    saved.admins = baseline.admins.join(",");
     addInputs.clear();
-    register("users", () => state.users);
-    if (state.canEditAdmins) register("admins", () => state.admins);
+    register("users");
+    if (state.canEditAdmins) register("admins");
   }
 
   // An address typed and not yet added is part of a save: see save().
-  function register(list, items) {
+  function register(list) {
     const commit = (flushing) => {
-      const verdict = isAddable(state.typed[list], items(), state.owner);
-      if (!verdict.ok) {
-        if (verdict.reason === "empty") return true;
-        if (flushing && verdict.reason !== "not-an-address") {
-          state.typed[list] = "";
-          return true;
-        }
-        state.note[list] = ADD_REJECTION[verdict.reason];
+      const text = state.typed[list];
+      if (text.trim() === "") return true;
+      const res = addEmails(state.draft, list, text, state.owner);
+      const bad = res.rejected.map((r) => ({ r, key: rejectionKey(r, state.owner) }));
+      const invalid = bad.filter((b) => b.key === "not-an-address");
+      // Flushing a save: an address already there is dropped quietly; one that is no address stops the save.
+      const blocking = flushing ? invalid : bad;
+      if (res.added.length) state.draft = res.draft;
+      if (!blocking.length) {
+        state.typed[list] = "";
+        state.note[list] = "";
         redraw();
-        return false;
+        return true;
       }
-      state.typed[list] = "";
-      state.note[list] = "";
-      items().push(verdict.value);
+      // What did not fit stays in the box (the whole text when nothing was added), with the first reason.
+      if (res.added.length) state.typed[list] = bad.map((b) => b.r.value).join(", ");
+      state.note[list] = ADD_REJECTION[blocking[0].key];
       redraw();
-      return true;
+      return false;
     };
     addInputs.set(list, { text: () => state.typed[list], commit });
   }
@@ -197,10 +245,13 @@ export function createAccess({ el, redraw }) {
       else { adopt(info); state.status = "ready"; }
     } catch (e) {
       state.status = "error";
-      state.message = e.message;
+      state.message = errorText(e);
     }
     redraw();
   }
+
+  /** The users list as the server takes it: the owner is written in by the server, not sent. */
+  const sendable = (draft, list) => draft[list].filter((e) => e !== state.owner);
 
   async function save() {
     if (state.busy) return;
@@ -208,12 +259,12 @@ export function createAccess({ el, redraw }) {
     for (const { commit } of Array.from(addInputs.values())) {
       if (!commit(true)) return;
     }
-    if (!isDirty(state, saved)) {
+    if (!isDirty(state.base, state.draft)) {
       toast("No changes to save.");
       return;
     }
     // REMOVALS GET A CONFIRMATION NAMING NAMES: a removal locks someone out on their next request.
-    const gone = removals(baseline, state);
+    const gone = removals(state.base, state.draft);
     if (gone.length) {
       const ok = await confirmDialog({
         title: gone.length === 1 ? "Remove one person?" : "Remove " + gone.length + " people?",
@@ -223,14 +274,14 @@ export function createAccess({ el, redraw }) {
       });
       if (!ok) return;
     }
-    const pending = pendingSaves(state, saved, state.canEditAdmins);
-    const sentUsers = pending.users ? state.users.slice() : [];
-    const sentAdmins = pending.admins ? state.admins.slice() : [];
+    const pending = pendingSaves(state.base, state.draft, state.canEditAdmins);
+    const sentUsers = pending.users ? sendable(state.draft, "users") : [];
+    const sentAdmins = pending.admins ? sendable(state.draft, "admins") : [];
     state.busy = true;
     redraw();
     try {
-      if (pending.users) await rpc.call("saveAccess", { users: state.users.join(", "), base: baseline.users.join(", ") });
-      if (pending.admins) await rpc.call("saveAdmins", { admins: state.admins.join(", "), base: baseline.admins.join(", ") });
+      if (pending.users) await rpc.call("saveAccess", { users: sentUsers.join(", "), base: sendable(state.base, "users").join(", ") });
+      if (pending.admins) await rpc.call("saveAdmins", { admins: sentAdmins.join(", "), base: sendable(state.base, "admins").join(", ") });
       // Re-read rather than trust the local lists: the owner is written back in, and the server
       // is what decides what was kept.
       const fresh = await rpc.call("getAccess");
@@ -239,7 +290,7 @@ export function createAccess({ el, redraw }) {
       else toast("Access updated.");
       adopt(fresh);
     } catch (e) {
-      toast(e.message, { kind: "err" });
+      toast(errorText(e), { kind: "err" });
     }
     state.busy = false;
     redraw();
@@ -247,24 +298,27 @@ export function createAccess({ el, redraw }) {
 
   async function setMode(mode) {
     if (!state.canEditMode || mode === state.mode || (mode !== "org" && mode !== "list")) { redraw(); return; }
-    const info = { owner: state.owner, domain: state.domain, users: baseline.users, admins: baseline.admins };
+    const info = { owner: state.owner, domain: state.domain, users: sendable(state.base, "users"), admins: sendable(state.base, "admins") };
     const ok = await confirmDialog(modeConfirm(mode, info));
     if (!ok) { redraw(); return; }
     try {
       const res = await rpc.call("saveAccessMode", { mode });
-      state.mode = res.mode === "org" ? "org" : "list";
+      /** @type {"list"|"org"} */
+      const saved = res.mode === "org" ? "org" : "list";
+      state.mode = saved;
+      // The mode is saved on its own, so it moves in both drafts and never counts as an unsaved change.
+      state.draft = { ...state.draft, mode: saved };
+      state.base = { ...state.base, mode: saved };
       toast(state.mode === "org"
         ? "Everyone at " + state.domain + " can now open CCCP."
-        : "Back to the list. " + count(keepers(info).length, "person", "people") + " keep access.");
+        : "Back to the list. " + pluralize(keepers(info).length, "person", "people") + " keep access.");
     } catch (e) {
-      toast(e.message, { kind: "err" });
+      toast(errorText(e), { kind: "err" });
     }
     redraw();
   }
 
-  const listOf = (name) => (name === "admins" ? state.admins : state.users);
-
-  offs.push(delegate(el, "click", "[data-act]", (ev, b) => {
+  offs.push(delegate(el, "click", "[data-act]", (ev, /** @type {any} */ b) => {
     const act = b.getAttribute("data-act");
     if (act.indexOf("a-") !== 0) return;
     const list = b.getAttribute("data-list");
@@ -272,29 +326,30 @@ export function createAccess({ el, redraw }) {
     else if (act === "a-retry") load();
     else if (act === "a-add" && addInputs.has(list)) addInputs.get(list).commit(false);
     else if (act === "a-remove" && addInputs.has(list)) {
-      const at = listOf(list).indexOf(b.getAttribute("data-email"));
-      if (at >= 0) { listOf(list).splice(at, 1); redraw(); }
+      const res = removeEmail(state.draft, list, b.getAttribute("data-email"), state.owner);
+      if (res.ok) { state.draft = res.draft; redraw(); }
     }
   }));
-  offs.push(delegate(el, "input", "input[data-add]", (ev, t) => {
+  offs.push(delegate(el, "input", "input[data-add]", (ev, /** @type {any} */ t) => {
     state.typed[t.getAttribute("data-add")] = t.value;
     if (state.note[t.getAttribute("data-add")]) state.note[t.getAttribute("data-add")] = "";
   }));
-  offs.push(delegate(el, "keydown", "input[data-add]", (ev, t) => {
+  offs.push(delegate(el, "keydown", "input[data-add]", (ev, /** @type {any} */ t) => {
     if (ev.key !== "Enter") return;
     ev.preventDefault();
     const a = addInputs.get(t.getAttribute("data-add"));
     if (a) a.commit(false);
   }));
-  offs.push(delegate(el, "change", "input[data-mode]", (ev, t) => setMode(t.getAttribute("data-mode"))));
+  offs.push(delegate(el, "change", "input[data-mode]", (ev, /** @type {any} */ t) => setMode(t.getAttribute("data-mode"))));
 
-  // A reload with unsaved edits, or an address still in its box, asks first.
-  guardUnsaved(el, () => isDirty(state, saved) || typedButNotAdded());
+  // A reload with unsaved edits, or an address still in its box, asks first. The guard drops
+  // itself once el leaves the document, and dispose() drops it at once.
+  offs.push(guardUnsaved(el, () => isDirty(state.base, state.draft) || typedButNotAdded()));
 
   return {
     state,
     ensureLoaded() { if (state.status === "idle") load(); },
-    dirty: () => state.status === "ready" && (isDirty(state, saved) || typedButNotAdded()),
+    dirty: () => state.status === "ready" && (isDirty(state.base, state.draft) || typedButNotAdded()),
     dispose() { offs.forEach((f) => f()); },
   };
 }

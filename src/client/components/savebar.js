@@ -1,25 +1,26 @@
-// The sticky save bar of the Settings page (identity G): under a 2px ink rule, how many unsaved
-// changes and what they are (for the rules, 'Pentest too old: 18 \u2192 24 months (131 \u2192 74 apps)'),
-// a link to each tab that holds some, Discard and Save. It is absent when nothing changed.
-// Buttons: data-act s-discard, s-save; the jump links are data-act s-tab with data-tab.
-import { html } from "../lib/html.js";
+// The sticky save bar of the Settings page (identity G): the kit savebar for the states (how many
+// unsaved changes, Saving, Fix N problems, Discard and Save changes), under a 2px ink rule, with
+// an app-owned slot beside it that the kit has none of: what the rule changes do ('Pentest too old:
+// 18 → 24 months (131 → 74 apps)') and a link to each tab that holds changes. It is absent
+// when nothing changed. Buttons: the kit's savebar:discard and savebar:save (page.js maps them);
+// the jump links are data-act s-tab with data-tab. The kit's conflict, error and saved states are
+// not used: a conflict reloads the settings and says so in a banner, an error is a banner and a
+// toast, and after a save the bar goes away.
+import { html } from "@gas-kit/client/html.js";
+import { savebar as kitSavebar } from "@gas-kit/ui/components/savebar.js";
 
 const SHOWN_NOTES = 2;
 
 /**
- * opts: {count, text, tabs: [{tab, label}], notes?: string[], busy, problems: number}. With
- * `problems` Save is disabled and the bar says why.
+ * opts: {count, tabs: [{tab, label}], notes?: string[], busy, problems: number}. With `problems`
+ * Save is blocked and the bar says why.
  */
 export function savebar(opts) {
   if (!opts || !opts.count) return html``;
-  const blocked = opts.problems > 0;
   const notes = opts.notes || [];
   const more = notes.length - SHOWN_NOTES;
-  return html`<div class="savebar" role="status" data-region="savebar">
-    <span class="sb-text">${opts.text}${notes.length ? html` <span class="sb-notes">\u00b7 ${notes.slice(0, SHOWN_NOTES).join("; ")}${more > 0 ? " and " + more + " more" : ""}</span>` : ""}${opts.tabs.length ? html` <span class="sb-in">in ${opts.tabs.map((t, i) => html`${i ? ", " : ""}<button type="button" class="sb-link" data-act="s-tab" data-tab="${t.tab}" data-k="sb-${t.tab}">${t.label}</button>`)}</span>` : ""}${blocked ? html` <span class="sb-warn">Fix ${opts.problems} ${opts.problems === 1 ? "problem" : "problems"} to save.</span>` : ""}</span>
-    <div class="sb-act">
-      <button type="button" class="btn" data-act="s-discard" data-k="sb-discard"${opts.busy ? html` disabled` : ""}>Discard</button>
-      <button type="button" class="btn pri" data-act="s-save" data-k="sb-save"${opts.busy || blocked ? html` disabled` : ""}>${opts.busy ? "Saving…" : "Save"}</button>
-    </div>
-  </div>`;
+  const slot = notes.length || opts.tabs.length
+    ? html`<div class="sb-extra">${notes.length ? html`<span class="sb-notes">${notes.slice(0, SHOWN_NOTES).join("; ")}${more > 0 ? " and " + more + " more" : ""}</span>` : ""}${opts.tabs.length ? html` <span class="sb-in">in ${opts.tabs.map((t, i) => html`${i ? ", " : ""}<button type="button" class="sb-link" data-act="s-tab" data-tab="${t.tab}" data-k="sb-${t.tab}">${t.label}</button>`)}</span>` : ""}</div>`
+    : "";
+  return html`<div class="savebar" data-region="savebar">${kitSavebar({ state: opts.busy ? "saving" : "dirty", count: opts.count, problems: opts.problems })}${slot}</div>`;
 }

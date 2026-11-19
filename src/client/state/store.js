@@ -1,5 +1,6 @@
-// One state object for the whole client, and subscribe(). Updates are shallow merges into a
-// fresh object; a set that changes nothing does not notify. Subscribers get (state, prev).
+// One state object for the whole client, and subscribe(): the kit's createStore (shallow merges into
+// a fresh object; a set that changes nothing does not notify; subscribers get (state, prev)).
+import { createStore } from "@gas-kit/client/store.js";
 import { DEFAULT_LENS, DEFAULT_METRIC, defaultState } from "../../domain/viewState";
 
 export function initialState() {
@@ -38,30 +39,5 @@ export function initialState() {
   };
 }
 
-export function createStore(make) {
-  let state = (make || initialState)();
-  const subs = new Set();
-  return {
-    get: () => state,
-    set(patch) {
-      const prev = state;
-      let changed = false;
-      for (const k of Object.keys(patch)) if (!Object.is(prev[k], patch[k])) { changed = true; break; }
-      if (!changed) return state;
-      state = { ...prev, ...patch };
-      for (const fn of Array.from(subs)) fn(state, prev);
-      return state;
-    },
-    subscribe(fn) {
-      subs.add(fn);
-      return () => subs.delete(fn);
-    },
-    reset() {
-      const prev = state;
-      state = (make || initialState)();
-      for (const fn of Array.from(subs)) fn(state, prev);
-    },
-  };
-}
-
-export const store = createStore();
+// The state is untyped here, as it was before the kit store: the pages read it by key.
+export const store = createStore(/** @type {() => any} */ (initialState));

@@ -1,6 +1,6 @@
 // saveAccessMode and the end-to-end effect of the mode on who gets in.
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import * as access from "../../src/server/access";
+import { access, __resetMemosForTest } from "../../src/server/access";
 import { getAccess, saveAccessMode } from "../../src/server/api";
 import { useGasEnv } from "../gasEnv";
 
@@ -9,7 +9,7 @@ const prop = (k: string) => PropertiesService.getScriptProperties().getProperty(
 let log: { mock: { calls: unknown[][] } };
 
 function as(who: string): void {
-  access.__resetMemosForTest();
+  __resetMemosForTest();
   fakes().setActiveUser(who);
 }
 
@@ -49,17 +49,17 @@ describe("saveAccessMode", () => {
   });
   it("changes who gets in: a same-domain stranger is admitted in org mode only", () => {
     as("anyone@example.com");
-    expect(access.check().allowed).toBe(false);
+    expect(access.decide().allowed).toBe(false);
     as("owner@example.com");
     saveAccessMode({ mode: "org" });
     as("anyone@example.com");
-    expect(access.check()).toMatchObject({ allowed: true, reason: "org" });
+    expect(access.decide()).toMatchObject({ allowed: true, reason: "org" });
     expect(access.role()).toBe("viewer");
     expect(getAccess().data).toEqual({ canEditUsers: false, canEditAdmins: false, canEditMode: false });
     as("owner@example.com");
     saveAccessMode({ mode: "list" });
     as("anyone@example.com");
-    expect(access.check().allowed).toBe(false);
+    expect(access.decide().allowed).toBe(false);
   });
   it("shows the mode to admins and the owner only", () => {
     as("admin@example.com");

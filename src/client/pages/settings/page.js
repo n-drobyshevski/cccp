@@ -7,10 +7,10 @@
 // Saving sends ONE api_saveSettings({patch, baseGen}). A conflict reloads the server's settings
 // and says so. After a source or fields change the register is fetched again; after a rules or
 // display change it is derived again from the copy in memory.
-import { delegate, qs, renderRegion } from "../../lib/dom.js";
-import { html } from "../../lib/html.js";
-import { icon } from "../../lib/icons.js";
-import * as rpc from "../../lib/rpc.js";
+import { delegate, qs, renderRegion } from "@gas-kit/client/dom.js";
+import { html } from "@gas-kit/client/html.js";
+import { icon } from "@gas-kit/client/icons.js";
+import * as rpc from "@gas-kit/client/rpc.js";
 import { toast } from "../../lib/toast.js";
 import { savebar } from "../../components/savebar.js";
 import { homeRoute } from "../../shell/appbar.js";
@@ -31,6 +31,7 @@ import { displayView } from "./display.js";
 import { fieldsView } from "./fields.js";
 import { editRule, toggleTier, rulesView, ruleChangeNotes } from "./rules.js";
 import { sourceView } from "./source.js";
+import { errorText } from "../../lib/errorText.js";
 
 const VIEWS = { source: sourceView, fields: fieldsView, rules: rulesView, access: accessView, display: displayView };
 
@@ -103,6 +104,7 @@ export const settingsPage = {
     }
     let alive = true;
     let busy = false;
+    /** @type {{ kind: string, text: string } | null} */
     let banner = null;
     const ui = { adv: false, probe: { state: "idle" }, reloadBusy: false, reloadedAt: false };
     guardSettings(() => isDirty(sessionOf()));
@@ -119,7 +121,7 @@ export const settingsPage = {
       const bar = barModel(session);
       const view = VIEWS[tab] || soon;
       const vctx = { session, meta: st.core.sourceMeta, viewer: st.live.viewer, ui, errors, rows: register.allRows(), today: st.live.today, access: accessCtl.state };
-      const def = SETTINGS_TABS.find((t) => t.key === tab);
+      const def = /** @type {(typeof SETTINGS_TABS)[number]} */ (SETTINGS_TABS.find((t) => t.key === tab));
       if (tab === "access") accessCtl.ensureLoaded();
       const notes = bar.changed.some((k) => k.indexOf("rules.") === 0) ? ruleChangeNotes({ session, rows: vctx.rows, today: vctx.today }) : [];
       renderRegion(el, html`<div class="stw" data-page="settings" data-tab="${tab}">
@@ -131,7 +133,7 @@ export const settingsPage = {
             ${problemsView(problems)}
             ${view(vctx)}
           </section>
-          ${savebar({ count: bar.count, text: bar.text, tabs: bar.tabs, notes, busy, problems: problems.length })}
+          ${savebar({ count: bar.count, tabs: bar.tabs, notes, busy, problems: problems.length })}
         </div>
       </div>`);
     }
@@ -147,6 +149,7 @@ export const settingsPage = {
       if (s) store.set({ settingsDraft: edit(s, key, value) });
     }
 
+    /** @type {(() => void) | null} */
     let stopSlow = null;
     const endWait = () => { if (stopSlow) stopSlow(); stopSlow = null; };
 
@@ -170,7 +173,7 @@ export const settingsPage = {
       } catch (e) {
         endWait();
         if (!alive || !ctx.current()) return;
-        renderRegion(el, html`<section class="state error" role="alert"><h1>The settings could not be opened</h1><p>${e.message}</p><p class="state-act"><button type="button" class="btn" data-act="s-retry" data-k="retry">Retry</button></p></section>`, { keepFocus: false, keepScroll: false });
+        renderRegion(el, html`<section class="state error" role="alert"><h1>The settings could not be opened</h1><p>${errorText(e)}</p><p class="state-act"><button type="button" class="btn" data-act="s-retry" data-k="retry">Retry</button></p></section>`, { keepFocus: false, keepScroll: false });
         return;
       }
       draw();
@@ -192,7 +195,7 @@ export const settingsPage = {
       try {
         ui.probe = { state: "ok", result: await rpc.call("probeSource", { url: s.draft["source.sheetId"] }) };
       } catch (e) {
-        ui.probe = { state: "err", message: e.message };
+        ui.probe = { state: "err", message: errorText(e) };
       }
       draw();
     }
@@ -209,7 +212,7 @@ export const settingsPage = {
         ui.reloadedAt = true;
         toast("Data reloaded · " + register.allRows().length + " applications");
       } catch (e) {
-        toast(e.message, { kind: "err" });
+        toast(errorText(e), { kind: "err" });
       }
       ui.reloadBusy = false;
       draw();
@@ -222,7 +225,7 @@ export const settingsPage = {
         banner = { kind: "conflict", text: e.message + " The settings on this page were reloaded, so your unsaved changes were discarded. Make them again and save." };
         toast("Settings reloaded: someone else saved first", { kind: "err" });
       } catch (e2) {
-        banner = { kind: "error", text: e2.message };
+        banner = { kind: "error", text: errorText(e2) };
       }
     }
 
@@ -250,8 +253,8 @@ export const settingsPage = {
       } catch (e) {
         if (e.kind === "conflict") await conflict(e);
         else {
-          banner = { kind: "error", text: e.kind === "busy" ? "Someone else is saving the settings right now. Wait a moment and save again." : e.message };
-          toast(e.message, { kind: "err" });
+          banner = { kind: "error", text: e.kind === "busy" ? "Someone else is saving the settings right now. Wait a moment and save again." : errorText(e) };
+          toast(errorText(e), { kind: "err" });
         }
       }
       busy = false;
@@ -263,16 +266,20 @@ export const settingsPage = {
       if (n.settingsDraft !== p.settingsDraft || n.tab !== p.tab || n.core !== p.core) draw();
     }));
 
-    offs.push(delegate(el, "click", "[data-act]", (ev, b) => {
+    offs.push(delegate(el, "click", "[data-act]", (ev, /** @type {any} */ b) => {
       const act = b.getAttribute("data-act");
-      if (act.indexOf("s-") !== 0) return;
+      // The kit savebar keeps focus on a blocked Save (aria-disabled), so a click still arrives: ignore it.
+      if (b.hasAttribute("data-disabled")) return;
+      if (act.indexOf("s-") !== 0 && act.indexOf("savebar:") !== 0) return;
       const s = sessionOf();
       if (act === "s-tab") navigate({ tab: b.getAttribute("data-tab") }, "replace");
       else if (act === "s-back") navigate({ route: homeRoute(store.get()), app: null, tab: null, view: null }, "push");
       else if (act === "s-tier") setRule(b.getAttribute("data-trule"), "tier", Number(b.getAttribute("data-tier")));
+      else if (act === "s-toggle") setDraft(b.getAttribute("data-v"), b.getAttribute("aria-checked") !== "true");
+      else if (act === "s-rule-on") setRule(b.getAttribute("data-v"), "on", b.getAttribute("aria-checked") !== "true");
       else if (act === "s-set") setDraft(b.getAttribute("data-key"), b.getAttribute("data-v"));
-      else if (act === "s-discard" && s) { banner = null; ui.probe = { state: "idle" }; store.set({ settingsDraft: discard(s) }); draw(); }
-      else if (act === "s-save") save();
+      else if (act === "savebar:discard" && s) { banner = null; ui.probe = { state: "idle" }; store.set({ settingsDraft: discard(s) }); draw(); }
+      else if (act === "savebar:save") save();
       else if (act === "s-reload") reload();
       else if (act === "s-probe") probe();
       else if (act === "s-adv") { ui.adv = !ui.adv; draw(); }
@@ -304,13 +311,13 @@ export const settingsPage = {
     offs.push(delegate(el, "change", "select[data-tabpick]", onTab));
     offs.push(delegate(el, "change", "select[data-key], input[type=checkbox][data-key]", onField));
 
-    offs.push(delegate(el, "keydown", '[role="tab"]', (ev, t) => {
+    offs.push(delegate(el, "keydown", '[role="tab"]', (ev, /** @type {any} */ t) => {
       const step = ev.key === "ArrowRight" || ev.key === "ArrowDown" ? 1 : ev.key === "ArrowLeft" || ev.key === "ArrowUp" ? -1 : 0;
       if (!step) return;
       ev.preventDefault();
       const to = nextTab(t.getAttribute("data-tab"), step);
       navigate({ tab: to }, "replace");
-      const b = qs(el, '[data-k="stt-' + to + '"]');
+      const b = /** @type {HTMLElement | null} */ (qs(el, '[data-k="stt-' + to + '"]'));
       if (b) b.focus();
     }));
 

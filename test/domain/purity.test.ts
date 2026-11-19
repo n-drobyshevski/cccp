@@ -54,6 +54,16 @@ function files(dir: string): string[] {
   return readdirSync(dir, { withFileTypes: true }).flatMap((e) => (e.isDirectory() ? files(join(dir, e.name)) : /\.tsx?$/.test(e.name) ? [join(dir, e.name)] : []));
 }
 
+/** Import specifiers the domain may not use: anything but a sibling or the kit's tableModel. */
+function foreignImports(src: string): string[] {
+  const out: string[] = [];
+  for (const m of src.matchAll(/from\s+"([^"]+)"/g)) {
+    const spec = m[1]!;
+    if (!(spec.startsWith("./") || spec === "@gas-kit/ui/components/tableModel.js")) out.push(spec);
+  }
+  return out;
+}
+
 describe("src/domain purity", () => {
   const all = files(ROOT);
 
@@ -67,13 +77,16 @@ describe("src/domain purity", () => {
     });
   }
 
-  it("imports only from the domain itself and the vendored pure codecs and tableModel", () => {
-    for (const f of all) {
-      for (const m of readFileSync(f, "utf8").matchAll(/from\s+"([^"]+)"/g)) {
-        const spec = m[1]!;
-        expect(spec.startsWith("./") || /^\.\.\/vendor\/gas_shared\/(domain\/[a-zA-Z0-9]+|ui\/tableModel)$/.test(spec), f + " imports " + spec).toBe(true);
-      }
-    }
+  it("imports only from the domain itself and the kit's DOM-free tableModel", () => {
+    for (const f of all) expect(foreignImports(readFileSync(f, "utf8")), f).toEqual([]);
+  });
+
+  it("the import check fires on a seeded foreign import", () => {
+    expect(foreignImports('import { a } from "./x";\nimport { t } from "@gas-kit/ui/components/tableModel.js";')).toEqual([]);
+    expect(foreignImports('import { x } from "../kit/ui/src/components/tableModel";')).toHaveLength(1);
+    expect(foreignImports('import { x } from "@gas-kit/ui/components/dataTable.js";')).toHaveLength(1);
+    expect(foreignImports('import { x } from "@gas-kit/client/html.js";')).toHaveLength(1);
+    expect(foreignImports('import type { x } from "../server/props";')).toHaveLength(1);
   });
 
   it("the scanner catches what it should and ignores prose", () => {

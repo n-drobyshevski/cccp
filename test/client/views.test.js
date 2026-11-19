@@ -8,6 +8,7 @@ import * as register from "../../src/client/state/register.js";
 import { DEFAULT_RULES } from "../../src/domain/rules";
 import { initialState, store } from "../../src/client/state/store.js";
 import * as views from "../../src/client/state/views.js";
+import { installLocalStorage, removeLocalStorage } from "./localStorageFake.js";
 import { fromQuery } from "../../src/domain/viewState";
 
 const KEY = "cccp.views.v1";
@@ -17,13 +18,11 @@ let refuse;
 function installStorage() {
   mem = new Map();
   refuse = false;
-  globalThis.window = {
-    localStorage: {
-      getItem: (k) => { if (refuse) throw new Error("blocked"); return mem.has(k) ? mem.get(k) : null; },
-      setItem: (k, v) => { if (refuse) throw new Error("blocked"); mem.set(k, String(v)); },
-      removeItem: (k) => { if (refuse) throw new Error("blocked"); mem.delete(k); },
-    },
-  };
+  installLocalStorage({
+    getItem: (k) => { if (refuse) throw new Error("blocked"); return mem.has(k) ? mem.get(k) : null; },
+    setItem: (k, v) => { if (refuse) throw new Error("blocked"); mem.set(k, String(v)); },
+    removeItem: (k) => { if (refuse) throw new Error("blocked"); mem.delete(k); },
+  });
 }
 
 const body = (over) => ({ q: "", f: {}, sort: "n", cols: [], metric: "worst", ...over });
@@ -34,7 +33,7 @@ const live = (v) => ({ viewer: v, serviceUrl: "https://example.test/exec" });
 const s = (v) => String(v);
 
 beforeEach(() => { installStorage(); store.reset(); });
-afterEach(() => { delete globalThis.window; delete globalThis.google; });
+afterEach(() => { removeLocalStorage(); delete globalThis.google; });
 
 describe("personal views", () => {
   it("saves, lists and removes", () => {
@@ -80,11 +79,13 @@ describe("personal views", () => {
   });
 
   it("a refusal keeps nothing and reports it", () => {
+    // A page that loads with storage refused: the kit's storage probes once, so install it refusing.
     refuse = true;
+    installLocalStorage({ getItem: () => { throw new Error("blocked"); }, setItem: () => { throw new Error("blocked"); }, removeItem: () => { throw new Error("blocked"); } });
     expect(views.canKeepPersonal()).toBe(false);
     expect(views.listPersonal()).toEqual([]);
     expect(views.addPersonal("x", body()).error).toMatch(/does not allow/);
-    delete globalThis.window;
+    removeLocalStorage();
     expect(views.canKeepPersonal()).toBe(false);
   });
 });
@@ -183,7 +184,8 @@ describe("shared views through the server", () => {
   it("saveShared and deleteShared refresh the core's list", async () => {
     const calls = [];
     const list = [{ id: "n1", name: "New", scope: "shared", route: "list", state: body() }];
-    globalThis.google = { script: { run: { withSuccessHandler(ok) { return { withFailureHandler() { return new Proxy({}, { get: (t, name) => (p) => { calls.push([name, p]); ok({ ok: true, data: name === "api_saveSharedView" ? { views: list, id: "n1" } : { views: [] } }); } }); } }; } } } };
+    // The kit's call() checks that google.script.run has the endpoint (as the real one does), then chains.
+    globalThis.google = { script: { run: { api_saveSharedView() {}, api_deleteSharedView() {}, withSuccessHandler(ok) { return { withFailureHandler() { return new Proxy({}, { get: (t, name) => (p) => { calls.push([name, p]); ok({ ok: true, data: name === "api_saveSharedView" ? { views: list, id: "n1" } : { views: [] } }); } }); } }; } } } };
     store.set({ core: { sharedViews: [] } });
     const id = await views.saveShared({ id: "", name: "New", scope: "shared", route: "list", state: body() });
     expect(id).toBe("n1");

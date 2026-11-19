@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { headerView, metaView, scorecardView, tabsView } from "../../src/client/pages/factsheet/header.js";
 import { peopleView } from "../../src/client/pages/factsheet/people.js";
-import { tierBadge } from "../../src/client/components/tags.js";
+import { tagsView, tierBadge } from "../../src/client/components/tags.js";
 import { barView, sectionsView, valueView } from "../../src/client/pages/factsheet/sections.js";
 import { sidebarView } from "../../src/client/pages/factsheet/dqSidebar.js";
 import { factsheetModel } from "../../src/domain/factsheet";
@@ -129,5 +129,15 @@ describe("fact sheet views", () => {
     const noMtd = w({ rto: 4, mtd: null });
     expect(noMtd).toContain('aria-label="RTO 4 hours"');
     expect(noMtd).not.toContain("MTD");
+  });
+});
+
+describe("fact sheet flags on the kit tags", () => {
+  it("draw the three flags with their words and a tone each, and nothing for typology or hosting", () => {
+    const h = s(tagsView([{ key: "ty", label: "Hybrid" }, { key: "h", label: "Cloud" }, { key: "ex", label: "Internet exposed" }, { key: "pd", label: "Personal data" }, { key: "sso", label: "No SSO" }]));
+    expect(h).toContain('class="gk-tags"');
+    expect([...h.matchAll(/class="gk-tags__tag is-(\w+)"><span class="gk-tags__text">([^<]+)</g)].map((m) => m[1] + ":" + m[2])).toEqual(["bad:Internet exposed", "warn:Personal data", "info:No SSO"]);
+    expect(h).not.toContain("Hybrid");
+    expect(s(tagsView([{ key: "ty", label: "Hybrid" }]))).toBe("");
   });
 });

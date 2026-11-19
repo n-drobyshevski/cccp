@@ -1,0 +1,9 @@
+{
+  "name": "@gas-kit/client",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Client kernel: safe html, the one render sink, delegation, rpc, router, store",
+  "license": "MIT",
+  "type": "module",
+  "exports": { ".": "./src/index.js", "./*": "./src/*" }
+}

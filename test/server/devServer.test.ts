@@ -49,7 +49,7 @@ describe.skipIf(!hasChrome)("dev server on :8791", () => {
     const res = await page.evaluate(() => {
       const w = window;
       const real = w.Server;
-      w.Server = { access: { denyResult: () => null }, api: real.api };
+      w.Server = { beginExecution: real.beginExecution, access: { denyResult: () => null, role: () => "viewer" }, api: real.api };
       try { return w.api_bootstrap({}); } finally { w.Server = real; }
     });
     expect(res.ok).toBe(true);

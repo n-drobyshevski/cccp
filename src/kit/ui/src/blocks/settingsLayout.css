@@ -1,0 +1,29 @@
+/* Layout only for the settings blocks (settingsLayout, formSection, switchRow); buttons, separators and
+   fields keep their own look. Tokens only. */
+.gk-settingsLayout { container-type: inline-size; min-width: 0; }
+.gk-settingsLayout__page { display: flex; flex-direction: column; gap: var(--space-5); padding: var(--space-5) 0 var(--space-6); }
+.gk-settingsLayout__head { display: flex; flex-direction: column; gap: var(--space-1); }
+.gk-settingsLayout__title { margin: 0; font-size: var(--fs-2xl); font-weight: var(--fw-bold); letter-spacing: -0.025em; line-height: 1.2; }
+.gk-settingsLayout__description { margin: 0; color: var(--text-muted); font-size: var(--fs-md); line-height: var(--lh); }
+.gk-settingsLayout__body { display: flex; flex-direction: column; gap: var(--space-5); }
+.gk-settingsLayout__nav { display: flex; flex-flow: row wrap; gap: var(--space-1); }
+.gk-settingsLayout__link { justify-content: flex-start; text-decoration: none; }
+.gk-settingsLayout__link[data-active] { background: var(--surface-2); font-weight: var(--fw-semibold); }
+.gk-settingsLayout__content { flex: 1 1 auto; min-width: 0; max-width: 42rem; }
+@container (min-width: 48rem) {
+  .gk-settingsLayout__body { flex-direction: row; align-items: flex-start; gap: var(--space-6); }
+  .gk-settingsLayout__nav { flex: 0 0 20%; flex-direction: column; flex-wrap: nowrap; }
+}
+
+.gk-formSection { display: flex; flex-direction: column; gap: var(--space-4); }
+.gk-formSection__head { display: flex; flex-direction: column; gap: var(--space-1); }
+.gk-formSection__title { margin: 0; font-size: var(--fs-xl); font-weight: var(--fw-medium); line-height: var(--lh); }
+.gk-formSection__description { margin: 0; color: var(--text-muted); font-size: var(--fs-md); line-height: var(--lh); }
+.gk-formSection__content { display: flex; flex-direction: column; gap: var(--space-6); }
+.gk-formSection + .gk-formSection { margin-top: var(--space-5); }
+
+.gk-switchRow { display: flex; align-items: center; justify-content: space-between; gap: var(--space-4); padding: var(--space-4); border: 1px solid var(--border); border-radius: var(--radius-lg); }
+.gk-switchRow__text { display: flex; flex-direction: column; gap: var(--space-1); min-width: 0; }
+.gk-switchRow__title { font-size: var(--fs-md); font-weight: var(--fw-medium); line-height: var(--lh); }
+.gk-switchRow__description { margin: 0; color: var(--text-muted); font-size: var(--fs-md); line-height: var(--lh); }
+.gk-switchRow__control { flex: none; }

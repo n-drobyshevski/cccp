@@ -5,8 +5,9 @@
 // anything is saved; the switches do not change a count (a rule shows what it would do before it is
 // switched on). This module holds the draft edits as pure functions; page.js wires the controls
 // (data-rule and data-prop, data-trule and data-tier) to them.
-import { html } from "../../lib/html.js";
-import { num } from "../../lib/format.js";
+import { html } from "@gas-kit/client/html.js";
+import { switchView } from "@gas-kit/ui/components/switch.js";
+import { fmtCount } from "@gas-kit/client/format.js";
 import { PILLAR_CODE } from "../../components/glyph.js";
 import { PILLAR_LABEL, STATUS_WORD } from "../../../domain/facets";
 import { RULES, RULE_BY_ID, ruleCounts, rulesOf } from "../../../domain/rules";
@@ -33,7 +34,7 @@ export function cleanTiers(list) {
 export function rulesOfDraft(draft) {
   const rules = {};
   for (const k of Object.keys(draft)) if (k.indexOf("rules.") === 0) rules[k.slice(6)] = draft[k];
-  return { version: 1, rules };
+  return { version: /** @type {1} */ (1), rules };
 }
 
 /** One edit of one rule's parameter: prop is 'on', 'months' or 'tiers'. Months are clamped. */
@@ -70,7 +71,7 @@ export const RULE_TITLE = {
 export const ruleTitle = (rule) => RULE_TITLE[rule.id] || rule.sentence({ months: "N", tiers: [] });
 
 function aff(id, n) {
-  return html`<span class="aff" data-cnt="${id}"><b>${num(n)}</b> ${n === 1 ? "app" : "apps"}</span>`;
+  return html`<span class="aff" data-cnt="${id}"><b>${fmtCount(n)}</b> ${n === 1 ? "app" : "apps"}</span>`;
 }
 
 function monthsCtl(rule, p) {
@@ -89,7 +90,7 @@ const always = html`<span class="sr-only" data-fixed>Always on</span>`;
 function control(rule, p, on) {
   if (p.months !== undefined) return html`${monthsCtl(rule, p)}${rule.toggle ? "" : always}`;
   if (rule.params && rule.params.tiers !== undefined && !rule.paramsFrom) return html`${tiersCtl(rule, p)}${rule.toggle ? "" : always}`;
-  if (rule.toggle) return html`<label class="sw"><input type="checkbox" data-rule="${rule.id}" data-prop="on" data-type="bool" data-k="rs-${rule.id}"${on ? html` checked` : ""} aria-label="Rule on: ${rule.sentence({ months: "N", tiers: [] })}"><span aria-hidden="true"></span><b class="swt" aria-hidden="true"></b></label>`;
+  if (rule.toggle) return html`<span class="sw">${switchView({ label: "Rule on: " + rule.sentence({ months: "N", tiers: [] }), checked: on, hideLabel: true, act: "s-rule-on", v: rule.id, k: "rs-" + rule.id })}<b class="swt" aria-hidden="true">${on ? "On" : "Off"}</b></span>`;
   return html`<span class="fixed" data-fixed>Always on</span>`;
 }
 
@@ -132,7 +133,7 @@ export function ruleChangeNotes(ctx) {
     if (!what) continue;
     const x = before[rule.id] || 0;
     const y = after[rule.id] || 0;
-    notes.push(ruleTitle(rule) + ": " + what + (x !== y ? " (" + num(x) + " \u2192 " + num(y) + " " + (y === 1 ? "app" : "apps") + ")" : ""));
+    notes.push(ruleTitle(rule) + ": " + what + (x !== y ? " (" + fmtCount(x) + " \u2192 " + fmtCount(y) + " " + (y === 1 ? "app" : "apps") + ")" : ""));
   }
   return notes;
 }

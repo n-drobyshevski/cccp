@@ -70,7 +70,7 @@ test("switching the lens keeps the filters, the search, the pillar tab, the open
     expect(await visible(page)).toBe(n);
     await expect(page.getByRole("searchbox", { name: "Search applications" })).toHaveValue("a");
     await expect(page.getByRole("tablist", { name: "Pillar" }).getByRole("tab").nth(1)).toHaveAttribute("aria-selected", "true");
-    await expect(page.locator('aside.facets [data-k="side-tier-T1"]')).toBeChecked();
+    await expect(page.locator('aside.facets [data-k="side-tier:T1"]')).toBeChecked();
   }
 });
 
@@ -93,7 +93,7 @@ test("the old ?r=heatmap and ?r=landscape links open the Inventory on that lens,
   await expect(page.locator("table[data-table=heatmap]")).toBeVisible();
   await expect(lensBtn(page, "heatmap")).toHaveAttribute("aria-pressed", "true");
   await expect(page.locator(".navb [aria-current=page]")).toHaveText("Inventory");
-  await expect(page.locator('aside.facets [data-k="side-tier-T1"]')).toBeChecked();
+  await expect(page.locator('aside.facets [data-k="side-tier:T1"]')).toBeChecked();
   await page.goto("/?r=landscape&metric=tier");
   await expect(body(page, "landscape")).toBeVisible();
   await expect(page.locator(".land")).toBeVisible();

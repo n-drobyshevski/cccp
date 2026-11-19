@@ -3,9 +3,9 @@
 // and the collapsible data-quality sidebar. State that persists lives in localStorage under
 // 'cccp.fs.closed' (collapsed sections), 'cccp.fs.sidebar' and 'cccp.recent'; every read is
 // wrapped, so with storage refused the page still works and forgets on reload.
-import { delegate, qs, renderRegion } from "../../lib/dom.js";
-import { html } from "../../lib/html.js";
-import { copyText } from "../../lib/clipboard.js";
+import { delegate, qs, renderRegion } from "@gas-kit/client/dom.js";
+import { html } from "@gas-kit/client/html.js";
+import { copyText } from "@gas-kit/client/clipboard.js";
 import * as storage from "../../lib/storage.js";
 import { toast } from "../../lib/toast.js";
 import { emptyState } from "../../shell/states.js";
@@ -15,7 +15,7 @@ import { store } from "../../state/store.js";
 import { linkFor, navigate } from "../../state/url.js";
 import { SECTION_KEYS, factsheetModel, findInSections, pushRecent, recentFor, reviewMonthsOf } from "../../../domain/factsheet";
 import { headerView, tabsView } from "./header.js";
-import { tabKeys } from "../../lib/tabKeys.js";
+import { tabKeys } from "@gas-kit/client/tabKeys.js";
 import { barView, sectionsView } from "./sections.js";
 import { peopleView } from "./people.js";
 import { sidebarView } from "./dqSidebar.js";
@@ -76,10 +76,10 @@ export const factsheetPage = {
     let model = modelFor(row, store.get());
 
     renderRegion(el, html`<div class="lxwrap${collapsed ? " sbc" : ""}" data-page="app" data-app-id="${id}"><article class="fs lxs"><div data-region="fshead"></div><div data-region="fsbody" id="fs-panel" role="tabpanel"></div></article><div data-region="fsside"></div></div>`, { keepFocus: false, keepScroll: false });
-    const wrap = qs(el, ".lxwrap");
-    const head = qs(el, '[data-region="fshead"]');
-    const body = qs(el, '[data-region="fsbody"]');
-    const side = qs(el, '[data-region="fsside"]');
+    const wrap = /** @type {HTMLElement} */ (qs(el, ".lxwrap"));
+    const head = /** @type {HTMLElement} */ (qs(el, '[data-region="fshead"]'));
+    const body = /** @type {HTMLElement} */ (qs(el, '[data-region="fsbody"]'));
+    const side = /** @type {HTMLElement} */ (qs(el, '[data-region="fsside"]'));
 
     const fs = () => store.get().fs;
     const drawHead = () => renderRegion(head, html`${headerView(model.header, cameFrom, true)}${tabsView(fs().tab, model.people.count)}`);
@@ -107,7 +107,7 @@ export const factsheetPage = {
         const sx = el.querySelector("#sx-" + key);
         if (!sx) return;
         if (!sx.open) { sx.open = true; }
-        const sel = qs(el, "select.jump"); if (sel) sel.value = key;
+        const sel = /** @type {HTMLSelectElement | null} */ (qs(el, "select.jump")); if (sel) sel.value = key;
         sx.scrollIntoView({ behavior: reducedMotion() ? "auto" : "smooth", block: "start" });
       };
       if (fs().tab !== "sheet") { store.set({ fs: { ...fs(), tab: "sheet" } }); }
@@ -118,7 +118,7 @@ export const factsheetPage = {
 
     const offs = [];
     offs.push(tabKeys(el));
-    offs.push(delegate(el, "click", "[data-act]", (ev, b) => {
+    offs.push(delegate(el, "click", "[data-act]", (ev, /** @type {any} */ b) => {
       const act = b.getAttribute("data-act");
       if (act === "fs-back") navigate({ route: cameFrom, app: null, tab: null, view: null }, "push");
       else if (act === "crumb-domain") navigate({ route: "list", app: null, tab: null, view: null, q: "", f: { dom: [b.getAttribute("data-dom")] } }, "push");
@@ -135,8 +135,8 @@ export const factsheetPage = {
         copyText(name).then((ok) => toast(ok ? "Name copied. Look " + name + " up in your directory." : "Copy blocked here.", ok ? undefined : { kind: "err" }));
       }
     }));
-    offs.push(delegate(el, "change", "select.jump", (ev, sel) => jump(sel.value)));
-    offs.push(delegate(el, "input", "input.fsearch", (ev, inp) => { store.set({ fs: { ...fs(), find: inp.value } }); }));
+    offs.push(delegate(el, "change", "select.jump", (ev, /** @type {any} */ sel) => jump(sel.value)));
+    offs.push(delegate(el, "input", "input.fsearch", (ev, /** @type {any} */ inp) => { store.set({ fs: { ...fs(), find: inp.value } }); }));
     // A section the viewer opens or closes is remembered. While a find forces sections open
     // nothing is saved, so the find never rewrites the viewer's choices.
     const onToggle = (ev) => {
@@ -152,7 +152,7 @@ export const factsheetPage = {
       if (!ctx.current() || n.fs === p.fs) return;
       if (n.fs.tab !== p.fs.tab) { drawHead(); drawBody(); return; }
       if (n.fs.find !== p.fs.find) {
-        const inp = qs(body, "input.fsearch");
+        const inp = /** @type {HTMLInputElement | null} */ (qs(body, "input.fsearch"));
         if (inp && inp.value !== n.fs.find) inp.value = n.fs.find;
         drawSecs();
       }

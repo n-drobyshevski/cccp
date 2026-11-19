@@ -1,33 +1,36 @@
 /* Overview (identity G): the title line over a 2px ink rule, four headline figures in mono, a status
    bar per pillar and the domains table with a glyph per pillar. Tokens only. */
 .ov { display: flex; flex-direction: column; gap: 0; }
-.ovh { display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 16px; padding-bottom: 12px; border-bottom: 2px solid var(--fg); }
+.ovh { display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 16px; padding-bottom: 12px; border-bottom: 2px solid var(--text); }
 .ovh h1 { font-size: 30px; letter-spacing: -0.01em; }
 .ovh p { font-size: 15px; }
 .kpis { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); border-bottom: 1px solid var(--line2); }
-.kpi { display: flex; flex-direction: column; align-items: flex-start; gap: 3px; text-align: left; border: 0; border-right: 1px solid var(--line2); background: none; border-radius: 0; padding: 18px 22px 18px 0; margin-right: 22px; color: var(--fg); min-width: 0; }
-.kpi:last-child { border-right: 0; margin-right: 0; }
-.kpi:focus-visible { outline-offset: -2px; }
-.kpi b { font: 500 42px/1.05 var(--mono); letter-spacing: -0.03em; }
-.kpi .kl { font-size: 16px; font-weight: 600; margin-top: 4px; }
-.kpi small { color: var(--muted); font-size: 13.5px; }
-.kpi .kgo { color: var(--accent); font-weight: 600; margin-top: 8px; font-size: 14px; }
-.kpi:hover .kgo { text-decoration: underline; text-underline-offset: 2px; }
+/* The kit kpiTile in the Identity G look: value first, in mono; label; note; then "Open in inventory ›".
+   The selector is as specific as the kit's own interactive rules so the border and hover are ours. */
+.kpis button.gk-kpiTile.is-interactive { gap: 3px; text-align: left; border: 0; border-right: 1px solid var(--line2); background: none; border-radius: 0; box-shadow: none; padding: 18px 22px 18px 0; margin-right: 22px; color: var(--text); min-width: 0; }
+.kpis button.gk-kpiTile.is-interactive:hover { background: none; }
+.kpis button.gk-kpiTile.is-interactive:last-child { border-right: 0; margin-right: 0; }
+.kpis .gk-kpiTile:focus-visible { outline-offset: -2px; }
+.kpis .gk-kpiTile__value { order: 0; font: 500 42px/1.05 var(--font-mono); letter-spacing: -0.03em; }
+.kpis .gk-kpiTile__label { order: 1; font-size: 16px; font-weight: 600; margin-top: 4px; color: var(--text); }
+.kpis .gk-kpiTile__note { order: 2; color: var(--text-muted); font-size: 13.5px; }
+.kpis .gk-kpiTile::after { order: 3; content: "Open in inventory \203A"; color: var(--accent); font-weight: 600; margin-top: 8px; font-size: 14px; }
+.kpis .gk-kpiTile:hover::after { text-decoration: underline; text-underline-offset: 2px; }
 .two { display: grid; grid-template-columns: minmax(0, 4fr) minmax(0, 5fr); gap: 0 40px; align-items: start; padding-top: 22px; }
 .ovs { min-width: 0; }
 .ovs > h2.lbl { padding-bottom: 8px; border-bottom: 1px solid var(--line2); font-size: 12px; }
 .pbars { display: flex; flex-direction: column; }
-.pbar { display: grid; grid-template-columns: 112px minmax(0, 1fr) 96px; gap: 14px; align-items: center; border: 0; border-bottom: 1px solid var(--line); background: none; padding: 12px 2px; border-radius: 0; text-align: left; color: var(--fg); }
-.pbar:hover { background: var(--surface2); }
+.pbar { display: grid; grid-template-columns: 112px minmax(0, 1fr) 96px; gap: 14px; align-items: center; border: 0; border-bottom: 1px solid var(--border); background: none; padding: 12px 2px; border-radius: 0; text-align: left; color: var(--text); }
+.pbar:hover { background: var(--surface-2); }
 .pbar:focus-visible { outline-offset: -2px; }
-.pbar .pn { font: 700 12.5px var(--sans); letter-spacing: 0.08em; text-transform: uppercase; color: var(--pc); }
+.pbar .pn { font: 700 12.5px var(--font-sans); letter-spacing: 0.08em; text-transform: uppercase; color: var(--pc); }
 .stk { display: flex; gap: 2px; height: 14px; overflow: hidden; border-radius: 3px; position: relative; }
-.stk i { background: var(--ok); }
-.stk i.bad { background: var(--bad); }
+.stk i { background: var(--ok-fg); }
+.stk i.bad { background: var(--bad-fg); }
 .stk i.warn { background: var(--warn-fill); }
 .stk i.none { background: repeating-linear-gradient(135deg, var(--nd-line) 0 1.5px, var(--nd-bg) 1.5px 5px); }
-.pbar small { font-size: 15px; color: var(--muted); text-align: right; white-space: nowrap; }
-.pbar small b { font-size: 16px; font-weight: 500; color: var(--fg); }
+.pbar small { font-size: 15px; color: var(--text-muted); text-align: right; white-space: nowrap; }
+.pbar small b { font-size: 16px; font-weight: 500; color: var(--text); }
 .legend { padding-top: 12px; font-size: 13.5px; gap: 4px 16px; }
 .legend .sq.ls-none { border: 1px solid var(--nd-line); background: repeating-linear-gradient(135deg, var(--nd-line) 0 1.5px, var(--nd-bg) 1.5px 5px); }
 .dt { width: 100%; border-collapse: collapse; }
@@ -37,21 +40,21 @@
 .dt td.num { font-size: 14px; }
 .dt th.p, .dt td.p { width: 52px; text-align: center; }
 .dt td.p .gl { vertical-align: middle; }
-.dt tbody tr:last-child td { border-bottom: 1px solid var(--line); }
+.dt tbody tr:last-child td { border-bottom: 1px solid var(--border); }
 .lk { border: 0; background: none; padding: 0; color: inherit; text-align: left; border-radius: 4px; font: inherit; }
 .lk b { font-weight: 600; letter-spacing: 0.02em; text-transform: uppercase; font-size: 14px; }
 .lk:hover { color: var(--accent); }
-.lk.gapn { color: var(--fg); }
-.lk.pgap { color: var(--bad); font-weight: 600; }
+.lk.gapn { color: var(--text); }
+.lk.pgap { color: var(--bad-fg); font-weight: 600; }
 .ov .note { font-size: 13.5px; padding-top: 10px; }
 @media (max-width: 1023px) {
   .two { grid-template-columns: minmax(0, 1fr); gap: 28px; }
   .kpis { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-  .kpi:nth-child(2) { border-right: 0; margin-right: 0; }
-  .kpi:nth-child(n+3) { border-top: 1px solid var(--line2); }
+  .kpis button.gk-kpiTile.is-interactive:nth-child(2) { border-right: 0; margin-right: 0; }
+  .kpis button.gk-kpiTile.is-interactive:nth-child(n+3) { border-top: 1px solid var(--line2); }
 }
 @media (max-width: 600px) {
-  .kpi b { font-size: 34px; }
+  .kpis .gk-kpiTile__value { font-size: 34px; }
   .pbar { grid-template-columns: minmax(0, 1fr) auto; gap: 6px 10px; }
   .pbar .stk { grid-column: 1 / -1; grid-row: 2; }
   .dt th, .dt td { padding-inline: 4px; }

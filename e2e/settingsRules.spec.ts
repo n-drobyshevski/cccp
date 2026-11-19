@@ -18,7 +18,7 @@ const spy = (page: Page) => page.evaluate(() => {
   w.api_saveSettings = (p: unknown) => { w.__saves.push(JSON.parse(JSON.stringify(p))); return orig(p); };
 });
 const saves = (page: Page) => page.evaluate(() => (window as any).__saves as any[]);
-const saveBtn = (page: Page) => page.locator(".savebar").getByRole("button", { name: "Save", exact: true });
+const saveBtn = (page: Page) => page.locator(".savebar").getByRole("button", { name: "Save changes", exact: true });
 const cnt = async (page: Page, id: string) => Number((await page.locator('[data-cnt="' + id + '"] b').innerText()).replace(/,/g, ""));
 const months = (page: Page, id: string) => page.locator('input[data-rule="' + id + '"][data-prop=months]');
 const nav = (page: Page, name: string) => page.locator(".navb").getByRole("button", { name });
@@ -55,11 +55,11 @@ test("the catalogue is shown by pillar; fixed rules have no switch, the others d
   await expect(page.locator("[data-pillar]")).toHaveCount(4);
   await expect(page.locator("[data-pillar=cyber] [data-rule-row]")).toHaveCount(5);
   for (const id of ["cy.high", "ct.drpMissing", "ct.drpNeverTested", "pl.decommissioning", "cy.pentestAge", "co.review", "ct.drpAge"]) {
-    await expect(page.locator('[data-rule-row="' + id + '"] input[data-prop=on]')).toHaveCount(0);
+    await expect(page.locator('[data-rule-row="' + id + '"] [role=switch]')).toHaveCount(0);
     await expect(page.locator('[data-rule-row="' + id + '"] [data-fixed]')).toHaveText("Always on");
   }
   for (const id of ["cy.noOfficer", "cy.exposedUntested", "cy.critical", "co.majorAudit", "ct.drpFailed", "pl.eol", "pl.noSso"]) {
-    await expect(page.locator('[data-rule-row="' + id + '"] input[data-prop=on]')).toHaveCount(1);
+    await expect(page.locator('[data-rule-row="' + id + '"] [role=switch]')).toHaveCount(1);
   }
   await expect(page.locator('[data-rule-row="cy.pentestAge"]')).toContainText("Last pentest older than");
   expect(await page.locator("[title]").count()).toBe(0);
@@ -112,7 +112,7 @@ test("the save bar sits under a 2px ink rule and says what changed, with the cou
   await expect(page.locator("#st-tab-rules .edited")).toHaveText(/edited/);
   expect(await bar.evaluate((e) => [getComputedStyle(e).borderTopWidth, getComputedStyle(e).borderTopColor === getComputedStyle(document.body).color, getComputedStyle(e).position])).toEqual(["2px", true, "sticky"]);
   await expect(bar.getByRole("button", { name: "Discard" })).toBeVisible();
-  await expect(bar.getByRole("button", { name: "Save", exact: true })).toBeVisible();
+  await expect(bar.getByRole("button", { name: "Save changes", exact: true })).toBeVisible();
   // other tabs have no edited marker
   await expect(page.locator("#st-tab-display .edited")).toHaveCount(0);
 });
@@ -141,7 +141,7 @@ test("months are clamped to 1 to 120", async ({ page }) => {
   await expect(months(page, "co.review")).toHaveValue("1");
   await spy(page);
   await saveBtn(page).click();
-  await expect(page.locator(".toast")).toContainText("Settings saved");
+  await expect(page.locator(".gk-toast")).toContainText("Settings saved");
   const s = await saves(page);
   expect(s[0].patch).toEqual({ rules: { rules: { "ct.drpAge": { months: 120 }, "co.review": { months: 1 } } } });
 });
@@ -168,19 +168,19 @@ test("a switch maps to on or off, dims the rule, keeps its count, and saves as o
   await spy(page);
   const row = page.locator('[data-rule-row="pl.noSso"]');
   const n = await cnt(page, "pl.noSso");
-  await row.locator("input[data-prop=on]").uncheck({ force: true });
+  await row.locator("[role=switch]").click();
   await expect(row).toHaveClass(/off/);
   expect(await cnt(page, "pl.noSso")).toBe(n);
   await expect(page.locator(".savebar")).toContainText("1 unsaved change");
   await saveBtn(page).click();
-  await expect(page.locator(".toast")).toContainText("Settings saved");
+  await expect(page.locator(".gk-toast")).toContainText("Settings saved");
   const s = await saves(page);
   expect(s.length).toBe(1);
   expect(s[0].patch).toEqual({ rules: { rules: { "pl.noSso": { on: false } } } });
   expect(typeof s[0].baseGen).toBe("number");
   await expect(page.locator(".savebar")).toHaveCount(0);
   await expect(row).toHaveClass(/off/);
-  await row.locator("input[data-prop=on]").check({ force: true });
+  await row.locator("[role=switch]").click();
   await expect(row).not.toHaveClass(/off/);
 });
 
@@ -198,7 +198,7 @@ test("after save the dots change on the List and the Heatmap", async ({ page }) 
   await page.getByRole("tab", { name: /Status rules/ }).click();
   await expect(months(page, "cy.pentestAge")).toHaveValue("1");
   await saveBtn(page).click();
-  await expect(page.locator(".toast")).toContainText("Settings saved");
+  await expect(page.locator(".gk-toast")).toContainText("Settings saved");
   expect(await heatCyberWarn(page)).toBeGreaterThan(heat0);
   expect(await listCyberWarn(page)).toBeGreaterThan(list0);
   // and back: 120 months makes fewer
@@ -206,6 +206,6 @@ test("after save the dots change on the List and the Heatmap", async ({ page }) 
   await page.getByRole("tab", { name: /Status rules/ }).click();
   await months(page, "cy.pentestAge").fill("120");
   await saveBtn(page).click();
-  await expect(page.locator(".toast").last()).toContainText("Settings saved");
+  await expect(page.locator(".gk-toast").last()).toContainText("Settings saved");
   expect(await heatCyberWarn(page)).toBeLessThan(heat0);
 });

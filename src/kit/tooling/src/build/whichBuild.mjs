@@ -18,7 +18,7 @@ import { execFileSync } from "node:child_process";
 import { existsSync, mkdtempSync, readFileSync, realpathSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
-import { STAMP_EXTRA_FILES, sourceStamp } from "./stamp.mjs";
+import { STAMP_EXTRA_DIRS, STAMP_EXTRA_FILES, sourceStamp } from "./stamp.mjs";
 
 /** The line a dev build carries after its banner: deploy and distId refuse a bundle with it. */
 export const DEV_MARKER = "/* gas-kit dev build: never push or deploy */";
@@ -68,7 +68,7 @@ export function whichBuild(here, argv = process.argv, io = {}) {
     const dir = mkdtempSync(join(tmpdir(), "which-build-"));
     const tarFile = join(dir, "archive.tar");
     try {
-      const present = git(["ls-tree", "--name-only", commit, "--", ...["src", ...STAMP_EXTRA_FILES].map(rel)], repoRoot)
+      const present = git(["ls-tree", "--name-only", commit, "--", ...["src", ...STAMP_EXTRA_DIRS, ...STAMP_EXTRA_FILES].map(rel)], repoRoot)
         .split("\n").filter(Boolean);
       if (!present.includes(rel("src"))) return null;
       execFileSync("git", ["archive", "--format=tar", "-o", tarFile, commit, ...present], {
@@ -100,7 +100,7 @@ export function whichBuild(here, argv = process.argv, io = {}) {
   }
 
   // Only commits that touched a stamp input can move the stamp.
-  const commits = git(["log", "--format=%H\t%cI\t%s", "--", ...["src", ...STAMP_EXTRA_FILES].map(rel)], repoRoot)
+  const commits = git(["log", "--format=%H\t%cI\t%s", "--", ...["src", ...STAMP_EXTRA_DIRS, ...STAMP_EXTRA_FILES].map(rel)], repoRoot)
     .split("\n").filter(Boolean).map((l) => {
       const [sha, date, ...rest] = l.split("\t");
       return { sha, date, subject: rest.join("\t") };

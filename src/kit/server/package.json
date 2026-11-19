@@ -5,5 +5,6 @@
   "description": "Server kernel bundled into the Apps Script server IIFE",
   "license": "MIT",
   "type": "module",
+  "sideEffects": false,
   "exports": { ".": "./src/index.ts", "./*": "./src/*" }
 }

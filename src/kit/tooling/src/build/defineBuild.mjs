@@ -17,6 +17,12 @@
 // them into concatenation), and guardJs fails the build if a backtick or a surviving double
 // slash is left anyway. Server code runs in V8 directly and is not served, so it is not lowered.
 //
+// STALE FILES. clasp pushes every .js .gs .ts .html and .json file in dist, so a file a past
+// build (or clasp's starter Code.js) left there would ship. After writing its outputs the build
+// removes the top-level files with those extensions that it did not write (removeStale). Only the
+// top level of dist, never a subdirectory, never a symlink. It refuses a dist that is the app
+// root or holds it, and removes nothing from a dist outside the root.
+//
 // THE PUSHED FILES ARE CHECKED HERE, on the output just written (guardOutput): the noSecrets
 // patterns over every file in dist (a build define reaches both bundles, and the contracts may
 // have run on an older dist or on none), and the server bundle's globals (only Server, no
@@ -24,8 +30,8 @@
 // which the entryParity contract checks against api.ts). A violation fails the build.
 
 import { build as esbuild } from "esbuild";
-import { copyFileSync, existsSync, mkdirSync, readFileSync, readdirSync, statSync, writeFileSync } from "node:fs";
-import { join, resolve } from "node:path";
+import { copyFileSync, existsSync, lstatSync, mkdirSync, readFileSync, readdirSync, realpathSync, statSync, unlinkSync, writeFileSync } from "node:fs";
+import { join, relative, resolve, isAbsolute } from "node:path";
 import { watch as fsWatch } from "node:fs";
 import { delegatedNames, guardCss, guardEntryDrift, guardHtml, guardJs, guardNoTitle } from "./guards.mjs";
 import { buildStamp } from "./stamp.mjs";
@@ -81,6 +87,37 @@ export function checkBudgets(sizes, budgets) {
 export function guardOutput(dist) {
   const bad = [...noSecrets({ dirs: [dist] }), ...checkPushedGlobals({ distDir: dist })];
   if (bad.length) throw new Error("output guard: " + bad.join("; ") + ". Nothing in dist may be pushed like this.");
+}
+
+/** The extensions clasp pushes. */
+const PUSHABLE = /\.(js|gs|ts|html|json)$/;
+
+/**
+ * Remove the top-level pushable files of dist that are not in `keep`. Returns the names removed.
+ * Throws when dist is the root or holds it; removes nothing when dist is outside the root (a
+ * build into a temp directory). Exported for its seeded test.
+ * @param {string} root
+ * @param {string} dist
+ * @param {string[]} keep file names the build wrote
+ * @returns {string[]}
+ */
+export function removeStale(root, dist, keep) {
+  const realRoot = realpathSync(root);
+  const realDist = realpathSync(dist);
+  const outside = (/** @type {string} */ r) => r.startsWith("..") || isAbsolute(r);
+  const rel = relative(realRoot, realDist);
+  if (rel === "") throw new Error("build: dist resolves to the app root (" + dist + "); refusing to clean it");
+  if (!outside(relative(realDist, realRoot))) throw new Error("build: dist (" + dist + ") holds the app root; refusing to clean it");
+  if (outside(rel)) return [];
+  const removed = [];
+  for (const name of readdirSync(realDist)) {
+    if (!PUSHABLE.test(name) || keep.includes(name)) continue;
+    const p = join(realDist, name);
+    if (!lstatSync(p).isFile()) continue; // lstat: a symlink is not followed, a directory is left
+    unlinkSync(p);
+    removed.push(name);
+  }
+  return removed;
 }
 
 /** @param {number} n */
@@ -177,6 +214,7 @@ export function defineBuild({ root, appConfig = {} }) {
       throw new Error("entry.js guard: src/gas/entry.js declares api_ delegators but src/server/api.ts is missing");
     }
 
+    removeStale(root, dist, Object.values(BUDGET_FILES).concat(["index.html", "entry.js", "appsscript.json"]));
     guardOutput(dist);
 
     /** @type {Record<string, number>} */

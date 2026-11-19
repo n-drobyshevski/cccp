@@ -8,8 +8,9 @@
 // same stamp, so a no-op rebuild causes no dist churn.
 //
 // Inputs: every ts/js/css/html/json file under <root>/src (this includes the vendored
-// src/kit), package-lock.json, and the build config files named in STAMP_EXTRA_FILES (an app's
-// build config must be one of those names; the list is fixed so which-build can replay it).
+// src/kit), every .mjs file under <root>/tools (the build, push and deploy scripts), and the
+// files named in STAMP_EXTRA_FILES (package-lock.json, app.config.mjs and the build config; the
+// list is fixed so which-build can replay it). Whatever of these exists is hashed.
 //
 // src/kit must be a copy of the kit, not a symlink to a checkout elsewhere: a link is followed,
 // so the stamp would then hash whatever the link points at today, and which-build run from
@@ -20,7 +21,10 @@ import { existsSync, readdirSync, readFileSync, realpathSync, statSync } from "n
 import { join } from "node:path";
 
 /** Files outside src/ that are hashed when present (relative to the app root). */
-export const STAMP_EXTRA_FILES = ["package-lock.json", "esbuild.config.mjs", "build/esbuild.config.mjs"];
+export const STAMP_EXTRA_FILES = ["package-lock.json", "app.config.mjs", "esbuild.config.mjs", "build/esbuild.config.mjs"];
+
+/** Directories outside src/ whose .mjs files (recursively) are hashed when present. */
+export const STAMP_EXTRA_DIRS = ["tools"];
 
 /**
  * @param {string} root app root
@@ -34,26 +38,27 @@ export function sourceStamp(root) {
   // cycle and is skipped, so the walk ends. The same directory linked from two places is fine.
   /** @type {Set<string>} */
   const stack = new Set();
-  /** @param {string} dir @param {string} rel */
-  const walk = (dir, rel) => {
+  /** @param {string} dir @param {string} rel @param {RegExp} pattern */
+  const walk = (dir, rel, pattern) => {
     let here;
     try { here = realpathSync(dir); } catch { return; }
     if (stack.has(here)) return;
     stack.add(here);
-    try { walkEntries(dir, rel); } finally { stack.delete(here); }
+    try { walkEntries(dir, rel, pattern); } finally { stack.delete(here); }
   };
-  /** @param {string} dir @param {string} rel */
-  const walkEntries = (dir, rel) => {
+  /** @param {string} dir @param {string} rel @param {RegExp} pattern */
+  const walkEntries = (dir, rel, pattern) => {
     for (const e of readdirSync(dir, { withFileTypes: true }).sort((a, b) => (a.name < b.name ? -1 : 1))) {
       const p = join(dir, e.name);
       const r = rel + "/" + e.name;
       let st;
       try { st = statSync(p); } catch { continue; } // statSync follows symlinks (a linked src/kit counts)
-      if (st.isDirectory()) walk(p, r);
-      else if (/\.(ts|js|mjs|css|html|json)$/.test(e.name)) feed(r, readFileSync(p));
+      if (st.isDirectory()) walk(p, r, pattern);
+      else if (pattern.test(e.name)) feed(r, readFileSync(p));
     }
   };
-  if (existsSync(join(root, "src"))) walk(join(root, "src"), "src");
+  if (existsSync(join(root, "src"))) walk(join(root, "src"), "src", /\.(ts|js|mjs|css|html|json)$/);
+  for (const d of STAMP_EXTRA_DIRS) if (existsSync(join(root, d))) walk(join(root, d), d, /\.mjs$/);
   for (const f of STAMP_EXTRA_FILES) {
     const p = join(root, f);
     if (existsSync(p)) feed(f, readFileSync(p));

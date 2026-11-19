@@ -32,6 +32,7 @@
 // authority.
 
 import { ApiError } from "./envelope";
+import { isPlainAddress } from "./address";
 import { cardPage } from "./page";
 import { PROP_MAX_BYTES, propsGeneration, utf8ByteLength } from "./props";
 import { executionGeneration } from "./execution";
@@ -189,24 +190,7 @@ export function decideAccess(input: DecideInput): AccessDecision {
   return { allowed: false, role: null, reason: "not-listed", email };
 }
 
-// A conservative ASCII address: local part of letters, digits and . _ % + - (no leading,
-// trailing or doubled dot), then a dotted host of letters, digits and hyphens (no label starting
-// or ending with a hyphen). Control, bidi, zero-width characters and markup cannot match.
-const LOCAL_PART = /^[a-z0-9_%+-]+(?:\.[a-z0-9_%+-]+)*$/;
-const HOST_LABEL = /^[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?$/;
-
-/** True for an address validateAddresses accepts (after trim and lowercase). */
-export function isPlainAddress(email: string): boolean {
-  const e = String(email ?? "").trim().toLowerCase();
-  if (e.length > 254) return false;
-  const at = e.indexOf("@");
-  if (at < 1 || at !== e.lastIndexOf("@")) return false;
-  const local = e.slice(0, at);
-  const host = e.slice(at + 1);
-  if (local.length > 64 || !LOCAL_PART.test(local)) return false;
-  const labels = host.split(".");
-  return labels.length >= 2 && labels.every((l) => HOST_LABEL.test(l));
-}
+export { isPlainAddress };
 
 // An entry is echoed back in the refusal; anything outside printable ASCII is shown escaped so a
 // bidi or zero-width character is visible, and the echo is capped.
@@ -559,6 +543,8 @@ export function createAccess(opts: AccessOptions): Access {
       heading: "You don't have access to this app.",
       lines: [seen, ask],
       action: switchUrl ? { href: switchUrl, label: "Switch Google account" } : undefined,
+      // cardPage drops a mailto whose address is not plain, so an odd owner address fails closed.
+      actions: who ? [{ href: contactMailto(who, product), label: "Email " + who }] : undefined,
     });
   }
 

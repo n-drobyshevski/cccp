@@ -4,6 +4,8 @@
 // Colours come from CSS system colours (keywords, not literals), so the page follows the
 // viewer's light or dark scheme; --accent is the one token.
 
+import { isPlainAddress } from "./address";
+
 export function escapeHtml(s: string): string {
   return String(s)
     .replace(/&/g, "&amp;")
@@ -80,12 +82,65 @@ export interface CardPageSpec {
   lines: string[];
   /** One optional link-button. href and label are escaped here. */
   action?: { href: string; label: string };
+  /** More link-buttons after `action` (at most 3 links in all). Same rules; an unsafe href is dropped. */
+  actions?: { href: string; label: string }[];
+  /**
+   * An optional brand mark above the eyebrow: a name from the fixed set (an unknown name draws
+   * nothing), drawn by the kit as inline SVG. `accent` is a hex colour (#rgb or #rrggbb) for the
+   * mark only; anything else falls back to the page's accent. No app markup reaches the page.
+   */
+  mark?: { shape: CardMarkShape; accent?: string };
 }
 
-/** Allow-list for the action link: https, http or a relative path; nothing else. */
+/** The marks cardPage can draw. Shapes differ, so the mark never relies on colour alone. */
+export type CardMarkShape = "dot" | "ring" | "square" | "diamond";
+
+const MARK_SVG: Record<CardMarkShape, string> = {
+  dot: '<circle cx="12" cy="12" r="8" fill="currentColor"/>',
+  ring: '<circle cx="12" cy="12" r="7" fill="none" stroke="currentColor" stroke-width="3"/>',
+  square: '<rect x="4" y="4" width="16" height="16" rx="3" fill="currentColor"/>',
+  diamond: '<path d="M12 3 21 12 12 21 3 12Z" fill="currentColor"/>',
+};
+
+function markHtml(mark: CardPageSpec["mark"]): string {
+  if (!mark || typeof mark.shape !== "string" || !Object.prototype.hasOwnProperty.call(MARK_SVG, mark.shape)) return "";
+  const accent = typeof mark.accent === "string" && /^#(?:[0-9a-f]{3}|[0-9a-f]{6})$/i.test(mark.accent)
+    ? ' style="color:' + mark.accent + '"'
+    : "";
+  return '<svg class="mark" viewBox="0 0 24 24" width="28" height="28" aria-hidden="true" focusable="false"' +
+    accent + ">" + MARK_SVG[mark.shape] + "</svg>";
+}
+
+// A mailto action is allowed only for one plain address (isPlainAddress, and no "%" so the address
+// cannot decode into a header break) and at most one "?subject=" of percent-encoded text whose
+// decoded form has no control character. Any other parameter (cc, bcc, body), a second "?", "&" or
+// "#", or a comma or semicolon (several recipients) is refused.
+const SUBJECT_CHARS = /^[A-Za-z0-9._~!*'()%-]+$/;
+function isSafeMailto(h: string): boolean {
+  const rest = h.slice("mailto:".length);
+  const q = rest.indexOf("?");
+  const addr = q < 0 ? rest : rest.slice(0, q);
+  if (!addr || addr.indexOf("%") >= 0 || addr !== addr.trim() || !isPlainAddress(addr)) return false;
+  if (q < 0) return true;
+  const query = rest.slice(q + 1);
+  if (!/^subject=/i.test(query)) return false;
+  const subject = query.slice("subject=".length);
+  if (subject.length > 300 || !SUBJECT_CHARS.test(subject)) return false;
+  try {
+    return !/[\u0000-\u001f\u007f-\u009f\u2028\u2029]/.test(decodeURIComponent(subject));
+  } catch {
+    return false;
+  }
+}
+
+/**
+ * Allow-list for an action link: https, http, a relative path, or a mailto to one plain address
+ * (optionally with a "?subject="); nothing else.
+ */
 export function isSafeHref(href: string): boolean {
   const h = String(href).trim();
   if (/^https?:\/\//i.test(h)) return true;
+  if (/^mailto:/i.test(h)) return isSafeMailto(h);
   if (/^[a-z][a-z0-9+.-]*:/i.test(h)) return false;
   // Browsers read a backslash as a slash, so "/\host" and "\\host" are protocol-relative too.
   if (h.indexOf("\\") >= 0) return false;
@@ -95,10 +150,11 @@ export function isSafeHref(href: string): boolean {
 /** A simple standalone page. Every field is escaped; there is no raw-HTML slot. */
 export function cardPage(spec: CardPageSpec): GoogleAppsScript.HTML.HtmlOutput {
   const body = spec.lines.map((l) => "<p>" + escapeHtml(l) + "</p>").join("");
-  const action = spec.action && isSafeHref(spec.action.href)
-    ? '<div class="actions"><a class="btn" target="_top" href="' + escapeHtml(spec.action.href) +
-      '">' + escapeHtml(spec.action.label) + "</a></div>"
-    : "";
+  const links = [spec.action, ...(spec.actions ?? [])]
+    .filter((a): a is { href: string; label: string } => !!a && isSafeHref(a.href))
+    .slice(0, 3)
+    .map((a) => '<a class="btn" target="_top" href="' + escapeHtml(a.href.trim()) + '">' + escapeHtml(a.label) + "</a>");
+  const action = links.length ? '<div class="actions">' + links.join("") + "</div>" : "";
   const css = [
     ":root{color-scheme:light dark;--accent:LinkText}",
     "*{box-sizing:border-box}",
@@ -113,6 +169,8 @@ export function cardPage(spec: CardPageSpec): GoogleAppsScript.HTML.HtmlOutput {
     "h1{margin:8px 0 16px;font-size:20px;line-height:1.3}",
     "p{margin:0 0 8px;color:color-mix(in srgb,CanvasText 65%,transparent)}",
     ".actions{margin-top:24px}",
+    ".mark{display:block;margin:0 0 12px;color:var(--accent)}",
+    ".btn+.btn{margin-left:8px}",
     ".btn{display:inline-flex;align-items:center;min-height:36px;padding:6px 14px;",
     "border-radius:8px;background:CanvasText;color:Canvas;text-decoration:none}",
     "a{color:var(--accent)}.btn{color:Canvas}",
@@ -123,6 +181,7 @@ export function cardPage(spec: CardPageSpec): GoogleAppsScript.HTML.HtmlOutput {
     '<meta name="viewport" content="width=device-width, initial-scale=1">',
     '<base target="_top"><title>' + escapeHtml(spec.title) + "</title>",
     "<style>" + css + "</style></head><body><main class=\"card\">",
+    markHtml(spec.mark),
     '<div class="eyebrow">' + escapeHtml(spec.eyebrow ?? spec.title) + "</div>",
     "<h1>" + escapeHtml(spec.heading) + "</h1>",
     body,

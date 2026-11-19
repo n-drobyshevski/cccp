@@ -49,6 +49,6 @@ export default {
     // page modules replace the app's smaller copies and the kit barrel keeps a few of its module-level
     // tables (policy, audit) that nothing here calls; the cap drops again as the app's own kernel
     // files are deleted in the next work packages.
-    budgets: { server: 157_000, js: 183_000, css: 59_300 },
+    budgets: { server: 157_600, js: 183_000, css: 59_300 },
   },
 };

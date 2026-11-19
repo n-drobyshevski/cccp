@@ -159,6 +159,41 @@
       return btoa(bytesToBinary(u8));
     },
     base64Decode: function (s) { return toSigned(Uint8Array.from(atob(s), function (c) { return c.charCodeAt(0); })); },
+    DigestAlgorithm: { SHA_1: "SHA_1" },
+    Charset: { UTF_8: "UTF_8" },
+    // SHA-1 in plain JS so the same fake runs under node and in the browser page (the kit's export
+    // throttle keys a viewer by the digest of the address).
+    computeDigest: function (algo, value, charset) {
+      if (algo !== "SHA_1") throw new Error("Invalid argument: algorithm");
+      if (charset !== undefined && charset !== "UTF_8") throw new Error("Unsupported charset in the fake: " + String(charset));
+      var bytes = typeof value === "string" ? Array.from(new TextEncoder().encode(value)) : Array.from(toU8(value));
+      var n = bytes.length;
+      bytes.push(0x80);
+      while (bytes.length % 64 !== 56) bytes.push(0);
+      var hi = Math.floor((n * 8) / 0x100000000), lo = (n * 8) >>> 0;
+      [hi, lo].forEach(function (w) { for (var s = 24; s >= 0; s -= 8) bytes.push((w >>> s) & 0xff); });
+      var h = [0x67452301, 0xefcdab89, 0x98badcfe, 0x10325476, 0xc3d2e1f0];
+      var rol = function (x, k) { return ((x << k) | (x >>> (32 - k))) >>> 0; };
+      for (var o = 0; o < bytes.length; o += 64) {
+        var w = [];
+        for (var i = 0; i < 16; i++) w[i] = ((bytes[o + 4 * i] << 24) | (bytes[o + 4 * i + 1] << 16) | (bytes[o + 4 * i + 2] << 8) | bytes[o + 4 * i + 3]) >>> 0;
+        for (i = 16; i < 80; i++) w[i] = rol(w[i - 3] ^ w[i - 8] ^ w[i - 14] ^ w[i - 16], 1);
+        var a = h[0], b = h[1], c = h[2], d = h[3], e = h[4];
+        for (i = 0; i < 80; i++) {
+          var f, k;
+          if (i < 20) { f = (b & c) | (~b & d); k = 0x5a827999; }
+          else if (i < 40) { f = b ^ c ^ d; k = 0x6ed9eba1; }
+          else if (i < 60) { f = (b & c) | (b & d) | (c & d); k = 0x8f1bbcdc; }
+          else { f = b ^ c ^ d; k = 0xca62c1d6; }
+          var t = (rol(a, 5) + f + e + k + w[i]) >>> 0;
+          e = d; d = c; c = rol(b, 30); b = a; a = t;
+        }
+        h = [(h[0] + a) >>> 0, (h[1] + b) >>> 0, (h[2] + c) >>> 0, (h[3] + d) >>> 0, (h[4] + e) >>> 0];
+      }
+      var out = [];
+      h.forEach(function (x) { for (var s = 24; s >= 0; s -= 8) out.push((x >>> s) & 0xff); });
+      return toSigned(out);
+    },
     sleep: function (ms) { clockOffset += Math.max(0, +ms || 0); },
     getUuid: function () {
       if (G.crypto && G.crypto.randomUUID) return G.crypto.randomUUID();
@@ -487,6 +522,15 @@
     },
   };
   G.Drive = {
+    Files: {
+      update: function (resource, fileId) {
+        record("Drive.Files.update", { resource: resource, fileId: fileId });
+        var e = exportsById.get(fileId);
+        if (!e) throw new Error("File not found: " + fileId);
+        e.file = Object.assign(e.file || {}, clone(resource));
+        return { id: fileId };
+      },
+    },
     Permissions: {
       create: function (resource, fileId, opts) {
         record("Drive.Permissions.create", { resource: resource, fileId: fileId, optionalArgs: opts });

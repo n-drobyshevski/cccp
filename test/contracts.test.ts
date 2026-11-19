@@ -199,11 +199,13 @@ describe("no title attribute", () => {
 });
 
 describe("the source is read-only", () => {
-  // Only sourceSheet.ts opens the register Sheet; only exportSheet.ts writes (a new file it makes).
+  // Only sourceSheet.ts opens the register Sheet, and no app file writes anywhere: the one module
+  // that writes (a NEW file) is the kit's sheetExport.ts, which this scan of src/server does not
+  // cover and which test/build/staticScan.test.js pins by name. Narrower than before: exportSheet.ts
+  // is no longer an allowed writer or an allowed user of the advanced services.
   noMutators.register(describe, it, expect, {
     srcDir: join(SRC, "server"),
-    allow: ["exportSheet.ts"],
-    confineAdvanced: ["exportSheet.ts"],
+    confineAdvanced: [],
   });
 });
 

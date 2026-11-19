@@ -1,5 +1,7 @@
-// The read-only guarantee, as a scan of src/server: the register Sheet is touched in ONE file,
-// the advanced Sheets and Drive services in ONE other, and no source mutator is named anywhere.
+// The read-only guarantee, as a scan of src/server: the register Sheet is touched in ONE app file
+// (sourceSheet.ts, which keeps the multi-tab read the kit has no equivalent for), no app file calls
+// the advanced Sheets and Drive services (the kit's sheetExport.ts is the only module that does,
+// and it writes a NEW file), and no source mutator is named anywhere.
 import { readdirSync, readFileSync } from "node:fs";
 import { join } from "node:path";
 import { describe, expect, it } from "vitest";
@@ -22,9 +24,24 @@ describe("static scan of src/server", () => {
     expect(using(/\bSpreadsheetApp\b/)).toEqual(["sourceSheet.ts"]);
   });
 
-  it("calls the Sheets and Drive advanced services only in exportSheet.ts", () => {
-    const hits = using(/\b(Sheets|Drive)\.[A-Z]\w*/);
-    expect(hits.filter((f) => f !== "exportSheet.ts")).toEqual([]);
+  // A member access, with the TypeScript non-null mark: Sheets!.Spreadsheets!.create, Drive.Files.update.
+  const ADVANCED = /(?<![\w$.])(Sheets|Drive)\s*[!?]*\s*\.\s*[A-Z]\w*/;
+
+  it("calls the Sheets and Drive advanced services in no app file", () => {
+    expect(using(ADVANCED)).toEqual([]);
+  });
+
+  it("the advanced-service pattern fires on a seeded violation", () => {
+    expect(ADVANCED.test("Sheets!.Spreadsheets!.create({})")).toBe(true);
+    expect(ADVANCED.test("Drive.Permissions.create(a, b)")).toBe(true);
+    expect(ADVANCED.test("const sheets = rows.Sheets")).toBe(false);
+  });
+
+  it("in the kit, only sheetExport.ts (and the audit sink, which no app file wires yet) call them", () => {
+    const kitDir = join(root, "src/kit/server/src");
+    const kit = readdirSync(kitDir).filter((f) => f.endsWith(".ts"));
+    const hits = kit.filter((f) => ADVANCED.test(code(readFileSync(join(kitDir, f), "utf8")))).sort();
+    expect(hits).toEqual(["audit.ts", "sheetExport.ts"]);
   });
 
   it("never names a spreadsheet mutator", () => {

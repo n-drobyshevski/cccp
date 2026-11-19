@@ -73,18 +73,31 @@ describe("exportToSheet", () => {
     expect(grid[0]![0]).toBe("Application");
   });
 
-  it("creates the spreadsheet BEFORE writing values, writes RAW, then bolds the header, then shares", () => {
+  it("creates the spreadsheet, locks re-sharing, THEN writes values RAW, bolds the header, then shares", () => {
     api.exportToSheet({ ids: ids(2), columns: ["n"], title: "Order" });
     expect(names()).toEqual([
-      "Sheets.Spreadsheets.create", "Sheets.Spreadsheets.Values.update", "Sheets.Spreadsheets.batchUpdate", "Drive.Permissions.create",
+      "Sheets.Spreadsheets.create", "Drive.Files.update", "Sheets.Spreadsheets.Values.update", "Sheets.Spreadsheets.batchUpdate", "Drive.Permissions.create",
     ]);
     const calls = fakes().calls();
-    expect(calls[1]!.args.optionalArgs).toEqual({ valueInputOption: "RAW" });
+    // The kit puts the file in a state where its writers cannot re-share it before any value is written.
+    expect(calls[1]!.args.resource).toEqual({ writersCanShare: false });
+    expect(calls[2]!.args.optionalArgs).toEqual({ valueInputOption: "RAW" });
     const create = calls[0]!.args.resource as { properties: { title: string }; sheets: { properties: { title: string; gridProperties: { frozenRowCount: number } } }[] };
     expect(create.properties.title).toMatch(/^CCCP export · Order · \d{4}-\d{2}-\d{2} \d{2}:\d{2}$/);
     expect(create.sheets[0]!.properties.gridProperties.frozenRowCount).toBe(1);
-    expect(calls[1]!.args.range).toBe("'" + SHEET_TAB + "'!A1");
-    expect(JSON.stringify(calls[2]!.args.resource)).toContain("\"bold\":true");
+    expect(calls[2]!.args.range).toBe("'" + SHEET_TAB + "'!A1");
+    expect(JSON.stringify(calls[3]!.args.resource)).toContain("\"bold\":true");
+  });
+
+  it("trashes the new file and answers one fixed sentence when a step after the create fails", () => {
+    vi.spyOn(console, "error").mockImplementation(() => {});
+    vi.spyOn(Sheets!.Spreadsheets!.Values!, "update").mockImplementation(() => { throw new Error("quota for file 1AbC"); });
+    const res = api.exportToSheet({ ids: ids(1), columns: ["n"], title: "x" });
+    expect(res).toMatchObject({ ok: false, errorKind: "error", error: "The export file was not created." });
+    expect(JSON.stringify(res)).not.toContain("quota");
+    const trash = fakes().calls().filter((c) => c.svc === "Drive.Files.update").map((c) => c.args.resource);
+    expect(trash).toEqual([{ writersCanShare: false }, { trashed: true }]);
+    expect(names()).not.toContain("Drive.Permissions.create");
   });
 
   it("keeps a leading '=' as text by writing RAW", () => {
@@ -155,10 +168,10 @@ describe("exportToSheet", () => {
     const cache = CacheService.getScriptCache();
     const put = vi.spyOn(cache, "put");
     api.exportToSheet({ ids: ids(1), columns: ["n"], title: "x" });
-    const keys = put.mock.calls.map((c) => String(c[0])).filter((k) => k.startsWith("cccp:export:"));
+    const keys = put.mock.calls.map((c) => String(c[0])).filter((k) => k.startsWith("export1:"));
     expect(keys).toHaveLength(1);
     expect(keys[0]).not.toContain("viewer");
-    expect(keys[0]).toMatch(/^cccp:export:[0-9a-f]{40}$/);
+    expect(keys[0]).toMatch(/^export1:[0-9a-f]{40}$/);
   });
 
   it("forbids a stranger and touches no service", () => {

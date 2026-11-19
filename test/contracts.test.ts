@@ -257,5 +257,13 @@ describe("cache namespaces are versioned", () => {
 });
 
 // DEFERRED contract (not registered):
-//  - confidential    (C2g: diagnostics and setup) needs DATA_CLASS in src/server/config.ts and the
-//                    kit's policy object; app.config.mjs already says dataClass "confidential".
+//  - confidential: app.config.mjs says dataClass "confidential", but honouring it means wiring the
+//    kit's data policy, and the policy only means something where code reads it. CCCP does not yet
+//    have what the confidential class turns on: an owner pin (deny everyone until pinned), an audit
+//    sheet (audit "sheet", auditReads), a bootstrap that is never inlined in the page (inlineData
+//    false; doGet inlines the core when warm), no client persistence (clientPersist false; personal
+//    views live in localStorage), Sheet export for admins only and shared as reader with copy off
+//    (viewers export today), and the error detail for the owner only (admins today). Registering
+//    the contract with a policy that is confidential on paper, or with every one of those keys
+//    overridden and a written reason each, would state a control the code does not enforce. It
+//    needs DATA_CLASS in config.ts, src/server/policy.ts (dataPolicy) and those behaviours first.

@@ -108,7 +108,7 @@ describe("entry.js guards", () => {
     as("owner@example.com");
     const out = ctx.setup();
     expect(out).toContain("owner@example.com");
-    expect(out).toContain("CCCP diagnostics");
+    expect(out).toMatch(/Diagnostics (OK|FAILED) at/);
   });
 });
 

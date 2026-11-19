@@ -5,35 +5,24 @@
 // lists and sections are never overwritten, so running it twice changes nothing. It returns its
 // seeding summary followed by the diagnostics text.
 
-import { cleanSettings, makeDefaultSettings, SECTION_KEYS, SECTION_PROPS, sheetIdFrom } from "../domain/settings";
+import { cleanSettings, SECTION_PROPS, sheetIdFrom } from "../domain/settings";
 import type { Settings } from "../domain/types";
 import { access } from "./access";
 import { diagnosticsText } from "./diagnostics";
-import { getJsonProp, getProp, putJsonProp, setProp } from "@gas-kit/server";
+import { ensureDefaults, getJsonProp, getProp, putJsonProp, seedOwner, setProp } from "@gas-kit/server";
 import { PROP_KEYS } from "./config";
+import { sections } from "./settingsStore";
 
 export function setup(sheetUrl?: string): string {
   access.assertOwner("setup");
   const lines: string[] = [];
 
-  // The owner is on the people list. Others already there stay.
-  const users = access.currentUsers();
+  // The owner is on the people list (first, only when absent; others stay), and each settings
+  // section is written with its defaults only where nothing is stored (never overwritten).
   const owner = access.ownerEmail().trim().toLowerCase();
-  if (owner && users.indexOf(owner) < 0) {
-    setProp(PROP_KEYS.allowedUsers, JSON.stringify([owner].concat(users)));
-    lines.push("Added " + owner + " to ALLOWED_USERS.");
-  } else {
-    lines.push("ALLOWED_USERS already names the owner.");
-  }
-
-  // Default sections, only where nothing is stored.
-  const defaults = makeDefaultSettings();
-  for (const key of SECTION_KEYS) {
-    if (getProp(SECTION_PROPS[key]) === null) {
-      putJsonProp(SECTION_PROPS[key], defaults[key]);
-      lines.push("Wrote default " + SECTION_PROPS[key] + ".");
-    }
-  }
+  lines.push(seedOwner({ get: getProp, set: setProp }, { key: PROP_KEYS.allowedUsers, ownerEmail: owner }));
+  const written = ensureDefaults({ sections });
+  lines.push("Settings: " + (written.length ? "defaults written for " + written.join(", ") : "already set"));
 
   if (sheetUrl !== undefined && String(sheetUrl).trim() !== "") {
     const id = sheetIdFrom(sheetUrl);

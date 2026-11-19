@@ -36,7 +36,7 @@ function section(k: SectionKey) {
   };
 }
 
-const sections: Record<string, ReturnType<typeof section>> = Object.fromEntries(SECTIONS.map((k) => [k, section(k)]));
+export const sections: Record<string, ReturnType<typeof section>> = Object.fromEntries(SECTIONS.map((k) => [k, section(k)]));
 
 /** Refuse a save that is not the owner's when it changes the source sheet; fail closed without a saver. */
 function makeStore(who: SaveContext | null) {

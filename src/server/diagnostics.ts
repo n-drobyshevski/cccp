@@ -4,9 +4,12 @@
 
 import { payloadBytes, REGISTER_WARN_BYTES, REGISTER_WARN_ROWS } from "../domain/payload";
 import { SECTION_PROPS } from "../domain/settings";
-import { buildId, getProp, utf8ByteLength } from "@gas-kit/server";
+import {
+  buildId, buildIdCheck, createDiagnostics, epochCheck, getProp, namedCheck, propSizesCheck, scopesGrantedCheck,
+  serviceUrlIsExecCheck, utf8ByteLength, type Check,
+} from "@gas-kit/server";
 import { access } from "./access";
-import { PROP_KEYS } from "./config";
+import { CACHE_EPOCH, PROP_KEYS } from "./config";
 import { errorLog } from "./errorLog";
 import { peekRegisterEntry, registerEntry } from "./registerStore";
 import { cfgGen, coreKey, dataVersion, registerKey } from "./serverCache";
@@ -108,28 +111,47 @@ export function diagnosticsReport(): DiagnosticsReport {
   };
 }
 
-/** The report as plain text, for the editor's execution log. */
+/**
+ * The report as plain text, for the editor's execution log (owner only: entry.js asserts it): the
+ * kit's createDiagnostics over the kit's generic checks and CCCP's own named checks, which read the
+ * structured report above. The structured report stays as it is: the Settings page renders it.
+ */
 export function diagnosticsText(): string {
-  let r: DiagnosticsReport;
-  try {
-    r = diagnosticsReport();
-  } catch (e) {
-    return "Diagnostics failed: " + String(e);
-  }
-  const lines = [
-    "CCCP diagnostics " + r.generatedAt + " (build " + r.buildId + ")",
-    "Owner " + r.owner + ", access mode " + r.mode + ", " + r.listSizes.users + " listed, " + r.listSizes.admins + " admins.",
-    r.source ? "Sheet " + (r.source.title || "(not configured)") + " " + r.source.tz : "Sheet unknown",
-  ];
-  for (const t of r.source ? r.source.tabs : []) {
-    const tail = t.sameTab
-      ? " (" + t.key + ": same tab, " + t.columnsFound + " of " + t.columnsMapped + " columns provided yet)"
-      : (t.detected ? " (detected)" : "") + (t.missingHeaders.length ? ", missing " + t.missingHeaders.join(", ") : "");
-    lines.push("  " + t.name + ": " + (t.found ? t.rows + " rows" : "NOT FOUND") + tail);
-  }
-  lines.push("Versions data " + r.versions.dataVersion + ", settings " + r.versions.cfgGen + ". Register " + r.register.bytes + " bytes.");
-  for (const w of r.register.warnings) lines.push("WARNING " + w);
-  for (const f of r.failures) lines.push("FAILED " + f);
-  for (const e of r.recentErrors) lines.push("error " + e.ts + " " + e.op + ": " + e.message);
-  return lines.join("\n");
+  let memo: DiagnosticsReport | null = null;
+  const report = (): DiagnosticsReport => (memo ??= diagnosticsReport());
+  const cccp = (name: string, fn: (r: DiagnosticsReport) => { ok: boolean; detail: string }): Check =>
+    namedCheck(name, () => ({ name, ...fn(report()) }));
+
+  return createDiagnostics([
+    buildIdCheck(),
+    epochCheck(CACHE_EPOCH),
+    propSizesCheck([PROP_KEYS.allowedUsers, PROP_KEYS.allowedAdmins, ...Object.values(SECTION_PROPS), PROP_KEYS.sharedViews, "RECENT_ERRORS"]),
+    serviceUrlIsExecCheck(),
+    scopesGrantedCheck(),
+    cccp("access", (r) => ({ ok: true, detail: "access mode " + r.mode + ", " + r.listSizes.users + " listed, " + r.listSizes.admins + " admins" })),
+    cccp("source", (r) => ({
+      ok: r.source !== null && r.source.sheetId !== "" && r.source.title !== "",
+      detail: r.source ? (r.source.title || "(not configured)") + " " + r.source.tz : "unknown",
+    })),
+    cccp("tabs", (r) => {
+      const tabs = r.source ? r.source.tabs : [];
+      const parts = tabs.map((t) => {
+        const tail = t.sameTab
+          ? " (" + t.key + ": same tab, " + t.columnsFound + " of " + t.columnsMapped + " columns provided yet)"
+          : (t.detected ? " (detected)" : "") + (t.missingHeaders.length ? ", missing " + t.missingHeaders.join(", ") : "");
+        return t.name + ": " + (t.found ? t.rows + " rows" : "NOT FOUND") + tail;
+      });
+      return { ok: tabs.every((t) => t.found), detail: parts.join("; ") || "none" };
+    }),
+    cccp("register", (r) => ({
+      ok: r.register.warnings.length === 0,
+      detail: "data " + r.versions.dataVersion + ", settings " + r.versions.cfgGen + ", " + r.register.bytes + " bytes" +
+        (r.register.warnings.length ? ". " + r.register.warnings.join(" ") : ""),
+    })),
+    cccp("report sections", (r) => ({ ok: r.failures.length === 0, detail: r.failures.length ? r.failures.join("; ") : "all gathered" })),
+    cccp("recent errors", (r) => ({
+      ok: true,
+      detail: r.recentErrors.length ? r.recentErrors.map((e) => e.ts + " " + e.op + ": " + e.message).join(" | ") : "none",
+    })),
+  ]).text();
 }

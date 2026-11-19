@@ -95,7 +95,9 @@ describe("diagnostics report", () => {
 describe("diagnosticsText", () => {
   it("prints a readable summary with each tab", () => {
     const t = diagnosticsText();
-    expect(t).toMatch(/^CCCP diagnostics /);
+    // The kit's text: a header line, then one line per check (the format changed with the kit).
+    expect(t).toMatch(/^Diagnostics (OK|FAILED) at /);
+    expect(t).toMatch(/build: /);
     expect(t).toMatch(/Apps: \d+ rows/);
     expect(t).toMatch(/DRP: .*missing/);
   });

@@ -141,7 +141,7 @@ test("months are clamped to 1 to 120", async ({ page }) => {
   await expect(months(page, "co.review")).toHaveValue("1");
   await spy(page);
   await saveBtn(page).click();
-  await expect(page.locator(".toast")).toContainText("Settings saved");
+  await expect(page.locator(".gk-toast")).toContainText("Settings saved");
   const s = await saves(page);
   expect(s[0].patch).toEqual({ rules: { rules: { "ct.drpAge": { months: 120 }, "co.review": { months: 1 } } } });
 });
@@ -173,7 +173,7 @@ test("a switch maps to on or off, dims the rule, keeps its count, and saves as o
   expect(await cnt(page, "pl.noSso")).toBe(n);
   await expect(page.locator(".savebar")).toContainText("1 unsaved change");
   await saveBtn(page).click();
-  await expect(page.locator(".toast")).toContainText("Settings saved");
+  await expect(page.locator(".gk-toast")).toContainText("Settings saved");
   const s = await saves(page);
   expect(s.length).toBe(1);
   expect(s[0].patch).toEqual({ rules: { rules: { "pl.noSso": { on: false } } } });
@@ -198,7 +198,7 @@ test("after save the dots change on the List and the Heatmap", async ({ page }) 
   await page.getByRole("tab", { name: /Status rules/ }).click();
   await expect(months(page, "cy.pentestAge")).toHaveValue("1");
   await saveBtn(page).click();
-  await expect(page.locator(".toast")).toContainText("Settings saved");
+  await expect(page.locator(".gk-toast")).toContainText("Settings saved");
   expect(await heatCyberWarn(page)).toBeGreaterThan(heat0);
   expect(await listCyberWarn(page)).toBeGreaterThan(list0);
   // and back: 120 months makes fewer
@@ -206,6 +206,6 @@ test("after save the dots change on the List and the Heatmap", async ({ page }) 
   await page.getByRole("tab", { name: /Status rules/ }).click();
   await months(page, "cy.pentestAge").fill("120");
   await saveBtn(page).click();
-  await expect(page.locator(".toast").last()).toContainText("Settings saved");
+  await expect(page.locator(".gk-toast").last()).toContainText("Settings saved");
   expect(await heatCyberWarn(page)).toBeLessThan(heat0);
 });

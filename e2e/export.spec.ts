@@ -64,7 +64,7 @@ test.describe("export", () => {
     expect(lines[lines.length - 1]).toBe("");
     expect(lines.length - 2).toBeGreaterThanOrEqual(n);
     expect(lines[0].startsWith("Application,")).toBe(true);
-    await expect(page.locator(".toast")).toContainText("Downloaded " + dl.suggestedFilename());
+    await expect(page.locator(".gk-toast")).toContainText("Downloaded " + dl.suggestedFilename());
     expect(bad).toEqual([]);
   });
 
@@ -118,7 +118,7 @@ test.describe("export", () => {
     await ready(page);
     await openMenu(page);
     await page.getByRole("button", { name: /New Google Sheet/ }).click();
-    const link = page.locator(".toast a");
+    const link = page.locator(".gk-toast a");
     await expect(link).toBeVisible();
     await expect(link).toHaveText("Open Sheet");
     expect(await link.getAttribute("href")).toMatch(/^https:\/\/docs\.google\.com\/spreadsheets\/d\/export-\d+\/edit$/);
@@ -132,11 +132,11 @@ test.describe("export", () => {
     for (let i = 0; i < 5; i++) {
       await openMenu(page);
       await page.getByRole("button", { name: /New Google Sheet/ }).click();
-      await expect(page.locator(".toast a")).toHaveCount(i + 1);
+      await expect(page.locator(".gk-toast a")).toHaveCount(i + 1);
     }
     await openMenu(page);
     await page.getByRole("button", { name: /New Google Sheet/ }).click();
-    await expect(page.locator(".toast.err")).toContainText("5 Google Sheets");
+    await expect(page.locator(".gk-toast.is-bad")).toContainText("5 Google Sheets");
   });
 
   test("an empty result disables the exports", async ({ page }) => {

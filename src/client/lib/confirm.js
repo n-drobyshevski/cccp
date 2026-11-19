@@ -1,47 +1,34 @@
-// A modal yes/no. Resolves true on the confirm button, false on Cancel, Escape or a click on
-// the backdrop. Focus moves into the dialog and returns to where it was.
+// A modal yes/no on the kit confirm view and island. Resolves true on the confirm button, false
+// on Cancel, Escape or a click on the scrim. The island moves focus in (Cancel when the action is
+// destructive, so Enter is never the harmful key), traps Tab and returns focus to the opener.
+// opts: title, body, confirmLabel, cancelLabel, danger.
 import { delegate, renderRegion } from "@gas-kit/client/dom.js";
-import { html } from "@gas-kit/client/html.js";
+import { mountIslands } from "@gas-kit/client/islands.js";
+import { confirmDialog as confirmView, confirmIsland } from "@gas-kit/ui/components/confirm.js";
 
 let seq = 0;
 
 export function confirmDialog(opts) {
   const o = opts || {};
   return new Promise((resolve) => {
-    const tid = "dlg-t-" + (++seq);
-    const before = /** @type {HTMLElement | null} */ (document.activeElement);
     const wrap = document.createElement("div");
-    wrap.className = "scrim";
     document.body.appendChild(wrap);
-    renderRegion(wrap, html`<div class="dlg" role="alertdialog" aria-modal="true" aria-labelledby="${tid}">
-      <h2 id="${tid}">${o.title || "Are you sure?"}</h2>
-      ${o.body ? html`<p>${o.body}</p>` : ""}
-      <div class="dlg-act">
-        <button type="button" class="btn" data-act="no" data-k="no">${o.cancelLabel || "Cancel"}</button>
-        <button type="button" class="btn ${o.danger ? "danger" : "primary"}" data-act="yes" data-k="yes">${o.confirmLabel || "Confirm"}</button>
-      </div></div>`, { keepFocus: false, keepScroll: false });
+    renderRegion(wrap, confirmView({
+      id: "confirm-" + (++seq),
+      title: o.title || "Are you sure?",
+      body: o.body || null,
+      confirmLabel: o.confirmLabel,
+      cancelLabel: o.cancelLabel,
+      destructive: !!o.danger,
+    }), { keepFocus: false, keepScroll: false });
+    // The island's teardown returns focus to the opener, so run it before the node goes.
+    const off = mountIslands(wrap, { confirm: confirmIsland });
     const done = (v) => {
-      document.removeEventListener("keydown", onKey, true);
+      offClick();
+      off();
       wrap.remove();
-      if (before && before.focus) before.focus();
       resolve(v);
     };
-    const onKey = (ev) => {
-      if (ev.key === "Escape") { ev.stopPropagation(); done(false); return; }
-      if (ev.key !== "Tab") return;
-      const btns = /** @type {HTMLElement[]} */ (Array.from(wrap.querySelectorAll(".dlg button")));
-      if (!btns.length) return;
-      const first = btns[0];
-      const last = btns[btns.length - 1];
-      const at = /** @type {HTMLElement} */ (document.activeElement);
-      if (btns.indexOf(at) < 0) { ev.preventDefault(); first.focus(); }
-      else if (ev.shiftKey && at === first) { ev.preventDefault(); last.focus(); }
-      else if (!ev.shiftKey && at === last) { ev.preventDefault(); first.focus(); }
-    };
-    document.addEventListener("keydown", onKey, true);
-    delegate(wrap, "click", "[data-act]", (ev, el) => done(el.getAttribute("data-act") === "yes"));
-    wrap.addEventListener("pointerdown", (ev) => { if (ev.target === wrap) done(false); });
-    const yes = /** @type {HTMLElement | null} */ (wrap.querySelector('[data-k="yes"]'));
-    if (yes) yes.focus();
+    const offClick = delegate(wrap, "click", "[data-act]", (ev, el) => done(el.getAttribute("data-act") === "confirm:ok"));
   });
 }

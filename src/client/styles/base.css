@@ -77,17 +77,34 @@ a { color: var(--accent); }
 .pop { position: fixed; z-index: 60; width: 280px; max-width: calc(100vw - 16px); max-height: min(420px, calc(100vh - 16px)); overflow: auto; background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); box-shadow: var(--shadow-md); padding: 8px; }
 .pop:focus { outline: none; }
 
-/* ---------- toast (lib/toast.js) ---------- */
-.toasts { position: fixed; left: 50%; bottom: calc(20px + env(safe-area-inset-bottom, 0px)); transform: translateX(-50%); z-index: 80; display: flex; flex-direction: column; gap: 8px; align-items: center; pointer-events: none; }
-.toast { pointer-events: auto; background: var(--tip-bg); color: var(--tip-fg); padding: 9px 16px; border-radius: var(--radius); box-shadow: var(--shadow-md); font-weight: 500; display: flex; gap: 8px; align-items: center; }
-.toast a { color: inherit; text-decoration: underline; }
-.toast.err { border-left: 4px solid var(--bad-fg); }
+/* ---------- kit overrides: Identity G on the kit's classes (tokens only) ---------- */
+/* Buttons: the kit's gk-btn drawn as the app's .btn (quiet outline; primary and danger filled). */
+.gk-btn { height: auto; gap: 6px; border: 1px solid var(--line2); background: var(--surface); border-radius: var(--radius); padding: 6px 14px; font-weight: 600; color: var(--text); box-shadow: none; }
+.gk-btn:hover { border-color: var(--accent); color: var(--accent); background: var(--surface); opacity: 1; }
+.gk-btn[data-variant="default"] { background: var(--accent); color: var(--accent-ink); border-color: var(--accent); }
+.gk-btn[data-variant="default"]:hover { color: var(--accent-ink); background: var(--accent); filter: brightness(1.08); opacity: 1; }
+.gk-btn[data-variant="destructive"] { background: var(--bad-fg); color: var(--accent-ink); border-color: var(--bad-fg); }
+.gk-btn[data-variant="destructive"]:hover { color: var(--accent-ink); background: var(--bad-fg); filter: brightness(1.08); opacity: 1; }
+.gk-btn[data-variant="ghost"] { border-color: transparent; background: none; }
+.gk-btn[data-size="sm"] { height: auto; padding: 3px 10px; font-size: 12px; }
+.gk-btn:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
 
-/* ---------- dialog (lib/confirm.js) ---------- */
-.scrim { position: fixed; inset: 0; z-index: 90; display: grid; place-items: center; background: var(--scrim); padding: 16px; }
-.dlg { width: min(420px, 100%); background: var(--surface); border: 1px solid var(--border); border-radius: var(--card-radius); box-shadow: var(--shadow-md); padding: 20px; display: flex; flex-direction: column; gap: 10px; }
-.dlg p { color: var(--text-muted); }
-.dlg-act { display: flex; justify-content: flex-end; gap: 8px; margin-top: 6px; }
+/* Toast (lib/toast.js): the dark tip pill, centred at the bottom. The kind word stays (status is never colour alone). */
+.toasts.gk-toast-host { inset: auto auto calc(20px + env(safe-area-inset-bottom, 0px)) 50%; transform: translateX(-50%); z-index: 80; align-items: center; width: max-content; max-width: min(520px, calc(100vw - 32px)); gap: 8px; }
+.toasts .gk-toast-stack { align-items: center; gap: 8px; }
+.toasts .gk-toast { background: var(--tip-bg); color: var(--tip-fg); border: 0; padding: 9px 16px; border-radius: var(--radius); box-shadow: var(--shadow-md); font-weight: 500; font-size: inherit; gap: 8px; }
+.toasts .gk-toast__kind { padding: 1px 7px; border-radius: 9px; font: 700 10px var(--font-sans); letter-spacing: 0.06em; color: inherit; background: none; border: 1px solid currentColor; }
+.toasts .gk-toast__link { color: inherit; text-decoration: underline; }
+.toasts .gk-toast__close.gk-btn { width: 22px; height: 22px; padding: 0; border: 0; background: none; color: inherit; opacity: 0.75; font-size: 16px; }
+.toasts .gk-toast__close.gk-btn:hover { opacity: 1; color: inherit; }
+.toasts .gk-toast__close:focus-visible, .toasts .gk-toast__link:focus-visible { outline: 2px solid var(--tip-fg); outline-offset: 2px; }
+
+/* Confirm dialog (lib/confirm.js). */
+.gk-confirm { z-index: 90; padding: 16px; }
+.gk-confirm__dialog { width: min(420px, 100%); border-radius: var(--card-radius); box-shadow: var(--shadow-md); padding: 20px; }
+.gk-confirm__title { font-size: 16px; font-weight: 700; line-height: inherit; }
+.gk-confirm__body { margin: 10px 0 0; font-size: inherit; }
+.gk-confirm__actions { margin-top: 16px; gap: 8px; }
 
 /* ---------- state cards (shell/states.js) ---------- */
 .state { display: flex; flex-direction: column; align-items: flex-start; gap: 8px; max-width: 520px; margin: 56px auto 0; padding: 24px; background: var(--surface); border: 1px solid var(--border); border-radius: var(--card-radius); }

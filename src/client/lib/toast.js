@@ -1,31 +1,33 @@
-// A short message at the bottom of the window. It lives in a polite live region, so a screen
-// reader announces it. opts: kind ('ok'|'err'), ms, link {href, label} (href from the server).
-import { renderRegion } from "@gas-kit/client/dom.js";
-import { html } from "@gas-kit/client/html.js";
+// A short message at the bottom of the window, on the kit toaster: a visible stack plus polite
+// and assertive announcers, a kind word (Info, Done, Warning, Error), a dismiss button, and the
+// timer paused while the pointer or focus is on the stack.
+// opts: kind ('ok'|'err'|'warn'), ms, link {href, label} (href from the server; the kit shows
+// only https and mailto links). Returns {close}.
+import { delegate } from "@gas-kit/client/dom.js";
+import { createToaster } from "@gas-kit/ui/components/toast.js";
 
-/** @type {HTMLDivElement | null} */
-let host = null;
+/** @type {ReturnType<typeof createToaster> | null} */
+let toaster = null;
+/** @type {HTMLElement | null} */
+let region = null;
 
-function ensureHost() {
-  if (host && host.isConnected) return host;
-  host = document.createElement("div");
-  host.className = "toasts";
-  host.setAttribute("role", "status");
-  host.setAttribute("aria-live", "polite");
-  document.body.appendChild(host);
-  return host;
+const KINDS = { ok: "ok", err: "bad", warn: "warn" };
+
+function ensure() {
+  if (toaster && region && region.isConnected) return toaster;
+  region = document.createElement("div");
+  region.className = "toasts";
+  document.body.appendChild(region);
+  // Keep the toasts a stack of any length the app raises (a run of Sheet exports shows each link).
+  toaster = createToaster(region, { max: 8, focusFallback: () => document.querySelector("main, body") });
+  const t = toaster;
+  delegate(region, "click", '[data-act="toast:dismiss"]', (ev, el) => t.dismiss(el.getAttribute("data-id") || ""));
+  return t;
 }
-
-const SAFE_LINK = /^(https|mailto):/i;
 
 export function toast(message, opts) {
   const o = opts || {};
-  const item = document.createElement("div");
-  item.className = "toast" + (o.kind === "err" ? " err" : "");
-  const link = o.link && SAFE_LINK.test(o.link.href || "") ? o.link : null;
-  renderRegion(item, html`<span>${message}</span>${link ? html` <a href="${link.href}" target="_blank" rel="noopener noreferrer">${link.label || "Open"}</a>` : ""}`, { keepFocus: false, keepScroll: false });
-  ensureHost().appendChild(item);
-  const ms = o.ms == null ? (link ? 9000 : 4500) : o.ms;
-  const timer = setTimeout(() => item.remove(), ms);
-  return { close: () => { clearTimeout(timer); item.remove(); } };
+  const t = ensure();
+  const id = t.show(String(message), { kind: KINDS[o.kind] || "info", ms: o.ms, link: o.link || null });
+  return { close: () => t.dismiss(id) };
 }

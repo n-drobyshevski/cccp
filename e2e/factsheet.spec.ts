@@ -138,7 +138,7 @@ test("copy link gives ?app= and open row in sheet uses the Sheet url", async ({ 
   const [id] = await ids(page);
   await open(page, id!);
   await page.locator("[data-act=copy]").click();
-  await expect(page.locator(".toast")).toContainText("Link copied");
+  await expect(page.locator(".gk-toast")).toContainText("Link copied");
   const copied = await page.evaluate(() => (window as unknown as { __copied: string }).__copied);
   expect(new URL(copied).search).toBe("?app=" + id);
   const href = await page.locator("a[data-act=sheet]").getAttribute("href");

@@ -95,7 +95,7 @@ test("save sends one patch with baseGen and toasts the clamped key", async ({ pa
   await page.locator("input[data-key='source.cacheMinutes']").fill("9999");
   await expect(page.locator("#st-tab-source .dirtydot")).toHaveCount(1);
   await page.locator(".savebar").getByRole("button", { name: "Save", exact: true }).click();
-  await expect(page.locator(".toast")).toContainText("Adjusted to the allowed range: Keep data in memory for");
+  await expect(page.locator(".gk-toast")).toContainText("Adjusted to the allowed range: Keep data in memory for");
   const s = await saves(page);
   expect(s.length).toBe(1);
   expect(s[0].patch).toEqual({ source: { cacheMinutes: 9999 } });
@@ -146,7 +146,7 @@ test("mapping lists the real headers with examples, and saving refetches the reg
   await page.locator("select[data-key='fields.owner']").selectOption("Owner Name");
   await expect(page.locator("[data-callout]")).not.toContainText("not mapped");
   await page.locator(".savebar").getByRole("button", { name: "Save", exact: true }).click();
-  await expect(page.locator(".toast")).toContainText("Settings saved");
+  await expect(page.locator(".gk-toast")).toContainText("Settings saved");
   const after = await fetched();
   expect(after).toBeGreaterThan(before);
 });
@@ -166,7 +166,7 @@ test("display counts are live", async ({ page }) => {
   await page.getByRole("button", { name: "Dark", exact: true }).click();
   await expect(page.locator(".savebar")).toContainText("3 unsaved changes");
   await page.locator(".savebar").getByRole("button", { name: "Save", exact: true }).click();
-  await expect(page.locator(".toast")).toContainText("Settings saved");
+  await expect(page.locator(".gk-toast")).toContainText("Settings saved");
 });
 
 test("publishing a shared view keeps an unsaved settings draft", async ({ page }) => {

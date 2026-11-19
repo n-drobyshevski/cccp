@@ -43,7 +43,7 @@ test("the walk: every page, the fact sheet and a Settings save, with no console 
   await page.getByRole("tab", { name: /Display/ }).click();
   await page.locator('[data-key="display.opensOn"][data-v=heatmap]').click();
   await page.getByRole("button", { name: "Save", exact: true }).click();
-  await expect(page.locator(".toast")).toBeVisible();
+  await expect(page.locator(".gk-toast")).toBeVisible();
   await expect(page.getByRole("button", { name: "Save", exact: true })).toHaveCount(0);
   // The dev fakes are per page load, so the stored value is checked in this load: the brand goes
   // to the saved default view.

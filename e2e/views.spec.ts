@@ -102,7 +102,7 @@ test.describe("personal views", () => {
     const n = await visible(page);
     await saveView(page, "Mine");
     await page.getByRole("button", { name: /Copy link/ }).click();
-    await expect(page.locator(".toast", { hasText: "copied" })).toBeVisible();
+    await expect(page.locator(".gk-toast", { hasText: "copied" })).toBeVisible();
     const link = await page.evaluate(() => navigator.clipboard.readText());
     expect(link).not.toContain("view=");
     const u = new URL(link);
@@ -170,7 +170,7 @@ test.describe("shared views", () => {
     await saveView(page, "Shared tier one", true);
     await expect(selected(page)).toHaveText("Shared tier one");
     await page.getByRole("button", { name: /Copy link/ }).click();
-    await expect(page.locator(".toast", { hasText: "copied" })).toBeVisible();
+    await expect(page.locator(".gk-toast", { hasText: "copied" })).toBeVisible();
     const link = await page.evaluate(() => navigator.clipboard.readText());
     const u = new URL(link);
     const id = u.searchParams.get("view");
@@ -186,7 +186,7 @@ test.describe("shared views", () => {
     // A link to a view that was deleted says so and shows the whole register.
     const gone = await context.newPage();
     await gone.goto("/?view=deadbeef&as=viewer@example.com");
-    await expect(gone.locator(".toast")).toContainText("no longer exists");
+    await expect(gone.locator(".gk-toast")).toContainText("no longer exists");
   });
 
   test("an admin deletes a shared view", async ({ page }) => {

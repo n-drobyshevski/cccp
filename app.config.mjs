@@ -66,6 +66,8 @@ export default {
     // preferences and lib/errorText.js is new (the reference of an unexpected fault).
     // C4: the css cap rises to 66500 (bundle 66445, +7.1 KB): the kit's tokens.base.css (about 7 KB minified:
     // spacing, type, motion, chart, sidebar and shadow tokens the app does not use yet) now loads before theme.css.
-    budgets: { server: 157_600, js: 199_900, css: 66_500 },
+    // C5a: js 208000 (bundle 207909, +8.0 KB: the kit toaster with its motion helpers, and the confirm island, replace
+    // the app's 31 and 47 line modules) and css 72700 (bundle 72654, +6.2 KB: kit button, toast and confirm styles).
+    budgets: { server: 157_600, js: 208_000, css: 72_700 },
   },
 };

@@ -16,7 +16,7 @@ import type { SaveSettingsResponse, SettingsResponse } from "../domain/payload";
 import type { SectionKey, Settings, SettingsPatch, TabKey } from "../domain/types";
 import { TAB_KEYS } from "../domain/types";
 import { ApiError, getJsonProp, putJsonProp, withScriptLock } from "@gas-kit/server";
-import { bumpCfgGen, bumpDataVersion, cached, cfgGen } from "./serverCache";
+import { bumpCfgGen, bumpDataVersion, cache, cfgGen, paramsKey } from "./serverCache";
 import { sampleWorkbook } from "./sourceSheet";
 
 /** A patch larger than this is refused before it is even merged. */
@@ -90,7 +90,7 @@ export function getSettingsView(): SettingsResponse {
   if (settings.source.sheetId !== "") {
     try {
       const names = TAB_KEYS.map((k) => settings.source.tabs[k].name + (settings.source.tabs[k].sameTab ? "\u0001same" : ""));
-      const sample = cached("headers", { id: settings.source.sheetId, names, idHeader: settings.fields.id.header }, () => sampleWorkbook(settings.source, { idHeader: settings.fields.id.header }), HEADERS_TTL_SEC);
+      const sample = cache.getOrCompute("headers1", paramsKey({ id: settings.source.sheetId, names, idHeader: settings.fields.id.header }), HEADERS_TTL_SEC, () => sampleWorkbook(settings.source, { idHeader: settings.fields.id.header }));
       tabNames = sample.tabNames;
       for (const k of Object.keys(sample.tabs) as TabKey[]) {
         const s = sample.tabs[k];

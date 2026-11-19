@@ -21,11 +21,11 @@ import type { SourceMeta } from "../domain/payload";
 import { buildId } from "@gas-kit/server";
 import { access } from "./access";
 import { peekRegisterEntry, registerEntry } from "./registerStore";
-import { cached, cfgGen, peekCached, TTL_MIN_SEC } from "./serverCache";
+import { cache, cfgGen, coreKey, TTL_MIN_SEC } from "./serverCache";
 import { listSharedViews } from "./sharedViews";
 import { loadSettings } from "./settingsStore";
 
-const CORE = "core";
+const CORE = "core1";
 
 // The cache clamps every TTL to its minimum, so a degraded core is kept for that long.
 const DEGRADED_TTL_SEC = TTL_MIN_SEC;
@@ -70,11 +70,11 @@ export function getCore(): BootstrapCore {
 /** The core and the register entry peeked once after it (building the core may have primed it). */
 function coreWithWarm(): { core: BootstrapCore; warm: ReturnType<typeof peekRegisterEntry> } {
   let ttl = 600;
-  const core = cached<BootstrapCore>(CORE, undefined, () => {
+  const core = cache.getOrCompute<BootstrapCore>(CORE, coreKey(), () => ttl, () => {
     const b = buildCore();
     ttl = b.ttlSec;
     return b.core;
-  }, () => ttl, "cfg");
+  });
   return withFreshestMeta(core);
 }
 
@@ -121,7 +121,7 @@ export function getBootstrap(): BootstrapResponse {
 
 /** The bootstrap only when the core is already in the cache; null on a miss. Never reads the Sheet. */
 export function bootstrapIfWarm(): BootstrapResponse | null {
-  const hit = peekCached(CORE, undefined, "cfg") as BootstrapCore | undefined;
+  const hit = cache.peek(CORE, coreKey()) as BootstrapCore | undefined;
   if (!hit) return null;
   const { core, warm } = withFreshestMeta(hit);
   const res: BootstrapResponse = { core, live: getLive(core) };

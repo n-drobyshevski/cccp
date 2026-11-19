@@ -9,7 +9,7 @@ import { access } from "./access";
 import { PROP_KEYS } from "./config";
 import { errorLog } from "./errorLog";
 import { peekRegisterEntry, registerEntry } from "./registerStore";
-import { cacheKey, cfgGen, dataVersion } from "./serverCache";
+import { cfgGen, coreKey, dataVersion, registerKey } from "./serverCache";
 import { loadSettings } from "./settingsStore";
 
 export interface DiagnosticsReport {
@@ -97,8 +97,8 @@ export function diagnosticsReport(): DiagnosticsReport {
     cache: {
       registerWarm: safe("cache", () => peekRegisterEntry() !== undefined, null as boolean | null),
       keys: {
-        register: safe("registerKey", () => cacheKey("register", undefined), null as string | null),
-        core: safe("coreKey", () => cacheKey("core", undefined, "cfg"), null as string | null),
+        register: safe("registerKey", () => "register1." + registerKey(), null as string | null),
+        core: safe("coreKey", () => "core1." + coreKey(), null as string | null),
       },
     },
     register: { bytes: registerBytes, rows: registerRows, warnings },

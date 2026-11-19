@@ -4,7 +4,7 @@ import * as api from "../../src/server/api";
 import { diagnosticsReport, diagnosticsText } from "../../src/server/diagnostics";
 import { errorLog } from "../../src/server/errorLog";
 import { REGISTER_WARN_ROWS } from "../../src/domain/payload";
-import { cacheGetJson, cacheKey, cachePutJson } from "../../src/server/serverCache";
+import { cache, registerKey } from "../../src/server/serverCache";
 import { useGasEnv } from "../gasEnv";
 
 const fakes = useGasEnv({ workbook: true, seed: true });
@@ -84,10 +84,9 @@ describe("diagnostics report", () => {
 
   it("warns when the register is over the limits", () => {
     api.getRegister();
-    const key = cacheKey("register", undefined);
-    const entry = cacheGetJson(key) as { register: { codec: { rows: unknown[] } } };
+    const entry = cache.get("register1", registerKey()) as { register: { codec: { rows: unknown[] } } };
     entry.register.codec.rows = new Array(REGISTER_WARN_ROWS + 1).fill(null);
-    cachePutJson(key, entry, 600);
+    cache.put("register1", registerKey(), entry, 600);
     const r = diagnosticsReport();
     expect(r.register.warnings.join(" ")).toContain("rows: above " + REGISTER_WARN_ROWS);
   });

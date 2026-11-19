@@ -13,7 +13,7 @@ import type { Issues } from "../domain/types";
 import { TAB_KEYS } from "../domain/types";
 import { ApiError, withScriptLock } from "@gas-kit/server";
 import { errorLog } from "./errorLog";
-import { cached, dataVersion, bumpDataVersion, peekCached, primeCached } from "./serverCache";
+import { bumpDataVersion, cache, dataVersion, registerKey } from "./serverCache";
 import { loadSettings } from "./settingsStore";
 import { readTabs } from "./sourceSheet";
 
@@ -22,7 +22,7 @@ export interface RegisterEntry {
   meta: SourceMeta;
 }
 
-const NAME = "register";
+const NAME = "register1";
 export const UNREACHABLE = "Data source unreachable";
 
 const noIssues = (): Issues => ({ missingHeaders: [], missingTabs: [], unmatched: [], duplicateIds: [], unparseable: [], unmapped: [] });
@@ -101,16 +101,16 @@ function safeTz(): string {
 /** The register entry: from the cache within the TTL, else read, assemble, encode and cache. */
 export function registerEntry(): RegisterEntry {
   let ttl = 600;
-  return cached<RegisterEntry>(NAME, undefined, () => {
+  return cache.getOrCompute<RegisterEntry>(NAME, registerKey(), () => ttl, () => {
     const b = build();
     ttl = b.ttlSec;
     return b.entry;
-  }, () => ttl);
+  });
 }
 
 /** The entry only when it is warm; never reads the Sheet. */
 export function peekRegisterEntry(): RegisterEntry | undefined {
-  const hit = peekCached(NAME, undefined) as RegisterEntry | undefined;
+  const hit = cache.peek(NAME, registerKey()) as RegisterEntry | undefined;
   return hit && hit.register && hit.register.v === REGISTER_FORMAT ? hit : undefined;
 }
 
@@ -127,7 +127,7 @@ export function reloadRegister(): SourceMeta {
   return withScriptLock(() => {
     bumpDataVersion();
     const { entry, ttlSec } = build();
-    primeCached(NAME, undefined, entry, ttlSec);
+    cache.put(NAME, registerKey(), entry, ttlSec);
     return entry.meta;
   });
 }

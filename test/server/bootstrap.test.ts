@@ -4,7 +4,11 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import { genWorkbook } from "../../dev/genTabs.mjs";
 import { __resetMemosForTest } from "../../src/server/access";
 import * as api from "../../src/server/api";
-import { cacheGetJson, cacheKey, cachePutJson } from "../../src/server/serverCache";
+import { CACHE_EPOCH } from "../../src/server/config";
+import { cache, coreKey, registerKey } from "../../src/server/serverCache";
+
+// The full CacheService key of an entry (kit layout), for the tests that tamper with the raw store.
+const rawKey = (ns: string, key: string) => "cccp.e" + CACHE_EPOCH + "." + ns + "." + key;
 import { decodeRegister, REGISTER_INLINE_MAX_BYTES } from "../../src/domain/payload";
 import { useGasEnv } from "../gasEnv";
 
@@ -65,12 +69,12 @@ describe("bootstrap", () => {
     for (const who of EMAILS) { as(who); api.bootstrap(); api.getRegister(); }
     as("viewer@example.com");
     expect(api.bootstrap().data!.core.sharedViews).toHaveLength(1);
-    const stored = [cacheGetJson(cacheKey("core", undefined, "cfg")), cacheGetJson(cacheKey("register", undefined))];
+    const stored = [cache.get("core1", coreKey()), cache.get("register1", registerKey())];
     expect(stored[0]).toBeDefined();
     expect(stored[1]).toBeDefined();
     for (const v of stored) expect(JSON.stringify(v)).not.toMatch(/@/);
     // And not in a key.
-    const keys: string[] = [cacheKey("core", undefined, "cfg"), cacheKey("register", undefined)];
+    const keys: string[] = [rawKey("core1", coreKey()), rawKey("register1", registerKey())];
     for (const k of keys) for (const e of EMAILS) expect(k).not.toContain(e);
   });
 
@@ -109,7 +113,7 @@ describe("bootstrap", () => {
   it("does not inline the register when it is cold, and does not read the Sheet to find out", () => {
     as("viewer@example.com");
     api.bootstrap();
-    CacheService.getScriptCache().remove(cacheKey("register", undefined) + ":m");
+    CacheService.getScriptCache().remove(rawKey("register1", registerKey()) + ":m");
     const open = vi.spyOn(SpreadsheetApp, "openById");
     const res = api.bootstrap().data!;
     expect(res.register).toBeUndefined();
@@ -120,11 +124,9 @@ describe("bootstrap", () => {
     as("viewer@example.com");
     api.bootstrap();
     // Push the register entry past the limit: same key, padded strings.
-    const key = cacheKey("register", undefined);
-    const entry = cacheGetJson(key) as { register: { strings: string[] } };
+    const entry = cache.get("register1", registerKey()) as { register: { strings: string[] } };
     entry.register.strings = entry.register.strings.concat(Array.from({ length: 700 }, (_, i) => String(i).padStart(10, "0").repeat(100)));
-    CacheService.getScriptCache().remove(key + ":m");
-    cachePutJson(key, entry, 600);
+    cache.put("register1", registerKey(), entry, 600);
     expect(api.bootstrap().data!.register).toBeUndefined();
   });
 

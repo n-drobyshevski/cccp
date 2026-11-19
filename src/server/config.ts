@@ -9,6 +9,16 @@ import type { AccessMode, Role } from "@gas-kit/server";
 /** The product name: the denied page, the mailto subject and the browser tab. */
 export const PRODUCT = "CCCP";
 
+/** Prefix of every cache key this app writes (the kit cache key is prefix.e<epoch>.<namespace>.<key>). */
+export const CACHE_PREFIX = "cccp";
+
+/**
+ * Bump to make every cached entry unreachable on the next deploy. 4: the cache moved to the kit's
+ * layout (head record with a checksum, namespaces register1 / core1 / headers1), so every entry
+ * written under the app's own layout (epoch 3) is dead.
+ */
+export const CACHE_EPOCH = 4;
+
 /** The access mode while ACCESS_MODE is unset (app.config.mjs accessDefault). */
 export const ACCESS_DEFAULT: AccessMode = "list";
 

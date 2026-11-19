@@ -1,5 +1,6 @@
 // The register read-through cache and the version counters.
 import { beforeEach, describe, expect, it, vi } from "vitest";
+import { beginExecution } from "@gas-kit/server";
 import { decodeRegister, payloadBytes, REGISTER_INLINE_MAX_BYTES } from "../../src/domain/payload";
 import { __resetMemosForTest } from "../../src/server/access";
 import * as api from "../../src/server/api";
@@ -53,12 +54,15 @@ describe("getRegister", () => {
   });
 
   it("reads again after cacheMinutes", () => {
+    // Each call is its own execution: the kit cache keeps what an execution read in memory.
     const open = vi.spyOn(SpreadsheetApp, "openById");
     getRegisterPayload();
     fakes().advance(9 * 60 * 1000);
+    beginExecution();
     getRegisterPayload();
     expect(open).toHaveBeenCalledTimes(1);
     fakes().advance(2 * 60 * 1000);
+    beginExecution();
     getRegisterPayload();
     expect(open).toHaveBeenCalledTimes(2);
   });

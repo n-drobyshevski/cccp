@@ -1,8 +1,8 @@
 // The kit contracts (src/kit/tooling/src/test/contracts), registered against this app. Each one is
 // a spec factory that fails on drift. The app's client kernel and cache are still its own (the
-// kit swaps are later work packages), so the contracts that need the kit's cache shape are
-// deferred at the bottom, each with the work package that brings the shape. None is registered
-// with weakened options to force a pass.
+// kit swaps are later work packages), so a contract that needs a kit shape the app does not have
+// yet is deferred at the bottom, with the work package that brings it. None is registered with
+// weakened options to force a pass.
 import { existsSync, readdirSync, readFileSync, statSync } from "node:fs";
 import { dirname, join } from "node:path";
 import vm from "node:vm";
@@ -22,6 +22,8 @@ import * as noTitleAttr from "@gas-kit/tooling/test/contracts/noTitleAttr.js";
 import * as noUserProperties from "@gas-kit/tooling/test/contracts/noUserProperties.js";
 import * as roleMatrix from "@gas-kit/tooling/test/contracts/roleMatrix.js";
 import * as runNames from "@gas-kit/tooling/test/contracts/runNames.js";
+import * as viewerFreeCore from "@gas-kit/tooling/test/contracts/viewerFreeCore.js";
+import * as cacheNamespaces from "@gas-kit/tooling/test/contracts/cacheNamespaces.js";
 import * as scrubClean from "@gas-kit/tooling/test/contracts/scrubClean.js";
 import { isPushRun } from "@gas-kit/tooling/build/push.mjs";
 import config from "../app.config.mjs";
@@ -29,6 +31,7 @@ import { __resetMemosForTest } from "../src/server/access";
 import * as api from "../src/server/api";
 import * as server from "../src/server/index";
 import { ENDPOINT_ROLES } from "../src/server/roles";
+import { cache, coreKey } from "../src/server/serverCache";
 import { useGasEnv } from "./gasEnv";
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), "..");
@@ -231,11 +234,26 @@ describe("no private term", () => {
   scrubClean.register(describe, it, expect, { root: ROOT, extraTerms: [/zz-private-term-placeholder/i], allow: ["contracts.test.ts"] });
 });
 
-// DEFERRED contracts (not registered; they need the kit's cache shape, and cccp's cache is still
-// its own):
-//  - cacheNamespaces (C2d: cache) expects namespaces created by the kit's createCache, versioned
-//                    letters-then-number.
-//  - viewerFreeCore  (C2d: cache / bootstrap) needs the kit's cached core; cccp's own
-//                    viewer-free test stays until then.
-//  - confidential    (C2a: server config/policy) needs DATA_CLASS in src/server/config.ts and the
+describe("the cached core is viewer-free", () => {
+  // The core as it sits in the script cache (not the response), after a bootstrap as a plain
+  // viewer: nothing per viewer at any depth. cccp's own allowlist and address scan stay in
+  // test/server/bootstrap.test.ts.
+  const fakes = useGasEnv({ workbook: true, seed: true });
+  let core: unknown;
+  beforeEach(() => {
+    __resetMemosForTest();
+    fakes().setActiveUser("viewer@example.com");
+    api.bootstrap();
+    core = cache.peek("core1", coreKey());
+  });
+  viewerFreeCore.register(describe, it, expect, { get core() { return core; } } as never);
+});
+
+describe("cache namespaces are versioned", () => {
+  // register1 and core1 (the kit's createCache in src/server/serverCache.ts), headers1.
+  cacheNamespaces.register(describe, it, expect, { srcDir: join(SRC, "server"), minHits: 4 });
+});
+
+// DEFERRED contract (not registered):
+//  - confidential    (C2g: diagnostics and setup) needs DATA_CLASS in src/server/config.ts and the
 //                    kit's policy object; app.config.mjs already says dataClass "confidential".

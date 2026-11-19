@@ -1,35 +1,26 @@
-// Cross-request cache for the register and the bootstrap core, over CacheService.
+// Cross-request cache for the register and the bootstrap core: the kit's createCache (JSON, gzip,
+// base64, 90 000-character chunks plus a checksummed head record, TTL clamped to 60..21600) and
+// the three version counters the keys carry.
 //
-// Derived from sidekick gas_ai/src/server/serverCache.ts at commit 77bcf22 (see VENDOR.md).
-// Removed: the second (Wiz) version, the domain-tag stamp and the L2. The prefix is 'cccp', the
-// version counters are DATA_VERSION and CFG_GEN, and each caller passes a TTL clamped to
-// 60..21600 seconds.
+//   register  register1 . <DATA_VERSION>
+//   core      core1     . <DATA_VERSION>.<CFG_GEN>.<VIEWS_GEN>
+//   headers   headers1  . <DATA_VERSION>.<checksum of the probe>
 //
-//   register key  cccp:<EPOCH>:<DATA_VERSION>:register
-//   core key      cccp:<EPOCH>:<DATA_VERSION>.<CFG_GEN>.<VIEWS_GEN>:core
+// Invalidation is version-in-key: a bump makes every older entry unreachable and it ages out by
+// TTL. Nothing per-viewer is EVER cached: keys carry no identity and callers cache only
+// viewer-free values. Any cache failure degrades to compute() inside the kit.
 //
-// Invalidation is version-in-key: a bump makes every older entry unreachable and it ages out
-// by TTL. Nothing per-viewer is EVER cached: keys carry no identity and callers cache only
-// viewer-free values. CacheService caps a value at 100 KB, so a payload is gzip+base64 and
-// split into chunks under `<key>:0..n-1` with a `<key>:m` count. Any cache failure degrades to
-// compute().
+// No forbid() hook: the register is the source sheet's rows and the core holds the public
+// settings and shared views, and both legitimately contain addresses. A hook that refuses a write
+// holding the caller's address would let anyone who can edit the sheet keep chosen people out on a
+// cold cache. Viewer-freedom is pinned by the viewerFreeCore contract and test/server/bootstrap.test.ts.
 
-import { sha1Hex } from "../vendor/gas_shared/domain/sha1";
-import { getProp, setProp } from "@gas-kit/server";
-import { PROP_KEYS } from "./config";
+import { checksum, createCache, getProp, setProp, TTL_MIN_SEC } from "@gas-kit/server";
+import { CACHE_EPOCH, CACHE_PREFIX, PROP_KEYS } from "./config";
 
-/** Bump to make every cached entry unreachable on the next deploy. 3: shared views in the core no
- *  longer carry the page they were saved on (identity G part 2). */
-export const CACHE_EPOCH = "3";
-const KEY_PREFIX = "cccp:" + CACHE_EPOCH;
-const CHUNK_CHARS = 90_000;
-export const TTL_MIN_SEC = 60;
-export const TTL_MAX_SEC = 21_600;
+export { TTL_MIN_SEC };
 
-/** Which counters an entry's freshness depends on. */
-export type CacheScope = "data" | "cfg";
-
-const clampTtl = (s: number): number => Math.min(TTL_MAX_SEC, Math.max(TTL_MIN_SEC, Math.round(s) || TTL_MIN_SEC));
+export const cache = createCache({ prefix: CACHE_PREFIX, epoch: CACHE_EPOCH });
 
 function counter(key: string): number {
   const n = Number(getProp(key));
@@ -69,96 +60,18 @@ export function bumpCfgGen(): number {
   return n;
 }
 
-/** Params as a short stable hash; absent params add nothing to the key. */
-export function paramsHash(params: unknown): string {
-  return sha1Hex(JSON.stringify(params ?? null)).slice(0, 12);
+/** The register's key within register1: freshness depends on the data only. */
+export function registerKey(): string {
+  return String(dataVersion());
 }
 
-export function cacheKey(name: string, params: unknown, scope: CacheScope = "data"): string {
-  const v = scope === "cfg" ? dataVersion() + "." + cfgGen() + "." + viewsGen() : String(dataVersion());
-  return KEY_PREFIX + ":" + v + ":" + name + (params === undefined ? "" : ":" + paramsHash(params));
+/** The core's key within core1: freshness depends on the data, the settings and the shared views. */
+export function coreKey(): string {
+  return dataVersion() + "." + cfgGen() + "." + viewsGen();
 }
 
-/** Pure chunk split (exported for tests). */
-export function splitChunks(s: string, size = CHUNK_CHARS): string[] {
-  const out: string[] = [];
-  for (let i = 0; i < s.length; i += size) out.push(s.slice(i, i + size));
-  return out.length ? out : [""];
-}
-
-export function cachePutJson(key: string, value: unknown, ttlSec: number, chunkChars = CHUNK_CHARS): number {
-  const json = JSON.stringify(value);
-  const gz = Utilities.gzip(Utilities.newBlob(json, "application/json"));
-  const chunks = splitChunks(Utilities.base64Encode(gz.getBytes()), chunkChars);
-  const entries: Record<string, string> = { [key + ":m"]: String(chunks.length) };
-  chunks.forEach((c, i) => { entries[key + ":" + i] = c; });
-  CacheService.getScriptCache().putAll(entries, clampTtl(ttlSec));
-  return json.length;
-}
-
-/** The cached value, or undefined on a miss, a partial eviction or a parse failure. */
-export function cacheGetJson(key: string): unknown | undefined {
-  const cache = CacheService.getScriptCache();
-  const meta = cache.get(key + ":m");
-  if (!meta) return undefined;
-  const n = Number(meta);
-  if (!Number.isInteger(n) || n < 1) return undefined;
-  const names: string[] = [];
-  for (let i = 0; i < n; i++) names.push(key + ":" + i);
-  const got = cache.getAll(names);
-  let packed = "";
-  for (const name of names) {
-    const chunk = got[name];
-    if (chunk === undefined || chunk === null) return undefined;
-    packed += chunk;
-  }
-  const json = Utilities.ungzip(Utilities.newBlob(Utilities.base64Decode(packed), "application/x-gzip")).getDataAsString("UTF-8");
-  return JSON.parse(json);
-}
-
-/**
- * Version-keyed read-through cache. `ttlSec` may be a function, called only on a miss, so a
- * hit never pays for reading the settings that decide it. A cache-layer error falls back to
- * compute(): caching is an optimisation, never a correctness dependency.
- */
-export function cached<T>(
-  name: string, params: unknown, compute: () => T, ttlSec: number | (() => number), scope: CacheScope = "data",
-): T {
-  let key: string | null = null;
-  try {
-    key = cacheKey(name, params, scope);
-    const hit = cacheGetJson(key);
-    if (hit !== undefined) return hit as T;
-  } catch (e) {
-    console.warn("Cache read failed for " + name + ": " + e);
-    key = null;
-  }
-  const value = compute();
-  if (key) {
-    try {
-      cachePutJson(key, value, typeof ttlSec === "function" ? ttlSec() : ttlSec);
-    } catch (e) {
-      console.warn("Cache write failed for " + name + ": " + e);
-    }
-  }
-  return value;
-}
-
-/** What cached() would return, without computing on a miss: undefined on a miss or any error. */
-export function peekCached(name: string, params: unknown, scope: CacheScope = "data"): unknown | undefined {
-  try {
-    return cacheGetJson(cacheKey(name, params, scope));
-  } catch (e) {
-    console.warn("Cache peek failed for " + name + ": " + e);
-    return undefined;
-  }
-}
-
-/** Store what cached() would have stored. Best-effort. */
-export function primeCached(name: string, params: unknown, value: unknown, ttlSec: number, scope: CacheScope = "data"): void {
-  try {
-    cachePutJson(cacheKey(name, params, scope), value, ttlSec);
-  } catch (e) {
-    console.warn("Cache write failed for " + name + ": " + e);
-  }
+/** A key for a cached answer that depends on parameters: the data version, a checksum of the parameters and their length. */
+export function paramsKey(params: unknown): string {
+  const json = JSON.stringify(params ?? null);
+  return dataVersion() + "." + checksum(json) + "." + json.length.toString(36);
 }

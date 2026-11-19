@@ -2,7 +2,7 @@
 // refused, the file shared to the viewer, five per ten minutes, strangers forbidden.
 import { readFileSync } from "node:fs";
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import * as access from "../../src/server/access";
+import { __resetMemosForTest } from "../../src/server/access";
 import * as api from "../../src/server/api";
 import { EXPORT_LIMIT, SHEET_TAB } from "../../src/server/exportSheet";
 import { errorLog } from "../../src/server/errorLog";
@@ -14,7 +14,7 @@ import { UNEXPECTED_ERROR_MESSAGE } from "@gas-kit/server";
 
 const fakes = useGasEnv({ workbook: true, seed: true });
 const recentErrors = () => errorLog.recentErrors();
-const as = (who: string) => { access.__resetMemosForTest(); fakes().setActiveUser(who); };
+const as = (who: string) => { __resetMemosForTest(); fakes().setActiveUser(who); };
 const ids = (n: number) => decodeRegister(registerEntry().register).slice(0, n).map((a) => a.id);
 const names = () => fakes().calls().map((c) => c.svc);
 

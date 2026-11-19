@@ -19,7 +19,7 @@ import { TAB_KEYS, type FieldKey, type Issues } from "../domain/types";
 import { FIELD_KEYS } from "../domain/fields";
 import type { SourceMeta } from "../domain/payload";
 import { buildId } from "@gas-kit/server";
-import * as access from "./access";
+import { access } from "./access";
 import { peekRegisterEntry, registerEntry } from "./registerStore";
 import { cached, cfgGen, peekCached, TTL_MIN_SEC } from "./serverCache";
 import { listSharedViews } from "./sharedViews";
@@ -98,11 +98,11 @@ export function getLive(core: BootstrapCore): BootstrapLive {
   const url = access.serviceUrl() ?? "";
   return {
     viewer: {
-      email: access.check().email,
+      email: access.decide().email,
       role: access.role() ?? "viewer",
       canEditSettings: access.canEditSettings(),
       canEditAdmins: access.canEditAdmins(),
-      canEditSource: access.canEditSource(),
+      canEditSource: access.isOwner(),
       canEditMode: access.canEditMode(),
     },
     serviceUrl: url,

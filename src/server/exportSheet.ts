@@ -16,7 +16,7 @@ import { decodeRegister } from "../domain/payload";
 import { completeness } from "../domain/quality";
 import { evaluateAll } from "../domain/rules";
 import { sha1Hex } from "../vendor/gas_shared/domain/sha1";
-import * as access from "./access";
+import { access } from "./access";
 import { todayIn } from "./bootstrap";
 import { ApiError, withScriptLock } from "@gas-kit/server";
 import { registerEntry } from "./registerStore";
@@ -101,7 +101,7 @@ export function exportToSheet(p?: ExportParams): ExportResult {
   const ids = cleanIds(p?.ids);
   const columns = cleanColumns(p?.columns);
   const title = clean(p?.title).slice(0, TITLE_MAX) || "Applications";
-  const email = access.check().email;
+  const email = access.decide().email;
   throttle(email);
 
   const rows = rowsFor(ids);

@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import * as access from "../../src/server/access";
+import { __resetMemosForTest } from "../../src/server/access";
 import * as api from "../../src/server/api";
 import { diagnosticsReport, diagnosticsText } from "../../src/server/diagnostics";
 import { errorLog } from "../../src/server/errorLog";
@@ -8,7 +8,7 @@ import { cacheGetJson, cacheKey, cachePutJson } from "../../src/server/serverCac
 import { useGasEnv } from "../gasEnv";
 
 const fakes = useGasEnv({ workbook: true, seed: true });
-const as = (who: string) => { access.__resetMemosForTest(); fakes().setActiveUser(who); };
+const as = (who: string) => { __resetMemosForTest(); fakes().setActiveUser(who); };
 
 beforeEach(() => {
   vi.restoreAllMocks();

@@ -5,7 +5,7 @@
 import { payloadBytes, REGISTER_WARN_BYTES, REGISTER_WARN_ROWS } from "../domain/payload";
 import { SECTION_PROPS } from "../domain/settings";
 import { buildId, getProp, utf8ByteLength } from "@gas-kit/server";
-import * as access from "./access";
+import { access } from "./access";
 import { PROP_KEYS } from "./config";
 import { errorLog } from "./errorLog";
 import { peekRegisterEntry, registerEntry } from "./registerStore";
@@ -50,7 +50,7 @@ export function diagnosticsReport(): DiagnosticsReport {
 
   const generatedAt = safe("clock", () => new Date().toISOString(), "");
   const owner = safe("owner", () => access.ownerEmail(), "");
-  const mode = safe("mode", () => access.accessMode(), "unknown");
+  const mode = safe("mode", () => access.mode(), "unknown");
   const listSizes = {
     users: safe("users", () => access.currentUsers().length, null as number | null),
     admins: safe("admins", () => access.currentAdmins().length, null as number | null),

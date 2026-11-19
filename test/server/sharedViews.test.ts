@@ -1,13 +1,13 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { resetPropsMemo } from "@gas-kit/server";
-import * as access from "../../src/server/access";
+import { __resetMemosForTest } from "../../src/server/access";
 import * as api from "../../src/server/api";
 import { cfgGen, viewsGen } from "../../src/server/serverCache";
 import { listSharedViews } from "../../src/server/sharedViews";
 import { useGasEnv } from "../gasEnv";
 
 const fakes = useGasEnv({ workbook: true, seed: true });
-const as = (who: string) => { access.__resetMemosForTest(); fakes().setActiveUser(who); };
+const as = (who: string) => { __resetMemosForTest(); fakes().setActiveUser(who); };
 const prop = (k: string) => PropertiesService.getScriptProperties().getProperty(k);
 
 beforeEach(() => {

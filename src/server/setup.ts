@@ -7,7 +7,7 @@
 
 import { cleanSettings, makeDefaultSettings, SECTION_KEYS, SECTION_PROPS, sheetIdFrom } from "../domain/settings";
 import type { Settings } from "../domain/types";
-import * as access from "./access";
+import { access } from "./access";
 import { diagnosticsText } from "./diagnostics";
 import { getJsonProp, getProp, putJsonProp, setProp } from "@gas-kit/server";
 import { PROP_KEYS } from "./config";
@@ -20,7 +20,7 @@ export function setup(sheetUrl?: string): string {
   const users = access.currentUsers();
   const owner = access.ownerEmail().trim().toLowerCase();
   if (owner && users.indexOf(owner) < 0) {
-    setProp(PROP_KEYS.allowedUsers, [owner].concat(users).join(", "));
+    setProp(PROP_KEYS.allowedUsers, JSON.stringify([owner].concat(users)));
     lines.push("Added " + owner + " to ALLOWED_USERS.");
   } else {
     lines.push("ALLOWED_USERS already names the owner.");
@@ -52,6 +52,6 @@ export function setup(sheetUrl?: string): string {
     }
   }
 
-  lines.push("Owner: " + owner + ". Access mode: " + access.accessMode() + ".");
+  lines.push("Owner: " + owner + ". Access mode: " + access.mode() + ".");
   return lines.join("\n") + "\n\n" + diagnosticsText();
 }

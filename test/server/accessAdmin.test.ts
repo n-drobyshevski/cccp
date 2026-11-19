@@ -2,7 +2,7 @@
 // gas_hub/test/accessAdmin.test.ts at commit 77bcf22 (see VENDOR.md): the sibling-URL cases are
 // gone, the owner-only mode and the logged-change cases are added.
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import * as access from "../../src/server/access";
+import { __resetMemosForTest } from "../../src/server/access";
 import { getAccess, saveAccess, saveAccessMode, saveAdmins } from "../../src/server/api";
 import { useGasEnv } from "../gasEnv";
 
@@ -11,7 +11,7 @@ const prop = (k: string) => PropertiesService.getScriptProperties().getProperty(
 let log: { mock: { calls: unknown[][] } };
 
 function as(who: string): void {
-  access.__resetMemosForTest();
+  __resetMemosForTest();
   fakes().setActiveUser(who);
 }
 const changes = () =>
@@ -40,7 +40,8 @@ describe("the tier stops where it has to", () => {
   it("lets the owner edit the admins list, and logs the change", () => {
     as("owner@example.com");
     expect(saveAdmins({ admins: "admin@example.com, second@example.com" }).ok).toBe(true);
-    expect(prop("ALLOWED_ADMINS")).toBe("admin@example.com, second@example.com");
+    // A save stores the list as a JSON array (the kit's format); the seeded value was delimited text.
+    expect(JSON.parse(prop("ALLOWED_ADMINS")!)).toEqual(["admin@example.com", "second@example.com"]);
     expect(changes()).toEqual([
       { access: "changed", what: "admins", actor: "owner@example.com", added: ["second@example.com"], removed: [] },
     ]);

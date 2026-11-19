@@ -25,7 +25,7 @@ import * as runNames from "@gas-kit/tooling/test/contracts/runNames.js";
 import * as scrubClean from "@gas-kit/tooling/test/contracts/scrubClean.js";
 import { isPushRun } from "@gas-kit/tooling/build/push.mjs";
 import config from "../app.config.mjs";
-import * as access from "../src/server/access";
+import { __resetMemosForTest } from "../src/server/access";
 import * as api from "../src/server/api";
 import * as server from "../src/server/index";
 import { ENDPOINT_ROLES } from "../src/server/roles";
@@ -93,7 +93,7 @@ describe("the role matrix", () => {
     saveAccessMode: { allowed: ["owner"], params: { mode: "list" } },
     probeSource: { allowed: ["owner"], params: { url: "" } },
   };
-  const as = (email: string) => { access.__resetMemosForTest(); fakes().setActiveUser(email); };
+  const as = (email: string) => { __resetMemosForTest(); fakes().setActiveUser(email); };
   const who = (label: string, email: string) => ({ label, setup: () => as(email) });
   // The Script Properties and the script cache, compared before and after a refused call.
   const state = () => {
@@ -136,7 +136,7 @@ describe("every public global refuses a stranger at run time", () => {
     const v = await entryParity.probeGlobals({
       globals: ctx as never,
       entryJs,
-      asStranger: () => { access.__resetMemosForTest(); fakes().setActiveUser("stranger@elsewhere.org"); },
+      asStranger: () => { __resetMemosForTest(); fakes().setActiveUser("stranger@elsewhere.org"); },
       refusals: { doGet: (r: any) => !!r && typeof r.getContent === "function" && /have access to this app/.test(String(r.getContent())) },
       state: () => { const s = fakes().snapshot(); return roleMatrix.storeState({ props: s.props, cache: s.cache }); },
     });
@@ -148,7 +148,9 @@ describe("the manifest asks for the scopes the code needs", () => {
   const manifest = JSON.parse(read(join(SRC, "gas/appsscript.json")));
   // The full spreadsheets scope is a reviewed decision: SpreadsheetApp.openById refuses
   // spreadsheets.readonly, and the source stays read-only by code (the noMutators contract below).
-  manifestScopes.register(describe, it, expect, { manifest, srcDir: APP_DIRS, allowBroad: ["https://www.googleapis.com/auth/spreadsheets"] });
+  // src/kit/server is bundled into the deployed server and is what calls Session and ScriptApp now,
+  // so it is scanned too (it sits right under SRC).
+  manifestScopes.register(describe, it, expect, { manifest, srcDir: [SRC], allowBroad: ["https://www.googleapis.com/auth/spreadsheets"] });
   manifestWebapp.register(describe, it, expect, { manifestPath: join(SRC, "gas/appsscript.json"), access: config.webappAccess });
   it("app.config.mjs lists exactly the manifest's scopes and zone", () => {
     expect([...config.oauthScopes].sort()).toEqual([...manifest.oauthScopes].sort());
@@ -157,14 +159,10 @@ describe("the manifest asks for the scopes the code needs", () => {
 });
 
 describe("no dangerous server API", () => {
-  // Reviewed uses, each with its reason:
-  //  session:     access.ts is the app's access module, the one place that reads the caller's identity.
-  //  htmlAppend:  access.ts deniedPage() builds the denial page; every interpolation goes through
-  //               escapeHtml (deniedHtml), and it names no roster.
-  noDangerousServerApis.register(describe, it, expect, {
-    srcDir: join(SRC, "server"),
-    allow: { session: ["access.ts"], htmlAppend: ["access.ts"] },
-  });
+  // No allow entries: the app's own server code no longer reads the caller's identity (Session) or
+  // builds HTML (the kit's access and page modules do, and the contract's own allow list for the
+  // kit covers them), and it reads no file from HtmlService (the kit's include does).
+  noDangerousServerApis.register(describe, it, expect, { srcDir: join(SRC, "server") });
 });
 
 describe("no secret in the sources or the build", () => {

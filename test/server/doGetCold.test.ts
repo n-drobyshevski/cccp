@@ -1,7 +1,7 @@
 // doGet never reads the Sheet: a cold cache serves the page with an empty boot block and the
 // client asks for the bootstrap behind its splash; a warm cache inlines it as before.
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import * as access from "../../src/server/access";
+import { __resetMemosForTest } from "../../src/server/access";
 import * as api from "../../src/server/api";
 import { bootstrapIfWarm } from "../../src/server/bootstrap";
 import { doGet } from "../../src/server/main";
@@ -12,7 +12,7 @@ const fakes = useGasEnv({ workbook: true, seed: true });
 beforeEach(() => {
   vi.restoreAllMocks();
   vi.spyOn(console, "log").mockImplementation(() => {});
-  access.__resetMemosForTest();
+  __resetMemosForTest();
   fakes().setActiveUser("viewer@example.com");
   fakes().setHtmlFile("index", "<main><?!= bootJson ?></main>");
 });

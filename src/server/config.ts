@@ -4,7 +4,13 @@
 // Only the SCRIPT store is used. UserProperties under USER_DEPLOYING is the deployer's store,
 // shared by every viewer, so it is never touched (the dev fakes throw on it).
 
-import type { Role } from "@gas-kit/server";
+import type { AccessMode, Role } from "@gas-kit/server";
+
+/** The product name: the denied page, the mailto subject and the browser tab. */
+export const PRODUCT = "CCCP";
+
+/** The access mode while ACCESS_MODE is unset (app.config.mjs accessDefault). */
+export const ACCESS_DEFAULT: AccessMode = "list";
 
 export const PROP_KEYS = {
   // Who may open the app, on top of the deployment's own domain fence. See access.ts.

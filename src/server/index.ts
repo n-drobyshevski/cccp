@@ -9,5 +9,5 @@ export { include, beginExecution } from "@gas-kit/server";
 export { UNEXPECTED_ERROR_MESSAGE } from "@gas-kit/server";
 export { setup } from "./setup";
 export { diagnosticsText } from "./diagnostics";
-export * as access from "./access";
+export { access } from "./access";
 export * as api from "./api";

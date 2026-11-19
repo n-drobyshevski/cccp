@@ -18,10 +18,10 @@ const admitted = (page: Page, email: string) => page.evaluate((e) => {
   const w = window as any;
   // The access decision is memoised for one execution; a deployment starts each call afresh.
   w.__gasFakes.setActiveUser(e);
-  w.Server.access.__resetMemosForTest();
+  w.Server.access.resetMemo();
   const ok = w.api_bootstrap({}).ok === true;
   w.__gasFakes.setActiveUser(w.__gasFakes.OWNER);
-  w.Server.access.__resetMemosForTest();
+  w.Server.access.resetMemo();
   return ok;
 }, email);
 const dialog = (page: Page) => page.getByRole("alertdialog");

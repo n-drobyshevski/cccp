@@ -8,12 +8,12 @@
 // envelope's detail or the RECENT_ERRORS property.
 // It lives outside api.ts because every export of api.ts is an endpoint.
 import { createRoleGate, createRun, redactTokens, roleAllows } from "@gas-kit/server";
-import * as access from "./access";
+import { access } from "./access";
 import { ERROR_DETAIL_ROLE } from "./config";
 import { errorLog } from "./errorLog";
 import { ENDPOINT_ROLES } from "./roles";
 
-const gate = createRoleGate(ENDPOINT_ROLES, () => access.role(), { who: () => access.check().email });
+const gate = createRoleGate(ENDPOINT_ROLES, () => access.role(), { who: () => access.decide().email });
 
 export const run = createRun({
   requireRole: gate.requireRole,

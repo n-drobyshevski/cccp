@@ -38,9 +38,9 @@ run sync, and list it below.
 | `gas_shared/domain/csv.ts` | csvCell |
 | `gas_shared/domain/sha1.ts` | sha1Hex |
 | `gas_shared/domain/snapshotCodec.ts` | encodeRows / decodeRows for the register payload |
-| `gas_shared/server/inlineBoot.ts` | inlineBootJson for the doGet bootstrap |
-| `gas_shared/server/errorLog.ts` | ERROR_LOG ring buffer |
-| `gas_shared/server/buildInfo.ts` | build id accessor |
+| `gas_shared/server/inlineBoot.ts` | unused since C2a (the kit's `inlineIfWarm` replaced it); goes with `src/vendor` |
+| `gas_shared/server/errorLog.ts` | unused since C2a (the kit's `createErrorLog` replaced it); goes with `src/vendor` |
+| `gas_shared/server/buildInfo.ts` | unused since C2a (the kit's `buildId()` replaced it); goes with `src/vendor` |
 | `gas_shared/build/buildStamp.mjs` | content hash of the build inputs (called with the repo root, so it covers `src/vendor`) |
 | `gas_shared/build/deploy.mjs` | in-place deploy; needs `DEPLOYMENT_ID` |
 | `gas_shared/test/contracts/settingsForm.js` | contract test for the settings draft module |
@@ -54,12 +54,7 @@ dataTable.
 
 | file here | derived from (sidekick, `77bcf22`) | changes |
 | --- | --- | --- |
-| `src/server/access.ts` | `gas_hub/src/server/access.ts` | PRODUCT='CCCP'; `decide()` gains `modeRaw` (order: anonymous, owner, admin, listed, org, not-listed); parseAccessMode, accessMode, canEditSettings, canEditMode, canEditSource; welcome-gate prose dropped |
-| `src/server/props.ts` | `gas_hub/src/server/props.ts` | CCCP `PROP_KEYS`; getJsonProp / putJsonProp with an 8000-byte cap |
-| `src/server/pageShell.ts` | `gas_hub/src/server/pageShell.ts` | CCCP four-dot mark |
-| `src/server/main.ts` | `gas_hub/src/server/main.ts` | title CCCP; `inlineBootJson(bootstrapInline)` |
-| `src/server/index.ts` | `gas_hub/src/server/index.ts` | adds setup and diagnostics exports |
-| `src/server/api.ts` | `gas_hub/src/server/api.ts` | keeps run(), logAccessChange, getAccess, saveAccess, saveAdmins; run() checks ENDPOINT_ROLES; errorKinds busy and conflict; URL endpoints dropped, CCCP endpoints added |
+| `src/server/api.ts` | `gas_hub/src/server/api.ts` | pattern only since C2b: every body is `return run(name, ...)` with the kit's `run`; access saves go through the kit's `createAccess`; the CCCP endpoints; the owner stays written into the users list |
 | `src/gas/entry.js`, `src/gas/appsscript.json` | `gas_hub/dist/entry.js`, `gas_hub/dist/appsscript.json` | CCCP delegators; gated setup() and deploymentDiagnostic(); scopes spreadsheets, drive.file, userinfo.email, script.scriptapp; Sheets v4 and Drive v3 advanced services |
 | `tools/build.mjs`, `app.config.mjs` | (the gas-kit build, `src/kit/tooling/src/build/defineBuild.mjs`) | replaced `build/esbuild.config.mjs` and `build/guards.mjs` (derived from `gas_hub/esbuild.config.mjs`) in work package C1; the guards and the build stamp are the kit's. `src/vendor` stays until a later package |
 | `src/server/serverCache.ts` | `gas_ai/src/server/serverCache.ts` | wizDataVersion removed; configStamp becomes CFG_GEN; prefix `cccp`; ttl clamped 60..21600; sha1 from the vendored path |
@@ -70,6 +65,8 @@ dataTable.
 | `src/client/lib/download.js` | `gas_shared/ui/dom.js` (downloadText only) | blob download with a BOM option and a Uint8Array variant; no el() |
 | `src/client/components/facetList.js`, `src/client/state/views.js` | `gas_ai/src/client/js/{filters.js,savedViews.js}` | pattern only |
 | `test/server/access*.test.ts`, `test/client/accessModel.test.js`, `test/build/{entryPoints,manifestScopes}.test.js` | `gas/test/access.test.ts`, `gas_hub/test/{accessAdmin.test.ts,accessModel.test.js,entryPoints.test.js,manifestScopes.test.js}` | paths updated; scoped-tier cases dropped; org-mode, owner-only and exact-scope cases added |
+
+`src/server/access.ts`, `props.ts`, `locks.ts`, `errors.ts`, `pageShell.ts`, `main.ts` and `index.ts` are no longer derived from sidekick: since C2a to C2c they are thin wiring over the kit (`createAccess`, props, lock, error log, `renderIndex`, `cardPage`).
 
 Derived files land in later work packages; this table is the contract for them. A derived
 file that is not in this table is a defect.

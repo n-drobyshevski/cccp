@@ -2,14 +2,14 @@
 // register inlined only when warm and small.
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { genWorkbook } from "../../dev/genTabs.mjs";
-import * as access from "../../src/server/access";
+import { __resetMemosForTest } from "../../src/server/access";
 import * as api from "../../src/server/api";
 import { cacheGetJson, cacheKey, cachePutJson } from "../../src/server/serverCache";
 import { decodeRegister, REGISTER_INLINE_MAX_BYTES } from "../../src/domain/payload";
 import { useGasEnv } from "../gasEnv";
 
 const fakes = useGasEnv({ workbook: true, seed: true });
-const as = (who: string) => { access.__resetMemosForTest(); fakes().setActiveUser(who); };
+const as = (who: string) => { __resetMemosForTest(); fakes().setActiveUser(who); };
 const EMAILS = ["owner@example.com", "admin@example.com", "viewer@example.com"];
 
 beforeEach(() => {

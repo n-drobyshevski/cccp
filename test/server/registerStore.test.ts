@@ -1,7 +1,7 @@
 // The register read-through cache and the version counters.
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { decodeRegister, payloadBytes, REGISTER_INLINE_MAX_BYTES } from "../../src/domain/payload";
-import * as access from "../../src/server/access";
+import { __resetMemosForTest } from "../../src/server/access";
 import * as api from "../../src/server/api";
 import { diagnosticsReport, diagnosticsText } from "../../src/server/diagnostics";
 import { getRegisterPayload, registerEntry, reloadRegister, UNREACHABLE } from "../../src/server/registerStore";
@@ -12,7 +12,7 @@ import { genOneTabWorkbook, genWorkbook } from "../../dev/genTabs.mjs";
 import { useGasEnv } from "../gasEnv";
 
 const fakes = useGasEnv({ workbook: true, seed: true });
-const as = (who: string) => { access.__resetMemosForTest(); fakes().setActiveUser(who); };
+const as = (who: string) => { __resetMemosForTest(); fakes().setActiveUser(who); };
 const wb = genWorkbook();
 
 beforeEach(() => {

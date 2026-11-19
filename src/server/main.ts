@@ -4,7 +4,8 @@
 // behind its splash. A throw also renders the empty slot.
 import { inlineIfWarm, renderIndex } from "@gas-kit/server";
 import { bootstrapIfWarm } from "./bootstrap";
+import { PRODUCT } from "./config";
 
 export function doGet(_e?: unknown): GoogleAppsScript.HTML.HtmlOutput {
-  return renderIndex({ title: "CCCP", bootJson: inlineIfWarm(() => bootstrapIfWarm()) });
+  return renderIndex({ title: PRODUCT, bootJson: inlineIfWarm(() => bootstrapIfWarm()) });
 }

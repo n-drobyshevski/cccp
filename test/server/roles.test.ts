@@ -3,7 +3,7 @@ import { readFileSync } from "node:fs";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { createRoleGate, roleAllows } from "@gas-kit/server";
 import { exportedNames } from "@gas-kit/tooling/build/guards.mjs";
-import * as access from "../../src/server/access";
+import { access, __resetMemosForTest } from "../../src/server/access";
 import * as api from "../../src/server/api";
 import { ENDPOINT_ROLES } from "../../src/server/roles";
 import { useGasEnv } from "../gasEnv";
@@ -16,7 +16,7 @@ const requiredRole = gate.requiredRole;
 const requireRole = gate.requireRole;
 
 function as(who: string): void {
-  access.__resetMemosForTest();
+  __resetMemosForTest();
   fakes().setActiveUser(who);
 }
 

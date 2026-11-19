@@ -1,32 +1,68 @@
 // Settings: four sections, one Script Property each (CFG_SOURCE, CFG_FIELDS, CFG_RULES,
 // CFG_DISPLAY), cleaned on every read, saved by ONE call under the script lock with an
-// optimistic-concurrency check on CFG_GEN.
-//
-// A save: lock; compare baseGen with CFG_GEN (a mismatch is a `conflict`); merge and clean the
-// patch; validate (sentences); an owner check when the source sheet id changes; write only
-// the sections that changed (each refused above 8000 bytes before anything is written); bump
-// CFG_GEN, and DATA_VERSION too when source or fields changed (the register must be re-read).
-// Rules and display saves bump only CFG_GEN, so the register stays cached.
+// optimistic-concurrency check on CFG_GEN. The store is the kit's createSettingsStore; what stays
+// here is what is CCCP's: the section cleaning and sentences (src/domain/settings.ts), the deep
+// patch merge, the owner-only source sheet id and the DATA_VERSION bump.
 //
 // Not memoised across calls: in Apps Script every RPC is a fresh execution, and a module-level
 // memo would outlive a test.
 
-import { applyPatch, changedSections, cleanSettings, SECTION_PROPS, validateSettings } from "../domain/settings";
+import { applyPatch, changedSections, cleanSettings, DEFAULT_SETTINGS, SECTION_PROPS, validateSettings } from "../domain/settings";
 import type { SaveSettingsResponse, SettingsResponse } from "../domain/payload";
 import type { SectionKey, Settings, SettingsPatch, TabKey } from "../domain/types";
 import { TAB_KEYS } from "../domain/types";
-import { ApiError, getJsonProp, putJsonProp, withScriptLock } from "@gas-kit/server";
-import { bumpCfgGen, bumpDataVersion, cache, cfgGen, paramsKey } from "./serverCache";
+import { ApiError, createSettingsStore, PATCH_MAX_BYTES, utf8ByteLength, withScriptLock } from "@gas-kit/server";
+import { PROP_KEYS } from "./config";
+import { bumpDataVersion, cache, cfgGen, paramsKey } from "./serverCache";
 import { sampleWorkbook } from "./sourceSheet";
 
-/** A patch larger than this is refused before it is even merged. */
-export const PATCH_MAX_BYTES = 40_000;
+export { PATCH_MAX_BYTES };
 const HEADERS_TTL_SEC = 600;
 
+const SECTIONS = ["source", "fields", "rules", "display"] as const satisfies readonly SectionKey[];
+
+/**
+ * One section as the kit store sees it. `clean` is the app's cleaning of that section (clamp,
+ * default, drop unknown keys), run by the kit on every load and before every save. `validate`
+ * is empty on purpose: the sentences depend on several sections at once (a field's tab, the
+ * source sheet id), so they are checked in `authorize`, which sees the whole result.
+ */
+function section(k: SectionKey) {
+  return {
+    key: SECTION_PROPS[k],
+    defaults: DEFAULT_SETTINGS[k],
+    validate: (): string[] => [],
+    clean: (v: unknown): unknown => cleanSettings({ [k]: v })[k],
+  };
+}
+
+const sections: Record<string, ReturnType<typeof section>> = Object.fromEntries(SECTIONS.map((k) => [k, section(k)]));
+
+/** Refuse a save that is not the owner's when it changes the source sheet; fail closed without a saver. */
+function makeStore(who: SaveContext | null) {
+  return createSettingsStore({
+    sections,
+    // The generation counter is CFG_GEN, as before, so the core cache key keeps following saves.
+    genKey: PROP_KEYS.cfgGen,
+    // cleanSettings drops unknown keys and reports them in `clamped`; the kit would refuse them.
+    allowExtraKeys: true,
+    // saveSettings holds the script lock around the kit save and the DATA_VERSION bump.
+    lock: (fn) => fn(),
+    authorize({ before, after }) {
+      const next = cleanSettings(after);
+      const errors = validateSettings(next);
+      if (errors.length) return errors;
+      if (cleanSettings(before).source.sheetId !== next.source.sheetId && !(who && who.isOwner)) {
+        throw new ApiError("forbidden", "Only the owner can change the source Sheet.");
+      }
+    },
+  });
+}
+
+const reader = makeStore(null);
+
 export function loadSettings(): Settings {
-  const raw: Record<string, unknown> = {};
-  (Object.keys(SECTION_PROPS) as SectionKey[]).forEach((k) => { raw[k] = getJsonProp<unknown>(SECTION_PROPS[k], {}); });
-  return cleanSettings(raw);
+  return cleanSettings(reader.load());
 }
 
 const isObj = (v: unknown): v is Record<string, unknown> => typeof v === "object" && v !== null && !Array.isArray(v);
@@ -49,35 +85,37 @@ export interface SaveContext {
   isOwner: boolean;
 }
 
-/** Save a partial settings update. See the header for the order of checks. */
+/**
+ * Save a partial settings update: ONE kit save under the script lock.
+ *
+ * The patch is deep (source.tabs.apps.name) and the kit merges a section shallowly, so the app
+ * first merges and cleans the patch over the stored settings (applyPatch) and hands the kit the
+ * whole of each section that differs. The merge needs no lock of its own: the kit refuses the
+ * save as a conflict when the generation moved since the client's baseGen, and a stored value
+ * can only be older than that base if the generation has moved.
+ *
+ * Inside the kit save, in order: the baseGen conflict, the sections' cleaning, authorize (the
+ * sentences, then the owner-only source sheet id), the 8000-byte section cap, then the writes
+ * and the CFG_GEN bump. DATA_VERSION is bumped under the same lock when source or fields
+ * changed (the register must be re-read); rules and display saves leave the register cached.
+ */
 export function saveSettings(patch: unknown, baseGen: unknown, who: SaveContext): SaveSettingsResponse {
   if (!isObj(patch)) throw new ApiError("error", "There is nothing to save.");
-  if (JSON.stringify(patch).length > PATCH_MAX_BYTES) throw new ApiError("error", "That change is too large to save.");
-  const base = typeof baseGen === "number" ? baseGen : typeof baseGen === "string" && baseGen.trim() !== "" ? Number(baseGen) : NaN;
-  if (!Number.isInteger(base)) throw new ApiError("error", "Reload the settings before saving: the change has no starting point.");
+  if (utf8ByteLength(JSON.stringify(patch)) > PATCH_MAX_BYTES) throw new ApiError("error", "That change is too large to save.");
+  const before = loadSettings();
+  const after = applyPatch(before, patch as SettingsPatch);
+  const clamped = clampedPaths(patch, after);
+  const whole: Record<string, unknown> = {};
+  for (const k of changedSections(before, after)) whole[k] = after[k];
 
+  const store = makeStore(who);
   return withScriptLock(() => {
-    if (base !== cfgGen()) {
-      throw new ApiError("conflict", "Someone else changed the settings since you opened them. Reload to see their changes, then save again.");
-    }
-    const before = loadSettings();
-    const after = applyPatch(before, patch as SettingsPatch);
-    const clamped = clampedPaths(patch, after);
-
-    const errors = validateSettings(after);
-    if (errors.length) throw new ApiError("error", errors.join(" "));
-
-    if (after.source.sheetId !== before.source.sheetId && !who.isOwner) {
-      throw new ApiError("forbidden", "Only the owner can change the source Sheet.");
-    }
-
-    const changed = changedSections(before, after);
-    if (changed.length === 0) return { settings: after, cfgGen: cfgGen(), clamped };
-    for (const k of changed) putJsonProp(SECTION_PROPS[k], after[k]);
-    if (changed.indexOf("source") >= 0 || changed.indexOf("fields") >= 0) bumpDataVersion();
-    const gen = bumpCfgGen();
-    console.log(JSON.stringify({ settings: "saved", actor: who.actor, sections: changed, clamped, cfgGen: gen }));
-    return { settings: after, cfgGen: gen, clamped };
+    const res = store.save({ patch: whole, baseGen });
+    const next = cleanSettings(res.values);
+    if (res.changed.length === 0) return { settings: next, cfgGen: res.gen, clamped };
+    if (res.changed.indexOf("source") >= 0 || res.changed.indexOf("fields") >= 0) bumpDataVersion();
+    console.log(JSON.stringify({ settings: "saved", actor: who.actor, sections: res.changed, clamped, cfgGen: res.gen }));
+    return { settings: next, cfgGen: res.gen, clamped };
   });
 }
 

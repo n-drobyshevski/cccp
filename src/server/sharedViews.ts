@@ -3,7 +3,6 @@
 // Each write is under the script lock and bumps VIEWS_GEN (not CFG_GEN, the settings save base), because the bootstrap core carries
 // the list. Personal views never come here: they live in the viewer's own localStorage.
 
-import { sha1Hex } from "../vendor/gas_shared/domain/sha1";
 import { cleanView, validateSharedViews, validateView } from "../domain/viewState";
 import type { SavedView } from "../domain/types";
 import { ApiError, getJsonProp, putJsonProp, withScriptLock } from "@gas-kit/server";
@@ -19,10 +18,15 @@ export function listSharedViews(): SavedView[] {
   return raw.map(cleanView).filter((v) => v.id !== "" && v.name !== "");
 }
 
-function newId(name: string, taken: Set<string>): string {
-  let ts = Date.now();
-  let id = sha1Hex(name + ts).slice(0, 10);
-  while (taken.has(id)) id = sha1Hex(name + ++ts).slice(0, 10);
+/**
+ * A new view id: 10 hex characters of a random UUID, unique within the list. Ids are written once,
+ * when a view is first saved, and stored with it; nothing derives an id again, so the ids already
+ * saved (10 hex characters from the old name-and-time hash) stay valid, and the clients' links
+ * and localStorage that name them keep working.
+ */
+function newId(taken: Set<string>): string {
+  let id = Utilities.getUuid().replace(/-/g, "").slice(0, 10);
+  while (taken.has(id)) id = Utilities.getUuid().replace(/-/g, "").slice(0, 10);
   return id;
 }
 
@@ -42,7 +46,7 @@ export function saveSharedView(input: unknown, actor: string): { views: SavedVie
     const at = list.findIndex((v) => v.id === clean.id && clean.id !== "");
     if (at < 0 && list.length >= MAX_VIEWS) throw new ApiError("error", "At most " + MAX_VIEWS + " shared views can be kept. Delete one first.");
     const { by: _by, ...rest } = clean;
-    const view: SavedView = { ...rest, scope: "shared", id: at >= 0 ? clean.id : newId(clean.name, new Set(list.map((v) => v.id))), at: new Date().toISOString().slice(0, 10) };
+    const view: SavedView = { ...rest, scope: "shared", id: at >= 0 ? clean.id : newId(new Set(list.map((v) => v.id))), at: new Date().toISOString().slice(0, 10) };
     const next = at >= 0 ? list.map((v, i) => (i === at ? view : v)) : list.concat(view);
     const problems = validateSharedViews(next);
     if (problems.length) throw new ApiError("error", problems.join(" "));

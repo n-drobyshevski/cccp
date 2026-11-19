@@ -42,11 +42,11 @@ export default {
     // decision. Baseline before the kit build: server 119292, js 181890, css 59220. The kit build
     // targets es2017 for the client (was es2019) and stamps the server banner differently, so the
     // first kit build is server 119317, js 182599, css 59220; the caps sit just above those.
-    // C2a: the server cap rises to 126100 (bundle 125931); C2b: 130400 (bundle 130204, the kit run and role gate); C2d: 140900 (bundle 140748, the kit cache with its checksummed head record and per-execution memory replaces the app's 5 KB chunking cache; sha1 stays until sharedViews/exportSheet move); C2c: 136400 (bundle 136216, the kit access
+    // C2a: the server cap rises to 126100 (bundle 125931); C2b: 130400 (bundle 130204, the kit run and role gate); C2e: 148000 (bundle 147852, the kit settings store: sections, patch checks, authorize, gen bump; the app keeps its cleaning and sentences); C2d: 140900 (bundle 140748, the kit cache with its checksummed head record and per-execution memory replaces the app's 5 KB chunking cache; sha1 stays until sharedViews/exportSheet move); C2c: 136400 (bundle 136216, the kit access
     // object and card page, 8 KB and 3 KB, against the app's 4.3 KB access module and 2.1 KB page shell). The kit's props, lock, error log, boot and
     // page modules replace the app's smaller copies and the kit barrel keeps a few of its module-level
     // tables (policy, audit) that nothing here calls; the cap drops again as the app's own kernel
     // files are deleted in the next work packages.
-    budgets: { server: 140_900, js: 183_000, css: 59_300 },
+    budgets: { server: 148_000, js: 183_000, css: 59_300 },
   },
 };

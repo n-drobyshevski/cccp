@@ -1,8 +1,11 @@
 import { describe, expect, it } from "vitest";
 import {
-  bumpCfgGen, bumpDataVersion, bumpViewsGen, cache, cfgGen, coreKey, dataVersion, paramsKey, registerKey, viewsGen,
+  bumpDataVersion, bumpViewsGen, cache, cfgGen, coreKey, dataVersion, paramsKey, registerKey, viewsGen,
 } from "../../src/server/serverCache";
-import { CACHE_EPOCH, CACHE_PREFIX } from "../../src/server/config";
+import { CACHE_EPOCH, CACHE_PREFIX, PROP_KEYS } from "../../src/server/config";
+import { setProp } from "@gas-kit/server";
+
+const bumpCfgGen = () => setProp(PROP_KEYS.cfgGen, String(cfgGen() + 1));
 import { useGasEnv } from "../gasEnv";
 
 const fakes = useGasEnv();

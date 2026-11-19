@@ -32,7 +32,7 @@ export function dataVersion(): number {
   return counter(PROP_KEYS.dataVersion);
 }
 
-/** The settings generation, the save base of api_saveSettings. Bumped by every settings save. */
+/** The settings generation, the save base of api_saveSettings. The kit settings store bumps it on every save (genKey CFG_GEN). */
 export function cfgGen(): number {
   return counter(PROP_KEYS.cfgGen);
 }
@@ -51,12 +51,6 @@ export function bumpViewsGen(): number {
 export function bumpDataVersion(): number {
   const n = dataVersion() + 1;
   setProp(PROP_KEYS.dataVersion, String(n));
-  return n;
-}
-
-export function bumpCfgGen(): number {
-  const n = cfgGen() + 1;
-  setProp(PROP_KEYS.cfgGen, String(n));
   return n;
 }
 

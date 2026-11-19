@@ -10,6 +10,7 @@ Release audit results and the manual live `/exec` checklist: `VERIFY.md`.
 npm install
 npm run check          # typecheck, lint, vendor:verify, test
 npm run vendor:verify  # sha256 + import containment of src/vendor
+npm run kit:verify     # src/kit (the vendored gas-kit) against kit.lock.json; kit:diff and kit:sync take a newer kit
 ```
 
 Other scripts:

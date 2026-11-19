@@ -32,6 +32,7 @@ import { activeFilterCount, pillarCounts, pillarTabOf, runQuery, withPillarTab }
 import { toggleColumnKey, visibleColumnDefs } from "../../domain/columns";
 
 let restoredCols = false;
+/** @type {{ y: number, key: string } | null} */
 let memo = null;
 
 const PILLAR_TABS = ["all", ...PILLARS];
@@ -107,7 +108,9 @@ export const listPage = {
       if (!first.cols.length && saved.length && (!first.currentViewId || first.currentViewId === ALL_ID)) replace({ cols: saved });
     }
 
+    /** @type {import("../lib/popover.js").Popover | null} */
     let chooser = null;
+    /** @type {import("../lib/popover.js").Popover | null} */
     let exporter = null;
     let drawer = false;
     const panel = { open: new Set(), finds: {} };

@@ -1,0 +1,51 @@
+/* Anatomy and styling ported from shadcn/ui new-york v4 (MIT; see THIRD_PARTY_NOTICES.md). Tokens only.
+   data-side is right, left, top or bottom. The slide distance is multiplied by --motion-scale,
+   so reduced motion is a fade only. */
+.gk-sheet {
+  position: fixed;
+  inset: auto;
+  max-width: none;
+  max-height: none;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  background: var(--bg);
+  color: var(--text);
+  box-shadow: var(--shadow-lg);
+  opacity: 0;
+  transition: opacity var(--dur-3) var(--ease-exit), translate calc(var(--dur-3) * var(--motion-scale)) var(--ease-exit), display var(--dur-3) allow-discrete, overlay var(--dur-3) allow-discrete;
+}
+.gk-sheet[open] {
+  opacity: 1;
+  translate: 0 0;
+  transition: opacity var(--dur-3) var(--ease-enter), translate calc(var(--dur-3) * var(--motion-scale)) var(--ease-enter), display var(--dur-3) allow-discrete, overlay var(--dur-3) allow-discrete;
+}
+.gk-sheet[data-side="right"] { top: 0; right: 0; bottom: 0; width: 75%; max-width: 24rem; height: 100dvh; border-left: 1px solid var(--border); translate: calc(100% * var(--motion-scale)) 0; }
+.gk-sheet[data-side="left"] { top: 0; left: 0; bottom: 0; width: 75%; max-width: 24rem; height: 100dvh; border-right: 1px solid var(--border); translate: calc(-100% * var(--motion-scale)) 0; }
+.gk-sheet[data-side="top"] { top: 0; left: 0; right: 0; width: 100%; height: auto; border-bottom: 1px solid var(--border); translate: 0 calc(-100% * var(--motion-scale)); }
+.gk-sheet[data-side="bottom"] { bottom: 0; left: 0; right: 0; width: 100%; height: auto; border-top: 1px solid var(--border); translate: 0 calc(100% * var(--motion-scale)); }
+.gk-sheet[open][data-side] { translate: 0 0; }
+@starting-style {
+  .gk-sheet[open] { opacity: 0; }
+  .gk-sheet[open][data-side="right"] { translate: calc(100% * var(--motion-scale)) 0; }
+  .gk-sheet[open][data-side="left"] { translate: calc(-100% * var(--motion-scale)) 0; }
+  .gk-sheet[open][data-side="top"] { translate: 0 calc(-100% * var(--motion-scale)); }
+  .gk-sheet[open][data-side="bottom"] { translate: 0 calc(100% * var(--motion-scale)); }
+}
+.gk-sheet::backdrop {
+  background: var(--scrim);
+  opacity: 0;
+  transition: opacity var(--dur-3) var(--ease-standard), display var(--dur-3) allow-discrete, overlay var(--dur-3) allow-discrete;
+}
+.gk-sheet[open]::backdrop { opacity: 1; }
+@starting-style {
+  .gk-sheet[open]::backdrop { opacity: 0; }
+}
+
+.gk-sheet__panel { position: relative; display: flex; flex-direction: column; gap: var(--space-4); height: 100%; padding: var(--space-5); overflow: auto; }
+.gk-sheet__header { display: flex; flex-direction: column; gap: var(--space-1); padding-right: var(--space-5); }
+.gk-sheet__title { margin: 0; font-size: var(--fs-lg); font-weight: var(--fw-semibold); }
+.gk-sheet__description { margin: 0; font-size: var(--fs-md); color: var(--text-muted); }
+.gk-sheet__body { flex: 1 1 auto; font-size: var(--fs-md); }
+.gk-sheet__footer { display: flex; flex-direction: column; gap: var(--space-2); margin-top: auto; }
+.gk-sheet__close.gk-btn { position: absolute; top: var(--space-3); right: var(--space-3); width: 28px; height: 28px; }

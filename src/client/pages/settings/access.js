@@ -144,6 +144,7 @@ export function createAccess({ el, redraw }) {
   const state = emptyState();
   const baseline = state.baseline;
   const saved = state.saved;
+  /** @type {Map<string, any>} */
   const addInputs = new Map();
   const typedButNotAdded = () => Array.from(addInputs.values()).some((a) => a.text().trim() !== "");
   const offs = [];
@@ -262,6 +263,7 @@ export function createAccess({ el, redraw }) {
     redraw();
   }
 
+  /** @returns {string[]} */
   const listOf = (name) => (name === "admins" ? state.admins : state.users);
 
   offs.push(delegate(el, "click", "[data-act]", (ev, b) => {

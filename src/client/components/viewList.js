@@ -93,6 +93,7 @@ export function viewListView(m) {
 export function mountViewList(slot) {
   if (!slot) return () => {};
   const local = { saving: false, name: "", share: false, error: "", manage: false };
+  /** @type {{ storage: boolean, personal: any[], rows: any[] }} */
   const env = { storage: views.canKeepPersonal(), personal: [], rows: [] };
   let focusName = false;
 
@@ -133,7 +134,7 @@ export function mountViewList(slot) {
     if (r.error) { local.error = r.error; draw(); return; }
     endForm();
     show(r.view);
-    toast("View “" + r.view.name + "” saved");
+    toast("View “" + (r.view ? r.view.name : c.name) + "” saved");
   }
 
   function update(cur) {

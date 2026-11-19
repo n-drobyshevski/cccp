@@ -39,7 +39,7 @@ const PARTIALS = {
 };
 
 function composeIndex() {
-  execFileSync(process.execPath, ["build/esbuild.config.mjs"], { cwd: root, stdio: "pipe" });
+  execFileSync(process.execPath, ["tools/build.mjs"], { cwd: root, stdio: "pipe" });
   let html = dist("index.html");
   // Function replacements: the minified client bundle contains "$" sequences that a string
   // replacement would misread as patterns.

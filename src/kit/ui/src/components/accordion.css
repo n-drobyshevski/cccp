@@ -1,0 +1,47 @@
+/* Anatomy and styling ported from shadcn/ui new-york v4 (MIT; see THIRD_PARTY_NOTICES.md). Tokens only.
+   Shared with collapsible: the same trigger, chevron and height animation. */
+.gk-accordion__item { border-bottom: 1px solid var(--border); }
+.gk-accordion__item:last-child { border-bottom: 0; }
+.gk-accordion__trigger,
+.gk-collapsible__trigger {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--space-3);
+  padding: var(--space-4) 0;
+  border-radius: var(--radius-md);
+  color: var(--text);
+  font-size: var(--fs-md);
+  font-weight: var(--fw-medium);
+  text-align: left;
+  list-style: none;
+  cursor: pointer;
+}
+.gk-accordion__trigger::-webkit-details-marker,
+.gk-collapsible__trigger::-webkit-details-marker { display: none; }
+.gk-accordion__trigger:hover > span:first-child,
+.gk-collapsible__trigger:hover > span:first-child { text-decoration: underline; }
+.gk-accordion__chevron {
+  flex: none;
+  margin-top: 2px;
+  color: var(--text-muted);
+  transition: transform calc(var(--dur-3) * var(--motion-scale)) var(--ease-standard);
+}
+[open] > summary > .gk-accordion__chevron { transform: rotate(180deg); }
+.gk-accordion__content,
+.gk-collapsible__content { padding: 0 0 var(--space-4); font-size: var(--fs-md); color: var(--text); }
+.gk-collapsible { border: 0; }
+
+/* Progressive height animation: only where ::details-content exists; elsewhere the height snaps. */
+@supports selector(::details-content) {
+  .gk-accordion__item,
+  .gk-collapsible { interpolate-size: allow-keywords; }
+  .gk-accordion__item::details-content,
+  .gk-collapsible::details-content {
+    block-size: 0;
+    overflow: clip;
+    transition: block-size calc(var(--dur-3) * var(--motion-scale)) var(--ease-standard), content-visibility calc(var(--dur-3) * var(--motion-scale)) allow-discrete;
+  }
+  .gk-accordion__item[open]::details-content,
+  .gk-collapsible[open]::details-content { block-size: auto; }
+}

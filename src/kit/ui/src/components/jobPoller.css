@@ -1,0 +1,25 @@
+/* Extracted from the author's production Apps Script apps; adapted. */
+.gk-jobProgress { display: flex; flex-direction: column; gap: var(--space-2); min-width: 200px; }
+.gk-jobProgress__bar { height: 8px; overflow: hidden; border: 0; border-radius: var(--radius-pill); background: var(--surface-2); }
+.gk-jobProgress__fill { display: block; width: calc(var(--gk-pct, 0) * 1%); height: 100%; background: var(--accent); transition: width var(--dur-4) var(--ease-standard); }
+.gk-jobProgress.is-done .gk-jobProgress__fill { background: var(--ok-fg); }
+.gk-jobProgress.is-error .gk-jobProgress__fill { background: repeating-linear-gradient(135deg, var(--bad-fg) 0 4px, var(--bad-bg) 4px 6px); }
+.gk-jobProgress.is-cancelled .gk-jobProgress__fill { background: var(--none-fg); }
+.gk-jobProgress.is-indeterminate .gk-jobProgress__fill {
+  width: 35%;
+  animation: gk-jobProgress-slide calc(var(--dur-5) * 3.5) var(--ease-standard) infinite;
+}
+.gk-jobProgress__row { display: flex; align-items: center; justify-content: space-between; gap: var(--space-3); font-size: var(--fs-sm); }
+.gk-jobProgress__status { display: flex; flex-wrap: wrap; gap: var(--space-2); }
+.gk-jobProgress__word { font-weight: var(--fw-semibold); color: var(--text); }
+.gk-jobProgress.is-error .gk-jobProgress__word { color: var(--bad-fg); }
+.gk-jobProgress__pct { color: var(--text-muted); }
+.gk-jobProgress__msg { color: var(--text-muted); }
+@keyframes gk-jobProgress-slide {
+  from { transform: translateX(-100%); }
+  to { transform: translateX(300%); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .gk-jobProgress__fill { transition: none; }
+  .gk-jobProgress.is-indeterminate .gk-jobProgress__fill { animation: none; width: 100%; opacity: 0.5; }
+}

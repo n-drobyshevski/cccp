@@ -5,6 +5,7 @@
 
 const enc = new TextEncoder();
 
+/** @type {Uint32Array | null} */
 let table = null;
 function crcTable() {
   if (table) return table;

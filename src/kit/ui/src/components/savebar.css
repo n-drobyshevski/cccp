@@ -1,0 +1,30 @@
+/* Extracted from the author's production Apps Script apps; adapted. */
+.gk-savebar {
+  position: sticky;
+  bottom: var(--space-4);
+  z-index: 5;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  padding: var(--space-3) var(--space-4);
+  color: var(--text);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-md);
+}
+/* A leading shape marks the state, so it is not carried by colour alone. */
+.gk-savebar__text::before { content: "\25CF\00a0"; content: "\25CF\00a0" / ""; }
+.gk-savebar.is-saved .gk-savebar__text::before { content: "\2713\00a0"; content: "\2713\00a0" / ""; color: var(--ok-fg); }
+.gk-savebar.is-saving .gk-savebar__text::before { content: "\2026\00a0"; content: "\2026\00a0" / ""; }
+.gk-savebar.is-conflict { background: var(--warn-bg); color: var(--warn-fg); border-color: var(--warn-fg); }
+.gk-savebar.is-conflict .gk-savebar__text::before { content: "\25B2\00a0"; content: "\25B2\00a0" / ""; }
+.gk-savebar.is-error { background: var(--bad-bg); color: var(--bad-fg); border-color: var(--bad-fg); }
+.gk-savebar.is-error .gk-savebar__text::before { content: "\2715\00a0"; content: "\2715\00a0" / ""; }
+.gk-savebar__text { flex: 1 1 240px; font-size: var(--fs-md); }
+.gk-savebar__warn { color: var(--bad-fg); font-weight: var(--fw-medium); }
+.gk-savebar__actions { display: inline-flex; gap: var(--space-2); }
+/* Motion. Colour changes ease over --dur-2. */
+.gk-savebar { transition: background var(--dur-2) var(--ease-standard), color var(--dur-2) var(--ease-standard), border-color var(--dur-2) var(--ease-standard); }

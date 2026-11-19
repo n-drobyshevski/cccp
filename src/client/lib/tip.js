@@ -4,7 +4,9 @@
 // vendored tipPlace.js.
 import { CLOSE_GRACE, tipDelay, tipPlacement } from "../../vendor/gas_shared/ui/tipPlace.js";
 
+/** @type {HTMLDivElement | null} */
 let card = null;
+/** @type {Element | null} */
 let current = null;
 let openTimer = 0;
 let closeTimer = 0;

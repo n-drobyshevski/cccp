@@ -9,7 +9,7 @@
 // with the functions below. guardUnsaved is the vendored beforeunload guard.
 //
 // The kernel is imported by the specifier 'gas_shared/ui/settingsForm.js' (an alias of the
-// vendored tree, see build/esbuild.config.mjs): the vendored contract asserts that form of path.
+// vendored tree, see tools/build.mjs): the vendored contract asserts that form of path.
 import { settingsForm } from "gas_shared/ui/settingsForm.js";
 import { guardUnsaved } from "gas_shared/ui/accessSave.js";
 import { FIELDS } from "../../../domain/fields";
@@ -171,14 +171,14 @@ export function keyForSentence(sentence) {
   if (m) return "source.tabs.apps.name";
   m = /^The (\w+) tab joins on/.exec(sentence);
   if (m) {
-    const tk = TAB_KEYS.find((k) => TAB_NAMES[k] === m[1]);
+    const tk = TAB_KEYS.find((k) => TAB_NAMES[k] === /** @type {RegExpExecArray} */ (m)[1]);
     if (tk) return "source.tabs." + tk + ".joinColumn";
   }
   if (/^The Application id field/.test(sentence)) return "fields.id";
   if (/^The Name field/.test(sentence)) return "fields.name";
   m = /^“(.+)” is mapped to a column of a tab that is not used/.exec(sentence);
   if (m) {
-    const def = FIELDS.find((d) => d.label === m[1]);
+    const def = FIELDS.find((d) => d.label === /** @type {RegExpExecArray} */ (m)[1]);
     return def ? "fields." + def.key : null;
   }
   if (/^The Google Sheet link/.test(sentence)) return "source.sheetId";

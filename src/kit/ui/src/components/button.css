@@ -1,0 +1,73 @@
+/* Anatomy and styling ported from shadcn/ui new-york v4 (MIT; see THIRD_PARTY_NOTICES.md). Tokens only.
+   gk-btn is the shared class: data-variant is default, secondary, outline, ghost, destructive or link;
+   data-size is sm, default, lg or icon. Other components put it on their own controls. */
+.gk-btn {
+  display: inline-flex;
+  flex: none;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
+  height: 36px;
+  padding: 0 var(--space-4);
+  border: 1px solid transparent;
+  border-radius: var(--btn-radius);
+  background: transparent;
+  color: var(--text);
+  font-family: inherit;
+  font-size: var(--fs-md);
+  font-weight: var(--fw-medium);
+  line-height: 1;
+  white-space: nowrap;
+  text-decoration: none;
+  cursor: pointer;
+  user-select: none;
+  transition: background var(--dur-2) var(--ease-standard), color var(--dur-2) var(--ease-standard), border-color var(--dur-2) var(--ease-standard), opacity var(--dur-2) var(--ease-standard), transform var(--dur-1) var(--ease-standard);
+}
+.gk-btn > svg { flex: none; width: 16px; height: 16px; pointer-events: none; }
+
+.gk-btn[data-size="sm"] { height: 32px; padding: 0 var(--space-3); gap: 6px; }
+.gk-btn[data-size="lg"] { height: 40px; padding: 0 var(--space-5); }
+.gk-btn[data-size="icon"] { width: 36px; padding: 0; }
+
+.gk-btn[data-variant="default"] { background: var(--accent); color: var(--accent-ink); }
+.gk-btn[data-variant="default"]:hover { opacity: 0.9; }
+.gk-btn[data-variant="secondary"] { background: var(--surface-2); color: var(--text); }
+.gk-btn[data-variant="secondary"]:hover { opacity: 0.8; }
+.gk-btn[data-variant="outline"] {
+  background: var(--bg);
+  color: var(--text);
+  border-color: var(--border-strong);
+  box-shadow: var(--shadow-xs);
+}
+.gk-btn[data-variant="outline"]:hover { background: var(--surface-2); }
+.gk-btn[data-variant="ghost"]:hover { background: var(--surface-2); }
+.gk-btn[data-variant="destructive"] { background: var(--destructive); color: var(--destructive-ink); }
+.gk-btn[data-variant="destructive"]:hover { opacity: 0.9; }
+.gk-btn[data-variant="link"] {
+  height: auto;
+  padding: var(--space-1) 0;
+  color: var(--accent);
+  text-underline-offset: 4px;
+}
+.gk-btn[data-variant="link"]:hover { text-decoration: underline; }
+
+/* Disabled: the native attribute, or aria-disabled when a tip keeps the control focusable. */
+.gk-btn:disabled,
+.gk-btn[aria-disabled="true"] { opacity: 0.5; cursor: not-allowed; }
+.gk-btn:disabled:hover,
+.gk-btn[aria-disabled="true"]:hover { opacity: 0.5; }
+.gk-btn[data-variant="outline"]:disabled:hover,
+.gk-btn[data-variant="outline"][aria-disabled="true"]:hover { background: var(--bg); }
+.gk-btn[data-variant="ghost"]:disabled:hover,
+.gk-btn[data-variant="ghost"][aria-disabled="true"]:hover { background: transparent; }
+.gk-btn[aria-busy="true"] { cursor: progress; }
+
+.gk-btn__spinner { animation: gk-btn-spin calc(var(--dur-5) * 2) var(--ease-linear) infinite; }
+@keyframes gk-btn-spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .gk-btn__spinner { animation: none; }
+}
+:root[data-motion="reduce"] .gk-btn__spinner { animation: none; }

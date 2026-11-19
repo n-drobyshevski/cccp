@@ -24,6 +24,7 @@ export function isHidden(app, display) {
  * {rules, display, today}. Marks cccp:derive in the performance timeline.
  */
 export function derive(apps, ctx) {
+  /** @type {number | null} */
   let t0 = null;
   try { t0 = performance.now(); } catch (e) { /* no timeline in this environment */ }
   const status = evaluateAll(apps, ctx.rules, ctx.today);
@@ -44,9 +45,11 @@ export function derive(apps, ctx) {
 }
 
 let apps = [];
+/** @type {{ rows: any[], byId: Map<any, any>, visible: any[], hiddenCount: number }} */
 let derived = { rows: [], byId: new Map(), visible: [], hiddenCount: 0 };
 let meta = { loadedAt: "", dataVersion: 0 };
 let loaded = false;
+/** @type {any} */
 let ctx = null;
 const subs = new Set();
 

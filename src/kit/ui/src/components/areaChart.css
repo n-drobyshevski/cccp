@@ -1,0 +1,7 @@
+/* areaChart: needs chartParts.css. */
+.gk-chart__area { fill: var(--c); fill-opacity: 0.4; stroke: none; }
+.gk-chart__area.is-solid { fill-opacity: 1; }
+.gk-chart[data-enter] .gk-chart__area { transition: opacity var(--dur-5) var(--ease-enter); }
+@starting-style {
+  .gk-chart[data-enter] .gk-chart__area { opacity: 0; }
+}

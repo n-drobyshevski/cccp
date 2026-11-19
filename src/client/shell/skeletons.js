@@ -62,7 +62,8 @@ function overviewView() {
 }
 
 function heatmapView() {
-  const cols = HEATMAP_LEAD_HEADS.concat(PILLARS.map((p) => PILLAR_LABEL[p]));
+  /** @type {string[]} */
+  const cols = [...HEATMAP_LEAD_HEADS, ...PILLARS.map((p) => PILLAR_LABEL[p])];
   const style = "grid-template-columns:2fr repeat(" + (cols.length - 1) + ", minmax(0, 1fr))";
   return html`${inventoryBar()}
     <section class="panel ld-res">

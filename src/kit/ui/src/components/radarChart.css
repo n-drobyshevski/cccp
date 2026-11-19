@@ -1,0 +1,16 @@
+/* radarChart: needs chartParts.css. */
+.gk-chart__ring0 { fill: none; stroke: var(--border); stroke-width: 1; }
+.gk-chart__spoke { stroke: var(--border); stroke-width: 1; }
+.gk-chart__gridfill { fill: var(--border); fill-opacity: 0.2; stroke: none; }
+.gk-chart__radarArea { fill: var(--c); fill-opacity: 0.6; stroke: var(--c); stroke-width: 2px; stroke-linejoin: round; }
+.gk-chart__radarArea.is-solid { fill-opacity: 1; }
+.gk-chart__radarArea.is-lines { fill: none; }
+.gk-chart--radar .gk-chart__cat:hover .gk-chart__tick, .gk-chart--radar .gk-chart__cat:focus-visible .gk-chart__tick { fill: var(--text); }
+.gk-chart[data-enter] .gk-chart__radarArea {
+  transform-box: view-box;
+  transform-origin: 50% 50%;
+  transition: opacity var(--dur-5) var(--ease-enter), transform var(--dur-5) var(--ease-enter);
+}
+@starting-style {
+  .gk-chart[data-enter] .gk-chart__radarArea { opacity: 0; transform: scale(calc(1 - 0.6 * var(--motion-scale))); }
+}

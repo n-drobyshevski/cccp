@@ -1,0 +1,17 @@
+/* Anatomy and styling ported from shadcn/ui new-york v4 (MIT; see THIRD_PARTY_NOTICES.md). Tokens only.
+   gk-toggle sits on gk-btn (ghost or outline); the pressed state is the fill, weight and inset
+   outline below. */
+.gk-toggle { color: var(--text-muted); font-weight: var(--fw-medium); }
+.gk-toggle:hover { color: var(--text); }
+.gk-toggle[aria-pressed="true"],
+.gk-toggle[aria-checked="true"] {
+  background: var(--accent-soft);
+  color: var(--text);
+  font-weight: var(--fw-semibold);
+  box-shadow: inset 0 0 0 1px var(--border-strong);
+}
+.gk-toggle[data-toggle="outline"][aria-pressed="true"],
+.gk-toggle[data-toggle="outline"][aria-checked="true"] { background: var(--surface-2); }
+.gk-toggle[data-size="sm"] { min-width: 32px; }
+.gk-toggle[data-size="default"] { min-width: 36px; }
+.gk-toggle[data-size="lg"] { min-width: 40px; }

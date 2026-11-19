@@ -33,7 +33,7 @@ export function cleanTiers(list) {
 export function rulesOfDraft(draft) {
   const rules = {};
   for (const k of Object.keys(draft)) if (k.indexOf("rules.") === 0) rules[k.slice(6)] = draft[k];
-  return { version: 1, rules };
+  return { version: /** @type {1} */ (1), rules };
 }
 
 /** One edit of one rule's parameter: prop is 'on', 'months' or 'tiers'. Months are clamped. */

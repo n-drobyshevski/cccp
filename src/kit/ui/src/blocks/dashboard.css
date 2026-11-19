@@ -1,0 +1,27 @@
+/* Layout only for the dashboard blocks (dashboard, sectionCards, chartCard, dataTableCard); the cards,
+   badge, chart, tabs and table keep their own look. Tokens only. */
+.gk-dashboard { container-type: inline-size; min-width: 0; }
+.gk-dashboard > * + * { margin-top: var(--space-4); }
+@container (min-width: 48rem) {
+  .gk-dashboard > * + * { margin-top: var(--space-5); }
+}
+
+/* The grid answers to the width of its own container, not the viewport: 1, 2, then 4 columns. */
+.gk-sectionCards { container-type: inline-size; min-width: 0; }
+.gk-sectionCards__grid { display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--space-4); }
+@container (min-width: 36rem) {
+  .gk-sectionCards__grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+@container (min-width: 64rem) {
+  .gk-sectionCards__grid { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+}
+.gk-sectionCards__grid > .gk-card { gap: var(--space-4); background: linear-gradient(to top, var(--surface), var(--surface-2)); box-shadow: var(--shadow-xs); }
+.gk-sectionCards__label { display: block; margin-bottom: var(--space-2); color: var(--text-muted); font-size: var(--fs-md); font-weight: var(--fw-normal); line-height: var(--lh); }
+.gk-sectionCards__value { display: block; font-size: var(--fs-2xl); font-weight: var(--fw-semibold); font-variant-numeric: tabular-nums; line-height: 1.1; }
+.gk-sectionCards__grid .gk-card__footer { flex-direction: column; align-items: flex-start; gap: var(--space-1); font-size: var(--fs-md); }
+.gk-sectionCards__note { display: flex; align-items: center; gap: var(--space-2); font-weight: var(--fw-medium); line-height: var(--lh); }
+.gk-sectionCards__sub { color: var(--text-muted); line-height: var(--lh); }
+.gk-sectionCards__icon { flex: none; }
+.gk-sectionCards .gk-badge { gap: var(--space-1); }
+
+.gk-dataTableCard { min-width: 0; }

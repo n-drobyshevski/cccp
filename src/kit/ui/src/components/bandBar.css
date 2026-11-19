@@ -1,0 +1,52 @@
+/* Extracted from the author's production Apps Script apps; adapted. */
+.gk-bandBar { display: flex; flex-direction: column; gap: var(--space-1); min-width: 160px; }
+.gk-bandBar__bar { position: relative; padding: var(--space-2) 0; }
+.gk-bandBar__track { position: relative; height: 14px; overflow: hidden; border-radius: var(--radius-pill); background: var(--surface-2); }
+.gk-bandBar__seg {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: calc(var(--gk-from, 0) * 1%);
+  width: calc(var(--gk-n, 1) * 1%);
+  min-width: 3px;
+  box-sizing: border-box;
+  border-right: 2px solid var(--surface);
+  background: var(--none-fg);
+}
+.gk-bandBar__seg.is-ok, .gk-bandBar__swatch.is-ok { background: var(--ok-fg); }
+.gk-bandBar__seg.is-warn, .gk-bandBar__swatch.is-warn { background: repeating-linear-gradient(135deg, var(--warn-fg) 0 4px, var(--warn-bg) 4px 6px); }
+.gk-bandBar__seg.is-bad, .gk-bandBar__swatch.is-bad { background: repeating-linear-gradient(0deg, var(--bad-fg) 0 4px, var(--bad-bg) 4px 6px); }
+.gk-bandBar__seg.is-info, .gk-bandBar__swatch.is-info { background: radial-gradient(circle, var(--info-fg) 0 1.5px, var(--info-bg) 2px) 0 0 / 5px 5px; }
+.gk-bandBar__seg.is-none, .gk-bandBar__swatch.is-none { background: repeating-linear-gradient(90deg, var(--none-fg) 0 2px, var(--none-bg) 2px 4px); }
+.gk-bandBar__seg.is-active { box-shadow: inset 0 0 0 2px var(--text); }
+.gk-bandBar__marker {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: calc(var(--gk-pos, 0) * 1%);
+  width: 0;
+  border-left: 3px solid var(--text);
+  transform: translateX(-1px);
+}
+.gk-bandBar__marker::before {
+  content: "";
+  position: absolute;
+  top: -1px;
+  left: -7px;
+  border: 5.5px solid transparent;
+  border-top: 7px solid var(--text);
+}
+.gk-bandBar__scale { display: flex; justify-content: space-between; font-size: var(--fs-xs); color: var(--text-muted); }
+.gk-bandBar__key { display: flex; flex-wrap: wrap; gap: var(--space-1) var(--space-4); margin: 0; padding: 0; list-style: none; font-size: var(--fs-sm); }
+.gk-bandBar__keyItem { display: inline-flex; align-items: center; gap: var(--space-2); }
+.gk-bandBar__keyItem.is-active .gk-bandBar__name { font-weight: var(--fw-bold); }
+.gk-bandBar__swatch { display: inline-block; width: 12px; height: 12px; border-radius: 3px; background: var(--none-fg); }
+.gk-bandBar__range { color: var(--text-muted); }
+.gk-bandBar.is-empty .gk-bandBar__track { border: 1px dashed var(--none-fg); background: transparent; }
+.gk-bandBar__empty { font-size: var(--fs-sm); color: var(--text-muted); }
+
+.gk-bandBar__value {
+  margin: var(--space-1) 0 0;
+  font-size: var(--fs-sm);
+  color: var(--text);
+}

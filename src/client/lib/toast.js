@@ -3,6 +3,7 @@
 import { renderRegion } from "./dom.js";
 import { html } from "./html.js";
 
+/** @type {HTMLDivElement | null} */
 let host = null;
 
 function ensureHost() {

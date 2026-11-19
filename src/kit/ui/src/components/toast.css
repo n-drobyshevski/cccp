@@ -1,0 +1,52 @@
+/* Extracted from the author's production Apps Script apps; adapted. Tokens only.
+   Sonner style: a surface card with a hairline border and a large shadow. The status is a word chip, never a colour bar. */
+.gk-toast-host {
+  position: fixed;
+  inset: auto var(--space-4) var(--space-4) auto;
+  z-index: 1000;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  max-width: min(420px, calc(100vw - 2 * var(--space-4)));
+  pointer-events: none;
+}
+.gk-toast-stack { display: flex; flex-direction: column; gap: var(--space-2); }
+.gk-toast {
+  pointer-events: auto;
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-3) var(--space-4);
+  background: var(--surface);
+  color: var(--text);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-lg);
+  font-size: var(--fs-md);
+  opacity: 1;
+  transform: none;
+  transition: opacity var(--dur-3) var(--ease-enter), transform var(--dur-3) var(--ease-enter);
+}
+.gk-toast__kind {
+  flex: none;
+  padding: 0 var(--space-2);
+  border-radius: var(--radius-pill);
+  font-size: var(--fs-xs);
+  font-weight: var(--fw-bold);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+.gk-toast__msg { flex: 1 1 auto; min-width: 0; overflow-wrap: anywhere; }
+.gk-toast__link { flex: none; font-weight: var(--fw-medium); }
+.gk-toast__close.gk-btn { width: 24px; height: 24px; color: var(--text-muted); }
+.gk-toast__close.gk-btn:hover { color: var(--text); }
+.gk-toast.is-info .gk-toast__kind { color: var(--info-fg); background: var(--info-bg); }
+.gk-toast.is-ok .gk-toast__kind { color: var(--ok-fg); background: var(--ok-bg); }
+.gk-toast.is-warn .gk-toast__kind { color: var(--warn-fg); background: var(--warn-bg); }
+.gk-toast.is-bad .gk-toast__kind { color: var(--bad-fg); background: var(--bad-bg); }
+/* The entrance is keyed on data-enter, which the host (swap) sets on a new toast only, so a
+   redraw never replays it. Reduced motion zeroes --motion-scale: the fade stays, the rise goes. */
+@starting-style {
+  .gk-toast[data-enter] { opacity: 0; transform: translateY(calc(8px * var(--motion-scale))); }
+}
+.gk-toast__close:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }

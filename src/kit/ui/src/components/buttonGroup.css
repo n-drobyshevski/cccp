@@ -1,0 +1,25 @@
+/* Anatomy and styling ported from shadcn/ui new-york v4 (MIT; see THIRD_PARTY_NOTICES.md). Tokens only.
+   gk-btnGroup is the shared class: it joins the gk-btn children into one row (or a column with
+   data-orientation="vertical"). Neighbours overlap by one pixel so no border is doubled, only the
+   outer corners keep --btn-radius, and a focused child is raised so its whole ring shows. */
+.gk-btnGroup { display: inline-flex; align-items: stretch; isolation: isolate; }
+.gk-btnGroup[data-orientation="vertical"] { flex-direction: column; }
+.gk-btnGroup > .gk-btn { position: relative; border-radius: 0; }
+.gk-btnGroup > .gk-btn:hover { z-index: 1; }
+.gk-btnGroup > .gk-btn:focus-visible { z-index: 2; }
+
+.gk-btnGroup:not([data-orientation="vertical"]) > .gk-btn + .gk-btn { margin-left: -1px; }
+.gk-btnGroup:not([data-orientation="vertical"]) > .gk-btn:first-child { border-top-left-radius: var(--btn-radius); border-bottom-left-radius: var(--btn-radius); }
+.gk-btnGroup:not([data-orientation="vertical"]) > .gk-btn:last-child { border-top-right-radius: var(--btn-radius); border-bottom-right-radius: var(--btn-radius); }
+
+.gk-btnGroup[data-orientation="vertical"] > .gk-btn + .gk-btn { margin-top: -1px; }
+.gk-btnGroup[data-orientation="vertical"] > .gk-btn:first-child { border-top-left-radius: var(--btn-radius); border-top-right-radius: var(--btn-radius); }
+.gk-btnGroup[data-orientation="vertical"] > .gk-btn:last-child { border-bottom-left-radius: var(--btn-radius); border-bottom-right-radius: var(--btn-radius); }
+
+/* Filled variants have no outline of their own: a divider keeps neighbours apart. */
+.gk-btnGroup:not([data-orientation="vertical"]) > .gk-btn:not([data-variant="outline"]) + .gk-btn:not([data-variant="outline"]) { border-left-color: var(--border); }
+.gk-btnGroup[data-orientation="vertical"] > .gk-btn:not([data-variant="outline"]) + .gk-btn:not([data-variant="outline"]) { border-top-color: var(--border); }
+
+/* Icon buttons follow the group size. */
+.gk-btnGroup[data-size="sm"] > .gk-btn[data-size="icon"] { width: 32px; height: 32px; }
+.gk-btnGroup[data-size="lg"] > .gk-btn[data-size="icon"] { width: 40px; height: 40px; }

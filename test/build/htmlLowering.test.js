@@ -1,7 +1,7 @@
 import { build } from "esbuild";
 import { readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
-import { guardJs } from "../../build/guards.mjs";
+import { guardJs } from "@gas-kit/tooling/build/guards.mjs";
 
 const root = new URL("../../", import.meta.url).pathname;
 

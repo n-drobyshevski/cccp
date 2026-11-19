@@ -1,0 +1,61 @@
+/* Anatomy and styling ported from shadcn/ui new-york v4 (MIT; see THIRD_PARTY_NOTICES.md). Tokens only.
+   data-variant is default (a muted pill list) or line (an underline). */
+.gk-tabs { display: flex; flex-direction: column; gap: var(--space-2); }
+.gk-tabs__list {
+  display: inline-flex;
+  align-items: center;
+  align-self: flex-start;
+  gap: var(--space-1);
+  height: 36px;
+  padding: 3px;
+  border-radius: var(--radius-lg);
+  background: var(--surface-2);
+  color: var(--text-muted);
+}
+.gk-tabs__tab {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  height: calc(100% - 1px);
+  padding: 0 var(--space-3);
+  border: 1px solid transparent;
+  border-radius: var(--radius-md);
+  background: transparent;
+  color: var(--text-muted);
+  font-family: inherit;
+  font-size: var(--fs-md);
+  font-weight: var(--fw-medium);
+  white-space: nowrap;
+  cursor: pointer;
+  transition: background var(--dur-2) var(--ease-standard), color var(--dur-2) var(--ease-standard), box-shadow var(--dur-2) var(--ease-standard);
+}
+.gk-tabs__tab:hover { color: var(--text); }
+.gk-tabs__tab[aria-selected="true"] {
+  background: var(--bg);
+  color: var(--text);
+  border-color: var(--border);
+  box-shadow: var(--shadow-sm);
+}
+.gk-tabs__tab:disabled { opacity: 0.5; cursor: not-allowed; text-decoration: line-through; }
+.gk-tabs__panel { outline-offset: 2px; }
+
+.gk-tabs[data-variant="line"] .gk-tabs__list {
+  height: auto;
+  padding: 0;
+  gap: var(--space-3);
+  border-radius: 0;
+  background: transparent;
+  border-bottom: 1px solid var(--border);
+}
+.gk-tabs[data-variant="line"] .gk-tabs__tab {
+  height: 36px;
+  margin-bottom: -1px;
+  padding: 0 var(--space-1);
+  border: 0;
+  border-bottom: 2px solid transparent;
+  border-radius: 0;
+  box-shadow: none;
+  background: transparent;
+}
+.gk-tabs[data-variant="line"] .gk-tabs__tab[aria-selected="true"] { border-bottom-color: var(--accent); background: transparent; box-shadow: none; }

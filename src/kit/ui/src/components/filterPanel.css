@@ -1,0 +1,32 @@
+/* Extracted from the author's production Apps Script apps; adapted. Tokens only. Uses facetList.css. */
+.gk-filterPanel {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  min-width: 0;
+  padding: var(--space-4);
+  background: var(--surface);
+  color: var(--text);
+  border: 1px solid var(--border);
+  border-radius: var(--card-radius);
+  box-shadow: var(--shadow-xs);
+}
+.gk-filterPanel__head { display: flex; align-items: center; justify-content: space-between; gap: var(--space-2); }
+.gk-filterPanel__title { margin: 0; font-size: var(--fs-md); font-weight: var(--fw-semibold); }
+.gk-filterPanel__facet { min-width: 0; margin: 0; padding: 0; border: 0; }
+.gk-filterPanel__legend { padding: 0; margin-bottom: var(--space-2); font-size: var(--fs-sm); font-weight: var(--fw-medium); color: var(--text-muted); font-variant-numeric: tabular-nums; }
+.gk-filterPanel .gk-facetList__list { max-height: 240px; overflow: auto; overscroll-behavior: contain; }
+.gk-filterPanel__foot { display: flex; justify-content: flex-end; padding-top: var(--space-2); border-top: 1px solid var(--border); }
+
+/* Two columns from 1024px: the panel (260px, sticky) beside the results; stacked below that, and
+   the results take the full width whenever the panel is closed. */
+.gk-filterLayout { display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--space-4); align-items: start; }
+@media (min-width: 1024px) {
+  .gk-filterLayout:has(> .gk-filterPanel) { grid-template-columns: 260px minmax(0, 1fr); }
+  .gk-filterLayout > .gk-filterPanel {
+    position: sticky;
+    top: var(--space-4);
+    max-height: calc(100vh - 2 * var(--space-4));
+    overflow: auto;
+  }
+}

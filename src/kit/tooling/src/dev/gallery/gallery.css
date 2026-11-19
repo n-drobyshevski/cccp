@@ -1,0 +1,28 @@
+/* The gallery's own layout. Tokens only: the card colours come from the theme blocks that the
+   dev server copies from the kit token files onto .gal-card. */
+body { padding: 0 16px 48px; }
+.gal-head { position: sticky; top: 0; z-index: 5; background: var(--bg); padding: 12px 0; border-bottom: 1px solid var(--border); }
+.gal-head h1 { margin-bottom: 8px; }
+.gal-filter { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+.gal-filter input { min-width: 14em; padding: 6px 8px; border: 1px solid var(--border-strong); border-radius: var(--radius-sm); background: var(--surface); color: var(--text); }
+.gal-filter button { padding: 6px 12px; border: 1px solid var(--border-strong); border-radius: var(--radius-sm); background: var(--surface); color: var(--text); }
+.gal-jump { display: flex; flex-wrap: wrap; gap: 4px 12px; margin: 8px 0 0; padding: 0; list-style: none; font-size: var(--fs-sm); }
+.gal-section { margin-top: 32px; scroll-margin-top: 140px; }
+.gal-summary, .gal-a11y { margin-top: 4px; max-width: 70ch; }
+.gal-a11y { color: var(--text-muted); font-size: var(--fs-sm); }
+.gal-state { margin-top: 16px; }
+.gal-pair { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 12px; margin-top: 6px; }
+.gal-cell { min-width: 0; }
+.gal-theme-label { font-size: var(--fs-xs); text-transform: uppercase; letter-spacing: 0.06em; color: var(--text-muted); }
+.gal-card { padding: 16px; border: 1px solid var(--border); border-radius: var(--radius); background: var(--bg); color: var(--text); overflow: auto; min-height: 64px; transform: translateZ(0); isolation: isolate; }
+/* A transform makes the card the containing block of position:fixed parts (confirm, popover panel,
+   toast host), so they stay inside their card; the card needs room for a dialog. */
+.gal-card:has(.gk-confirm, .gk-toast-host, .gk-popover__panel) { min-height: 260px; }
+.gal-code { margin: 8px 0 0; padding: 8px 12px; overflow: auto; background: var(--surface-2); border: 1px solid var(--border); border-radius: var(--radius-sm); font: var(--fs-sm) / 1.5 var(--font-mono); white-space: pre-wrap; word-break: break-word; }
+.gal-error { padding: 8px 12px; border: 1px solid var(--bad-fg); border-radius: var(--radius-sm); background: var(--bad-bg); color: var(--bad-fg); }
+.gal-empty { margin-top: 24px; }
+.gal-motion { display: inline-flex; align-items: center; gap: 4px; font-size: var(--fs-sm); }
+.gal-motion__btn, .gal-replay { padding: 2px 8px; border: 1px solid var(--border-strong); border-radius: var(--radius-sm); background: var(--surface); color: var(--text); font-size: var(--fs-xs); text-transform: none; letter-spacing: 0; }
+.gal-motion__btn[aria-pressed="true"] { background: var(--accent); color: var(--accent-ink); border-color: var(--accent); }
+.gal-replay { margin-left: 8px; }
+.gal-kind { margin-left: 8px; padding: 1px 8px; border: 1px solid var(--border-strong); border-radius: var(--radius-pill); font-size: var(--fs-xs); font-weight: var(--fw-medium); vertical-align: middle; }

@@ -4,6 +4,7 @@
 import { renderRegion } from "./dom.js";
 import { closeTips } from "./tip.js";
 
+/** @type {{ pop: HTMLElement, anchor: any, onClose?: (() => void) | null, onDown: (ev: any) => void, onKey: (ev: any) => void, onResize: () => void } | null} */
 let open = null;
 
 function place(pop, anchor, align) {
@@ -35,9 +36,12 @@ export function closePopovers(restore) {
   if (cur.onClose) cur.onClose();
 }
 
+/** @typedef {{ el: HTMLElement, close: () => void, update: (next: any) => void, setAnchor: (el: any) => void }} Popover */
+
 /**
  * Open `safe` (SafeHtml) under `anchor`. Returns {el, close, update(safe)}; update re-renders
  * in place and keeps focus and scroll; setAnchor(el) re-points it after the trigger was re-rendered. opts: label (aria-label), align ('start'|'end'), onClose.
+ * @returns {Popover}
  */
 export function openPopover(anchor, safe, opts) {
   const o = opts || {};
@@ -59,7 +63,7 @@ export function openPopover(anchor, safe, opts) {
       if (ev.key === "Escape") { ev.stopPropagation(); closePopovers(true); return; }
       if (ev.key !== "Tab") return;
       // Keep Tab inside the panel: wrap at the ends instead of leaving it open behind the focus.
-      const items = [...pop.querySelectorAll('input:not([disabled]),button:not([disabled]),a[href],select:not([disabled]),[tabindex]:not([tabindex="-1"])')];
+      const items = /** @type {HTMLElement[]} */ ([...pop.querySelectorAll('input:not([disabled]),button:not([disabled]),a[href],select:not([disabled]),[tabindex]:not([tabindex="-1"])')]);
       if (items.length === 0) { ev.preventDefault(); return; }
       const first = items[0], last = items[items.length - 1];
       const at = document.activeElement;
@@ -72,7 +76,7 @@ export function openPopover(anchor, safe, opts) {
   document.addEventListener("pointerdown", cur.onDown, true);
   document.addEventListener("keydown", cur.onKey, true);
   window.addEventListener("resize", cur.onResize);
-  const first = pop.querySelector('input:not([disabled]),button:not([disabled]),[tabindex]:not([tabindex="-1"])');
+  const first = /** @type {HTMLElement | null} */ (pop.querySelector('input:not([disabled]),button:not([disabled]),[tabindex]:not([tabindex="-1"])'));
   (first || pop).focus({ preventScroll: true });
   return {
     el: pop,

@@ -4,7 +4,7 @@
 import { readFileSync } from "node:fs";
 import vm from "node:vm";
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { exportedNames } from "../../build/guards.mjs";
+import { exportedNames } from "@gas-kit/tooling/build/guards.mjs";
 import * as server from "../../src/server/index";
 import * as access from "../../src/server/access";
 import { ENDPOINT_ROLES, roleAllows, type Role } from "../../src/server/roles";

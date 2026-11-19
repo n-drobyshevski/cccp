@@ -1,0 +1,20 @@
+/* Anatomy and styling ported from shadcn/ui new-york v4 (MIT; see THIRD_PARTY_NOTICES.md). Tokens only. */
+.gk-breadcrumb__list {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  color: var(--text-muted);
+  font-size: var(--fs-md);
+  line-height: var(--lh);
+  overflow-wrap: anywhere;
+}
+.gk-breadcrumb__item { display: inline-flex; align-items: center; gap: 6px; }
+.gk-breadcrumb__sep { display: inline-flex; align-items: center; }
+.gk-breadcrumb__link { color: var(--text-muted); text-decoration: none; transition: color var(--dur-2) var(--ease-standard); }
+.gk-breadcrumb__link:hover { color: var(--text); }
+.gk-breadcrumb__page { color: var(--text); font-weight: var(--fw-normal); }
+.gk-breadcrumb__ellipsis { display: inline-flex; align-items: center; justify-content: center; min-width: 20px; letter-spacing: 0.1em; }

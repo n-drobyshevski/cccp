@@ -1,7 +1,7 @@
 // The endpoint role table and the gate in run().
 import { readFileSync } from "node:fs";
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { exportedNames } from "../../build/guards.mjs";
+import { exportedNames } from "@gas-kit/tooling/build/guards.mjs";
 import * as access from "../../src/server/access";
 import * as api from "../../src/server/api";
 import { ENDPOINT_ROLES, requireRole, requiredRole, roleAllows } from "../../src/server/roles";

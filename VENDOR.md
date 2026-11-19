@@ -61,7 +61,7 @@ dataTable.
 | `src/server/index.ts` | `gas_hub/src/server/index.ts` | adds setup and diagnostics exports |
 | `src/server/api.ts` | `gas_hub/src/server/api.ts` | keeps run(), logAccessChange, getAccess, saveAccess, saveAdmins; run() checks ENDPOINT_ROLES; errorKinds busy and conflict; URL endpoints dropped, CCCP endpoints added |
 | `src/gas/entry.js`, `src/gas/appsscript.json` | `gas_hub/dist/entry.js`, `gas_hub/dist/appsscript.json` | CCCP delegators; gated setup() and deploymentDiagnostic(); scopes spreadsheets, drive.file, userinfo.email, script.scriptapp; Sheets v4 and Drive v3 advanced services |
-| `build/esbuild.config.mjs`, `build/guards.mjs` | `gas_hub/esbuild.config.mjs` | guards split out for tests; index.html copied instead of generated; copies `src/gas/*` |
+| `tools/build.mjs`, `app.config.mjs` | (the gas-kit build, `src/kit/tooling/src/build/defineBuild.mjs`) | replaced `build/esbuild.config.mjs` and `build/guards.mjs` (derived from `gas_hub/esbuild.config.mjs`) in work package C1; the guards and the build stamp are the kit's. `src/vendor` stays until a later package |
 | `src/server/serverCache.ts` | `gas_ai/src/server/serverCache.ts` | wizDataVersion removed; configStamp becomes CFG_GEN; prefix `cccp`; ttl clamped 60..21600; sha1 from the vendored path |
 | `src/server/bootstrap.ts` | `gas_devsecops/src/server/bootCore.ts` | pattern only: cached viewer-free core plus live fields, with a key allowlist test |
 | `src/server/sourceSheet.ts` | `gas/src/server/sheetsDb.ts` (read half) | pattern only: no writers; dates formatted in the sheet's timezone |

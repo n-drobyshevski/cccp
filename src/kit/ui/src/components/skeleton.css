@@ -1,0 +1,41 @@
+/* Extracted from the author's production Apps Script apps; adapted. Tokens only. A pulse on --surface-2; reduced motion stops it. */
+.gk-skeleton { display: block; }
+.gk-skeleton__items { display: flex; flex-direction: column; gap: var(--space-3); }
+.gk-skeleton.is-tiles .gk-skeleton__items {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  gap: var(--space-4);
+}
+.gk-skeleton__line,
+.gk-skeleton__cell {
+  display: block;
+  width: var(--w, 100%);
+  height: 12px;
+  border-radius: var(--radius-md);
+  background: var(--surface-2);
+  animation: gk-skeleton-pulse calc(var(--dur-5) * 5) var(--ease-standard) infinite;
+}
+.gk-skeleton__line.is-big { height: 24px; }
+.gk-skeleton__row {
+  display: grid;
+  grid-template-columns: 72px 1fr 96px;
+  gap: var(--space-3);
+  align-items: center;
+  padding: var(--space-2) 0;
+  border-bottom: 1px solid var(--border);
+}
+.gk-skeleton__cell.is-narrow { width: 100%; }
+.gk-skeleton__tile {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  padding: var(--space-4);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-xl);
+}
+.gk-skeleton__slow { display: block; margin-top: var(--space-3); color: var(--text-muted); font-size: var(--fs-sm); }
+@keyframes gk-skeleton-pulse { 50% { opacity: 0.5; } }
+@media (prefers-reduced-motion: reduce) {
+  .gk-skeleton__line, .gk-skeleton__cell { animation: none; }
+}

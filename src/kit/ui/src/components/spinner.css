@@ -1,0 +1,13 @@
+/* Anatomy and styling ported from shadcn/ui new-york v4 (MIT; see THIRD_PARTY_NOTICES.md). Tokens only. */
+.gk-spinner { display: inline-flex; align-items: center; justify-content: center; color: var(--text-muted); }
+.gk-spinner__icon { width: 16px; height: 16px; animation: gk-spinner-turn calc(var(--dur-5) * 2) var(--ease-linear) infinite; }
+.gk-spinner.is-sm .gk-spinner__icon { width: 12px; height: 12px; }
+.gk-spinner.is-lg .gk-spinner__icon { width: 24px; height: 24px; }
+@keyframes gk-spinner-turn {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .gk-spinner__icon { animation: none; }
+}
+:root[data-motion="reduce"] .gk-spinner__icon { animation: none; }

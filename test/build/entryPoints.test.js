@@ -1,6 +1,6 @@
 import { readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
-import { delegatedNames, exportedNames } from "../../build/guards.mjs";
+import { delegatedNames, exportedNames } from "@gas-kit/tooling/build/guards.mjs";
 
 const read = (p) => readFileSync(new URL("../../" + p, import.meta.url), "utf8");
 const ENTRY = read("src/gas/entry.js");

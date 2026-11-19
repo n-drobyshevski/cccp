@@ -9,7 +9,7 @@ export function confirmDialog(opts) {
   const o = opts || {};
   return new Promise((resolve) => {
     const tid = "dlg-t-" + (++seq);
-    const before = document.activeElement;
+    const before = /** @type {HTMLElement | null} */ (document.activeElement);
     const wrap = document.createElement("div");
     wrap.className = "scrim";
     document.body.appendChild(wrap);
@@ -29,11 +29,11 @@ export function confirmDialog(opts) {
     const onKey = (ev) => {
       if (ev.key === "Escape") { ev.stopPropagation(); done(false); return; }
       if (ev.key !== "Tab") return;
-      const btns = Array.from(wrap.querySelectorAll(".dlg button"));
+      const btns = /** @type {HTMLElement[]} */ (Array.from(wrap.querySelectorAll(".dlg button")));
       if (!btns.length) return;
       const first = btns[0];
       const last = btns[btns.length - 1];
-      const at = document.activeElement;
+      const at = /** @type {HTMLElement} */ (document.activeElement);
       if (btns.indexOf(at) < 0) { ev.preventDefault(); first.focus(); }
       else if (ev.shiftKey && at === first) { ev.preventDefault(); last.focus(); }
       else if (!ev.shiftKey && at === last) { ev.preventDefault(); first.focus(); }
@@ -41,7 +41,7 @@ export function confirmDialog(opts) {
     document.addEventListener("keydown", onKey, true);
     delegate(wrap, "click", "[data-act]", (ev, el) => done(el.getAttribute("data-act") === "yes"));
     wrap.addEventListener("pointerdown", (ev) => { if (ev.target === wrap) done(false); });
-    const yes = wrap.querySelector('[data-k="yes"]');
+    const yes = /** @type {HTMLElement | null} */ (wrap.querySelector('[data-k="yes"]'));
     if (yes) yes.focus();
   });
 }

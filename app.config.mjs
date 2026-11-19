@@ -1,0 +1,47 @@
+// The app's one configuration file, read by the build (tools/build.mjs), the dev tooling and the
+// kit contracts in test/contracts.test.ts.
+import { APP_ROOT, kitAliases } from "./tools/kitPaths.mjs";
+
+export default {
+  name: "cccp",
+  // Shown in the header and the browser tab.
+  product: "CCCP",
+  // Every localStorage key of this app starts with it.
+  storagePrefix: "cccp.",
+  // Must equal "timeZone" in src/gas/appsscript.json.
+  timeZone: "Europe/Paris",
+  // "webapp.access" in src/gas/appsscript.json must equal it (the manifestWebapp contract).
+  webappAccess: "DOMAIN",
+  // The access mode while ACCESS_MODE is unset (src/server/access.ts reads an unset mode as list).
+  accessDefault: "list",
+  // The register holds an inventory of applications with their cyber, compliance and continuity
+  // gaps: an attacker's map, so it is treated as confidential, not merely internal. The kit's
+  // "confidential" contract (list access only, owner pin, audit sheet, no inlined data) is NOT
+  // registered yet: it needs the kit's server kernel (DATA_CLASS, policy), which a later work
+  // package brings. Until then this value states the target and enforces nothing by itself.
+  dataClass: "confidential",
+  // A written reason for each POLICY_OVERRIDES key that weakens the policy (none yet).
+  acceptedRisks: {},
+  // The exact scopes src/gas/appsscript.json may ask for (copied from it; a contract pins the two).
+  oauthScopes: [
+    "https://www.googleapis.com/auth/spreadsheets",
+    "https://www.googleapis.com/auth/drive.file",
+    "https://www.googleapis.com/auth/userinfo.email",
+    "https://www.googleapis.com/auth/script.scriptapp",
+  ],
+  // The appConfig of defineBuild (src/kit/tooling/src/build/defineBuild.mjs).
+  build: {
+    serverEntry: "src/server/index.ts",
+    clientEntry: "src/client/main.js",
+    cssEntry: "src/client/styles/index.css",
+    // The vendored settingsForm contract asserts a specifier of the form '<dots>/gas_shared/ui/
+    // settingsForm.js', so the settings draft imports it as 'gas_shared/ui/...'. Goes when
+    // src/vendor does.
+    alias: { ...kitAliases(APP_ROOT), gas_shared: "src/vendor/gas_shared" },
+    // Byte caps for the bundles every page inlines: the build fails above them, so growth is a
+    // decision. Baseline before the kit build: server 119292, js 181890, css 59220. The kit build
+    // targets es2017 for the client (was es2019) and stamps the server banner differently, so the
+    // first kit build is server 119317, js 182599, css 59220; the caps sit just above those.
+    budgets: { server: 119_500, js: 183_000, css: 59_300 },
+  },
+};

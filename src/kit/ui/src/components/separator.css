@@ -1,0 +1,4 @@
+/* Anatomy and styling ported from shadcn/ui new-york v4 (MIT; see THIRD_PARTY_NOTICES.md). Tokens only. */
+.gk-separator { flex: none; background: var(--border); }
+.gk-separator[data-orientation="horizontal"] { width: 100%; height: 1px; }
+.gk-separator[data-orientation="vertical"] { align-self: stretch; width: 1px; min-height: 1em; }

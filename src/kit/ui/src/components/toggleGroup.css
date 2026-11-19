@@ -1,0 +1,9 @@
+/* Anatomy and styling ported from shadcn/ui new-york v4 (MIT; see THIRD_PARTY_NOTICES.md). Tokens only.
+   The buttons are gk-btn gk-toggle (see toggle.css); here they are joined into one row. */
+.gk-toggleGroup { display: inline-flex; align-items: center; border-radius: var(--radius-md); }
+.gk-toggleGroup > .gk-toggle { border-radius: 0; }
+.gk-toggleGroup > .gk-toggle:first-child { border-top-left-radius: var(--radius-md); border-bottom-left-radius: var(--radius-md); }
+.gk-toggleGroup > .gk-toggle:last-child { border-top-right-radius: var(--radius-md); border-bottom-right-radius: var(--radius-md); }
+.gk-toggleGroup[data-variant="outline"] > .gk-toggle + .gk-toggle { margin-left: -1px; }
+.gk-toggleGroup[data-variant="outline"] > .gk-toggle[aria-pressed="true"],
+.gk-toggleGroup[data-variant="outline"] > .gk-toggle[aria-checked="true"] { position: relative; }

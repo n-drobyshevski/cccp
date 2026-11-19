@@ -103,6 +103,7 @@ export const settingsPage = {
     }
     let alive = true;
     let busy = false;
+    /** @type {{ kind: string, text: string } | null} */
     let banner = null;
     const ui = { adv: false, probe: { state: "idle" }, reloadBusy: false, reloadedAt: false };
     guardSettings(() => isDirty(sessionOf()));
@@ -119,7 +120,7 @@ export const settingsPage = {
       const bar = barModel(session);
       const view = VIEWS[tab] || soon;
       const vctx = { session, meta: st.core.sourceMeta, viewer: st.live.viewer, ui, errors, rows: register.allRows(), today: st.live.today, access: accessCtl.state };
-      const def = SETTINGS_TABS.find((t) => t.key === tab);
+      const def = /** @type {(typeof SETTINGS_TABS)[number]} */ (SETTINGS_TABS.find((t) => t.key === tab));
       if (tab === "access") accessCtl.ensureLoaded();
       const notes = bar.changed.some((k) => k.indexOf("rules.") === 0) ? ruleChangeNotes({ session, rows: vctx.rows, today: vctx.today }) : [];
       renderRegion(el, html`<div class="stw" data-page="settings" data-tab="${tab}">
@@ -147,6 +148,7 @@ export const settingsPage = {
       if (s) store.set({ settingsDraft: edit(s, key, value) });
     }
 
+    /** @type {(() => void) | null} */
     let stopSlow = null;
     const endWait = () => { if (stopSlow) stopSlow(); stopSlow = null; };
 

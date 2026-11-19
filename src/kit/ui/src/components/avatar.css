@@ -1,0 +1,19 @@
+/* Anatomy and styling ported from shadcn/ui new-york v4 (MIT; see THIRD_PARTY_NOTICES.md). Tokens only. */
+.gk-avatar {
+  position: relative;
+  display: inline-flex;
+  flex: none;
+  width: 32px;
+  height: 32px;
+  overflow: hidden;
+  border-radius: var(--radius-pill);
+  background: var(--surface-2);
+  color: var(--text);
+  font-size: var(--fs-sm);
+  font-weight: var(--fw-medium);
+  user-select: none;
+}
+.gk-avatar.is-sm { width: 24px; height: 24px; font-size: var(--fs-xs); }
+.gk-avatar.is-lg { width: 40px; height: 40px; font-size: var(--fs-md); }
+.gk-avatar__fallback { display: flex; align-items: center; justify-content: center; width: 100%; height: 100%; }
+.gk-avatar__image { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }

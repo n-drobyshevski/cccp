@@ -17,7 +17,9 @@ import { accessCard, armSlow, errorState, noSource, notFound, onlyAdmins, skelet
 
 const pages = new Map();
 let seq = 0;
+/** @type {(() => void) | null} */
 let teardown = null;
+/** @type {(() => void) | null} */
 let cancelSlow = null;
 let hooks = {};
 
@@ -131,6 +133,7 @@ const keyOf = (s) => [s.route, s.app, s.route === "settings" ? "" : s.tab, s.boo
 // Keyboard focus follows the route: into a fact sheet it lands on the title, and back out of one it
 // returns to the control that opened it (the name button, or the landscape tile), if it is drawn.
 function restoreFocus(el, s, p) {
+  /** @type {string | null} */
   let target = null;
   if (s.route === "app") target = '[data-k="fs-title"]';
   else if (p.route === "app" && p.app) target = '[data-k="open-' + p.app + '"],[data-k="tile-' + p.app + '"]';

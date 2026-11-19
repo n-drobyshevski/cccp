@@ -1,0 +1,9 @@
+{
+  "name": "@gas-kit/ui",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Components (pure SafeHtml views + CSS), tokens and the component manifest",
+  "license": "MIT",
+  "type": "module",
+  "exports": { ".": "./src/index.js", "./*": "./src/*" }
+}

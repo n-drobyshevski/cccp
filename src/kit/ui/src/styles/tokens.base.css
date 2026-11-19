@@ -1,0 +1,236 @@
+/* Extracted from the author's production Apps Script apps; adapted.
+   Design tokens. Holds every colour literal of the kit (the one exception is the five
+   --brand-* defaults in brand.css). Light is the default; dark is declared twice on purpose:
+   once under prefers-color-scheme when no explicit choice was made, once for an explicit
+   data-theme. The neutral palette, radius scale and shadows derive from shadcn/ui (new-york,
+   neutral; see THIRD_PARTY_NOTICES.md). Nothing here names a brand: --accent maps to the brand contract. Status is
+   never colour alone: pair every status token with a shape or a word. */
+:root {
+  /* surfaces and text */
+  --bg: #ffffff;
+  --surface: #ffffff;
+  --surface-2: #f5f5f5;
+  /* --border is decorative (dividers, cards). Control and input outlines must use --border-strong (3:1). */
+  --border: #e5e5e5;
+  --border-strong: #8e8e8e;
+  /* --input is a decorative fill or hairline (shadcn input); a control outline still uses --border-strong. */
+  --input: #e5e5e5;
+  --ring: #a1a1a1;
+  /* the soft halo around the focus outline (shadcn ring at 50%) */
+  --ring-soft: color-mix(in oklab, var(--ring) 50%, transparent);
+  /* sidebar (shadcn neutral): its own surface, text, hover or active fill, hairline and scrollbar thumb */
+  --sidebar: #fafafa;
+  --sidebar-foreground: #0a0a0a;
+  --sidebar-accent: #f5f5f5;
+  --sidebar-accent-foreground: #171717;
+  --sidebar-border: #e5e5e5;
+  --sidebar-ring: #a1a1a1;
+  --text: #0a0a0a;
+  /* shadcn muted-foreground is #737373; darkened to #707070 so it passes 4.5:1 on --surface-2 */
+  --text-muted: #707070;
+
+  /* accent, from the brand contract */
+  --accent: var(--brand-accent);
+  --accent-ink: var(--brand-accent-ink);
+  --accent-soft: var(--brand-accent-soft);
+  --mark: var(--brand-mark);
+  --mark-ink: var(--brand-mark-ink);
+  --focus: var(--accent);
+
+  /* status: fg is text-grade on its own bg and on --surface */
+  --ok-fg: #136c34;
+  --ok-bg: #e0f3e8;
+  --warn-fg: #7f4d00;
+  --warn-bg: #fbeccb;
+  --bad-fg: #b01a1a;
+  --bad-bg: #fde6e6;
+  /* destructive maps onto the bad family: text-grade on every surface, with its own ink for fills */
+  --destructive: var(--bad-fg);
+  --destructive-ink: #ffffff;
+  --info-fg: #1d4ed8;
+  --info-bg: #e3ebfd;
+  --none-fg: #566170;
+  --none-bg: #e9edf2;
+
+  /* chart series: graphical grade, 3:1 on --surface */
+  --chart-1: #2a5fc4;
+  --chart-2: #b45309;
+  --chart-3: #0f7a5c;
+  --chart-4: #9333a8;
+  --chart-5: #c2304f;
+  --chart-6: #5f6b7e;
+
+  /* tooltip */
+  --tip-bg: #0a0a0a;
+  --tip-fg: #ffffff;
+
+  /* overlays and shadows */
+  --scrim: rgba(0, 0, 0, 0.4);
+  --shadow-xs: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+  --shadow-sm: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px -1px rgba(0, 0, 0, 0.1);
+  --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -2px rgba(0, 0, 0, 0.1);
+  --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -4px rgba(0, 0, 0, 0.1);
+  --shadow-1: var(--shadow-sm);
+  --shadow-2: var(--shadow-md);
+  --shadow-3: var(--shadow-lg);
+
+  /* spacing */
+  --space-0: 2px;
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 24px;
+  --space-6: 32px;
+  --space-7: 48px;
+
+  /* radius */
+  --radius-sm: 6px;
+  --radius-md: 8px;
+  --radius: 10px;
+  --radius-xl: 14px;
+  --radius-lg: var(--radius-xl);
+  --radius-pill: 999px;
+  /* shape knobs: an app sets these two to move every button or card-like surface (pill buttons, 24px cards) */
+  --btn-radius: var(--radius-md);
+  --card-radius: var(--radius-xl);
+
+  /* type */
+  --font-sans: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  --font-mono: ui-monospace, Menlo, Consolas, monospace;
+  --fs-xs: 11px;
+  --fs-sm: 12px;
+  --fs-md: 14px;
+  --fs-lg: 16px;
+  --fs-xl: 18px;
+  --fs-2xl: 24px;
+  --fs-3xl: 32px;
+  --fw-normal: 400;
+  --fw-medium: 500;
+  --fw-semibold: 600;
+  --fw-bold: 700;
+  --lh: 1.45;
+
+  /* motion: durations, easings, and the scale that multiplies movement distances (never durations) */
+  --dur-1: 70ms;
+  --dur-2: 120ms;
+  --dur-3: 180ms;
+  --dur-4: 240ms;
+  --dur-5: 400ms;
+  --ease-standard: cubic-bezier(0.2, 0, 0.38, 0.9);
+  --ease-enter: cubic-bezier(0, 0, 0.38, 0.9);
+  --ease-exit: cubic-bezier(0.2, 0, 1, 0.9);
+  --ease-linear: linear; /* constant speed, for spinners only */
+  /* Open Props --ease-spring-2 (MIT), a plain constant; the switch thumb only */
+  --ease-spring: linear(0, 0.007, 0.029 2.2%, 0.118 4.7%, 0.625 14.4%, 0.826 19%, 0.902, 0.962, 1.008 26.1%, 1.041 28.7%, 1.064 32.1%, 1.07 36%, 1.061 40.5%, 1.015 53.4%, 0.999 61.6%, 0.995 71.2%, 1);
+  --motion-scale: 1;
+  --press-scale: 0.97;
+
+  color-scheme: light;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #0a0a0a;
+    --surface: #171717;
+    --surface-2: #262626;
+    --border: rgba(255, 255, 255, 0.1);
+    --border-strong: #6f6f6f;
+    --input: rgba(255, 255, 255, 0.15);
+    --ring: #737373;
+      --ring-soft: color-mix(in oklab, var(--ring) 50%, transparent);
+    --sidebar: #171717;
+    --sidebar-foreground: #fafafa;
+    --sidebar-accent: #262626;
+    --sidebar-accent-foreground: #fafafa;
+    --sidebar-border: rgba(255, 255, 255, 0.1);
+    --sidebar-ring: #737373;
+    --text: #fafafa;
+    --text-muted: #a1a1a1;
+    --ok-fg: #4bc088;
+    --ok-bg: #12301f;
+    --warn-fg: #e2a03a;
+    --warn-bg: #36270d;
+    --bad-fg: #ee6370;
+    --bad-bg: #3a1519;
+    --destructive-ink: #0a0a0a;
+    --info-fg: #8fa8f0;
+    --info-bg: #1b2547;
+    --none-fg: #9aa5b6;
+    --none-bg: #232934;
+    --chart-1: #6e9bf0;
+    --chart-2: #e2a03a;
+    --chart-3: #3fbf9a;
+    --chart-4: #c88ae0;
+    --chart-5: #ee7a92;
+    --chart-6: #9aa5b6;
+    --tip-bg: #fafafa;
+    --tip-fg: #0a0a0a;
+    --scrim: rgba(0, 0, 0, 0.6);
+    --shadow-xs: 0 1px 2px 0 rgba(0, 0, 0, 0.3);
+    --shadow-sm: 0 1px 3px 0 rgba(0, 0, 0, 0.4), 0 1px 2px -1px rgba(0, 0, 0, 0.4);
+    --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.4), 0 2px 4px -2px rgba(0, 0, 0, 0.4);
+    --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.45), 0 4px 6px -4px rgba(0, 0, 0, 0.45);
+    color-scheme: dark;
+  }
+}
+
+:root[data-theme="dark"] {
+  --bg: #0a0a0a;
+  --surface: #171717;
+  --surface-2: #262626;
+  --border: rgba(255, 255, 255, 0.1);
+  --border-strong: #6f6f6f;
+  --input: rgba(255, 255, 255, 0.15);
+  --ring: #737373;
+  --ring-soft: color-mix(in oklab, var(--ring) 50%, transparent);
+  --sidebar: #171717;
+  --sidebar-foreground: #fafafa;
+  --sidebar-accent: #262626;
+  --sidebar-accent-foreground: #fafafa;
+  --sidebar-border: rgba(255, 255, 255, 0.1);
+  --sidebar-ring: #737373;
+  --text: #fafafa;
+  --text-muted: #a1a1a1;
+  --ok-fg: #4bc088;
+  --ok-bg: #12301f;
+  --warn-fg: #e2a03a;
+  --warn-bg: #36270d;
+  --bad-fg: #ee6370;
+  --bad-bg: #3a1519;
+  --destructive-ink: #0a0a0a;
+  --info-fg: #8fa8f0;
+  --info-bg: #1b2547;
+  --none-fg: #9aa5b6;
+  --none-bg: #232934;
+  --chart-1: #6e9bf0;
+  --chart-2: #e2a03a;
+  --chart-3: #3fbf9a;
+  --chart-4: #c88ae0;
+  --chart-5: #ee7a92;
+  --chart-6: #9aa5b6;
+  --tip-bg: #fafafa;
+  --tip-fg: #0a0a0a;
+  --scrim: rgba(0, 0, 0, 0.6);
+  --shadow-xs: 0 1px 2px 0 rgba(0, 0, 0, 0.3);
+  --shadow-sm: 0 1px 3px 0 rgba(0, 0, 0, 0.4), 0 1px 2px -1px rgba(0, 0, 0, 0.4);
+  --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.4), 0 2px 4px -2px rgba(0, 0, 0, 0.4);
+  --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.45), 0 4px 6px -4px rgba(0, 0, 0, 0.45);
+  color-scheme: dark;
+}
+
+/* Reduced motion: movement off, fades stay. The explicit full choice is declared last and with
+   more specificity, so it wins over the media query. */
+@media (prefers-reduced-motion: reduce) {
+  :root {
+    --motion-scale: 0;
+  }
+}
+
+:root[data-motion="reduce"] {
+  --motion-scale: 0;
+}
+
+:root[data-motion="full"] {
+  --motion-scale: 1;
+}

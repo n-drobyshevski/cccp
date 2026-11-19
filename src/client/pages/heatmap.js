@@ -17,6 +17,7 @@ import { PILLARS } from "../../domain/types";
 import { PILLAR_LABEL, STATUS_WORD } from "../../domain/facets";
 import { HEAT_STACK, heatmapModel, isOpenAll } from "../../domain/heatmap";
 
+/** @type {Set<string> | null} */
 let open = null;
 let closedSmall = new Set();
 

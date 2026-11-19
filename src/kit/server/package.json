@@ -1,0 +1,9 @@
+{
+  "name": "@gas-kit/server",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Server kernel bundled into the Apps Script server IIFE",
+  "license": "MIT",
+  "type": "module",
+  "exports": { ".": "./src/index.ts", "./*": "./src/*" }
+}

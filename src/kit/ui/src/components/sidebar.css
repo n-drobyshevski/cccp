@@ -1,0 +1,132 @@
+/* Anatomy and styling ported from shadcn/ui new-york v4 (MIT; see THIRD_PARTY_NOTICES.md). Tokens only.
+   data-side left or right, data-variant sidebar, floating or inset, data-collapsible offcanvas,
+   icon or none, data-state expanded or collapsed. Below 1024px the sidebar is the sheet. */
+/* The layout is a size container, so the blocks inside it (appShell body) lay out by its width, not the viewport's. The sheet
+   breakpoint below stays on the viewport: the sheet is a JS-driven dialog that follows matchMedia. */
+.gk-sidebar-layout { container-type: inline-size; display: flex; width: 100%; min-height: 100dvh; }
+.gk-sidebar-layout[data-variant="inset"] { background: var(--sidebar); }
+
+.gk-sidebar {
+  --gk-sb-w: 16rem;
+  --gk-sb-pad: 0px;
+  position: sticky;
+  top: 0;
+  flex: none;
+  align-self: flex-start;
+  display: flex;
+  box-sizing: border-box;
+  height: 100dvh;
+  width: calc(var(--gk-sb-w) + var(--gk-sb-pad) * 2);
+  padding: var(--gk-sb-pad);
+  overflow: hidden;
+  color: var(--sidebar-foreground);
+  transition: width var(--dur-3) var(--ease-standard), padding var(--dur-3) var(--ease-standard), visibility var(--dur-3) var(--ease-standard);
+}
+.gk-sidebar[data-side="right"] { justify-content: flex-end; }
+.gk-sidebar[data-variant="floating"], .gk-sidebar[data-variant="inset"] { --gk-sb-pad: var(--space-2); }
+.gk-sidebar[data-state="collapsed"][data-collapsible="icon"] { --gk-sb-w: 3rem; }
+.gk-sidebar[data-state="collapsed"][data-collapsible="offcanvas"] { --gk-sb-w: 0px; --gk-sb-pad: 0px; visibility: hidden; }
+
+.gk-sidebar__container { flex: none; box-sizing: border-box; width: 100%; height: 100%; min-width: 0; }
+.gk-sidebar[data-collapsible="offcanvas"] .gk-sidebar__container { width: 16rem; }
+
+.gk-sidebar__inner { display: flex; flex-direction: column; box-sizing: border-box; width: 100%; height: 100%; min-height: 0; background: var(--sidebar); color: var(--sidebar-foreground); font-size: var(--fs-md); }
+.gk-sidebar[data-variant="sidebar"][data-side="left"] .gk-sidebar__inner { border-right: 1px solid var(--sidebar-border); }
+.gk-sidebar[data-variant="sidebar"][data-side="right"] .gk-sidebar__inner { border-left: 1px solid var(--sidebar-border); }
+.gk-sidebar[data-variant="floating"] .gk-sidebar__inner { border: 1px solid var(--sidebar-border); border-radius: var(--radius-lg); box-shadow: var(--shadow-sm); }
+
+.gk-sidebar__header, .gk-sidebar__footer { display: flex; flex-direction: column; gap: var(--space-2); padding: var(--space-2); }
+.gk-sidebar__content { display: flex; flex: 1 1 auto; flex-direction: column; gap: var(--space-2); min-height: 0; overflow: auto; scrollbar-color: var(--sidebar-ring) transparent; }
+.gk-sidebar__group { position: relative; display: flex; flex-direction: column; min-width: 0; padding: var(--space-2); }
+.gk-sidebar__group-label { display: flex; align-items: center; flex: none; height: 2rem; padding: 0 var(--space-2); font-size: var(--fs-sm); font-weight: var(--fw-medium); color: var(--text-muted); border-radius: var(--radius-md); }
+.gk-sidebar__group-action { position: absolute; top: 14px; right: var(--space-3); display: flex; align-items: center; justify-content: center; width: 20px; height: 20px; padding: 0; border: 0; border-radius: var(--radius-md); background: transparent; color: var(--sidebar-foreground); cursor: pointer; }
+.gk-sidebar__group-action:hover { background: var(--sidebar-accent); color: var(--sidebar-accent-foreground); }
+.gk-sidebar__group-action > svg { width: 16px; height: 16px; pointer-events: none; }
+.gk-sidebar__separator { flex: none; height: 1px; margin: 0 var(--space-2); background: var(--sidebar-border); }
+
+.gk-sidebar__menu, .gk-sidebar__sub { display: flex; flex-direction: column; gap: var(--space-1); min-width: 0; margin: 0; padding: 0; list-style: none; }
+.gk-sidebar__sub[hidden] { display: none; }
+.gk-sidebar__sub { margin: 0 14px; padding: 2px 10px; border-left: 1px solid var(--sidebar-border); }
+.gk-sidebar__item { position: relative; min-width: 0; }
+
+.gk-sidebar__button, .gk-sidebar__sub-button {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  box-sizing: border-box;
+  position: relative;
+  width: 100%;
+  min-width: 0;
+  height: 2rem;
+  margin: 0;
+  padding: var(--space-2);
+  border: 0;
+  border-radius: var(--radius-md);
+  background: transparent;
+  color: var(--sidebar-foreground);
+  font: inherit;
+  font-size: var(--fs-md);
+  line-height: 1.2;
+  text-align: left;
+  text-decoration: none;
+  cursor: pointer;
+  transition: background-color var(--dur-2) var(--ease-standard), color var(--dur-2) var(--ease-standard);
+}
+.gk-sidebar__sub-button { height: 1.75rem; padding: 0 var(--space-2); font-size: var(--fs-md); }
+.gk-sidebar__button[data-size="sm"] { height: 1.75rem; font-size: var(--fs-sm); }
+.gk-sidebar__button[data-size="lg"] { height: 3rem; }
+.gk-sidebar__button:hover, .gk-sidebar__sub-button:hover { background: var(--sidebar-accent); color: var(--sidebar-accent-foreground); }
+.gk-sidebar__button[data-active], .gk-sidebar__sub-button[data-active] { background: var(--sidebar-accent); color: var(--sidebar-accent-foreground); font-weight: var(--fw-medium); }
+.gk-sidebar__button[aria-disabled="true"], .gk-sidebar__sub-button[aria-disabled="true"] { cursor: default; opacity: 0.5; }
+.gk-sidebar__button[aria-disabled="true"]:hover, .gk-sidebar__sub-button[aria-disabled="true"]:hover { background: transparent; color: var(--sidebar-foreground); }
+.gk-sidebar__icon { display: inline-flex; flex: none; }
+.gk-sidebar__icon > svg { width: 16px; height: 16px; pointer-events: none; }
+.gk-sidebar__label { flex: 1 1 auto; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.gk-sidebar__badge { display: inline-flex; flex: none; align-items: center; justify-content: center; box-sizing: border-box; min-width: 20px; height: 20px; padding: 0 var(--space-1); border-radius: var(--radius-md); font-size: var(--fs-sm); font-weight: var(--fw-medium); font-variant-numeric: tabular-nums; color: var(--sidebar-foreground); background: var(--sidebar-accent); }
+.gk-sidebar__button[data-active] .gk-sidebar__badge { background: var(--sidebar); }
+.gk-sidebar__chevron { display: inline-flex; flex: none; margin-left: auto; transition: rotate calc(var(--dur-2) * var(--motion-scale)) var(--ease-standard); }
+.gk-sidebar__chevron > svg { width: 16px; height: 16px; }
+.gk-sidebar__toggle[aria-expanded="true"] .gk-sidebar__chevron { rotate: 90deg; }
+
+/* The icon rail: names stay as sr-only text so each button keeps its accessible name. */
+.gk-sidebar[data-state="collapsed"][data-collapsible="icon"] .gk-sidebar__label {
+  position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip-path: inset(50%); clip: rect(0 0 0 0); white-space: nowrap; border: 0;
+}
+.gk-sidebar[data-state="collapsed"][data-collapsible="icon"] .gk-sidebar__button { width: 2rem; height: 2rem; padding: var(--space-2); }
+.gk-sidebar[data-state="collapsed"][data-collapsible="icon"] .gk-sidebar__badge,
+.gk-sidebar[data-state="collapsed"][data-collapsible="icon"] .gk-sidebar__chevron,
+.gk-sidebar[data-state="collapsed"][data-collapsible="icon"] .gk-sidebar__sub,
+.gk-sidebar[data-state="collapsed"][data-collapsible="icon"] .gk-sidebar__group-action,
+.gk-sidebar[data-state="collapsed"][data-collapsible="icon"] .gk-sidebar__group-label { display: none; }
+.gk-sidebar[data-state="collapsed"][data-collapsible="icon"] .gk-sidebar__header,
+.gk-sidebar[data-state="collapsed"][data-collapsible="icon"] .gk-sidebar__footer { overflow: hidden; }
+
+/* The main area */
+.gk-sidebar-inset { display: flex; flex: 1 1 auto; flex-direction: column; min-width: 0; min-height: 100dvh; background: var(--bg); color: var(--text); }
+.gk-sidebar-inset__header { display: flex; flex: none; align-items: center; gap: var(--space-2); box-sizing: border-box; height: 3rem; padding: 0 var(--space-4); border-bottom: 1px solid var(--border); }
+.gk-sidebar-inset__main { display: flex; flex: 1 1 auto; flex-direction: column; min-width: 0; }
+.gk-sidebar-layout[data-variant="inset"] .gk-sidebar-inset { margin: var(--space-2); min-height: calc(100dvh - var(--space-2) * 2); border-radius: var(--card-radius); box-shadow: var(--shadow-sm); overflow: hidden; }
+.gk-sidebar-layout[data-variant="inset"] .gk-sidebar[data-side="left"] + .gk-sidebar-inset { margin-left: 0; }
+.gk-sidebar-layout[data-variant="inset"] .gk-sidebar-inset:has(+ .gk-sidebar[data-side="right"]) { margin-right: 0; }
+
+/* The sheet below 1024px: gk-sheet supplies the dialog and the slide (sheet.css). */
+.gk-sidebar__sheet.gk-sheet { width: 18rem; max-width: 85vw; background: var(--sidebar); color: var(--sidebar-foreground); }
+.gk-sidebar__sheet-panel { position: relative; height: 100%; }
+.gk-sidebar__sheet .gk-sidebar__inner { border: 0; }
+.gk-sidebar__sheet-close.gk-btn { position: absolute; top: var(--space-2); right: var(--space-2); width: 28px; height: 28px; }
+
+@media (max-width: 1023.98px) {
+  .gk-sidebar:not([data-collapsible="none"]) { display: contents; }
+  .gk-sidebar:not([data-collapsible="none"]) > .gk-sidebar__container { display: none; }
+  .gk-sidebar-layout[data-variant="inset"] .gk-sidebar-inset { margin: 0; min-height: 100dvh; border-radius: 0; box-shadow: none; }
+}
+
+/* Reduced motion drops the width and fade transitions; data-motion="full" on html keeps them. */
+@media (prefers-reduced-motion: reduce) {
+  :root:not([data-motion="full"]) .gk-sidebar,
+  :root:not([data-motion="full"]) .gk-sidebar__button,
+  :root:not([data-motion="full"]) .gk-sidebar__sub-button { transition: none; }
+}
+:root[data-motion="reduce"] .gk-sidebar,
+:root[data-motion="reduce"] .gk-sidebar__button,
+:root[data-motion="reduce"] .gk-sidebar__sub-button { transition: none; }

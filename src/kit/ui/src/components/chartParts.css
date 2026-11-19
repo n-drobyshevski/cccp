@@ -1,0 +1,75 @@
+/* Shared chrome of the native SVG charts (areaChart, barChart, lineChart, pieChart, radarChart,
+   radialChart). Ship this file with any chart. shadcn/ui new-york v4 charts, MIT. */
+.gk-chart {
+  margin: 0;
+  width: 100%;
+  font-size: var(--fs-sm);
+  color: var(--text-muted);
+}
+.gk-chart--pie, .gk-chart--radar, .gk-chart--radial { max-width: 250px; margin-inline: auto; }
+.gk-chart__svg { display: block; width: 100%; height: auto; overflow: visible; }
+.gk-chart__gridline { stroke: var(--border); stroke-opacity: 0.5; stroke-width: 1; fill: none; }
+.gk-chart__zero { stroke: var(--border); stroke-width: 1; }
+.gk-chart__tick { fill: var(--text-muted); font-size: var(--fs-sm); }
+.gk-chart__value { fill: var(--text); font-size: var(--fs-sm); font-variant-numeric: tabular-nums; }
+.gk-chart__centerValue { fill: var(--text); font-size: var(--fs-2xl); font-weight: var(--fw-bold); font-variant-numeric: tabular-nums; }
+.gk-chart__centerLabel { fill: var(--text-muted); font-size: var(--fs-sm); }
+.gk-chart__empty {
+  margin: 0;
+  padding: var(--space-6) var(--space-4);
+  text-align: center;
+  border: 1px dashed var(--border-strong);
+  border-radius: var(--radius-md);
+}
+
+/* patterns (SVG pattern fills) and legend swatches */
+.gk-chart__pbg { fill: var(--c); fill-opacity: 0.35; }
+.gk-chart__pfg { fill: var(--c); }
+.gk-chart__legend {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: var(--space-2) var(--space-4);
+  margin: 0;
+  padding: var(--space-3) 0 0;
+  list-style: none;
+}
+.gk-chart__legendItem { display: inline-flex; align-items: center; gap: 6px; color: var(--text); }
+.gk-chart__swatch { display: inline-block; width: 8px; height: 8px; flex: none; border-radius: 2px; background: var(--c); }
+.gk-chart__swatch.is-stripes { background: repeating-linear-gradient(45deg, var(--c) 0 2px, var(--surface) 2px 4px); outline: 1px solid var(--c); outline-offset: -1px; }
+.gk-chart__swatch.is-dots { background: radial-gradient(circle, var(--c) 0 1.2px, var(--surface) 1.2px) 0 0 / 4px 4px; outline: 1px solid var(--c); outline-offset: -1px; }
+
+/* one focus target per category: hit area, cursor, dots; the ring is 2px accent */
+.gk-chart__cat { outline: none; cursor: default; }
+.gk-chart__hit { fill: none; pointer-events: all; }
+.gk-chart__cat:focus-visible .gk-chart__hit { stroke: var(--accent); stroke-width: 2px; }
+.gk-chart__cursor { stroke: var(--border); stroke-width: 1; opacity: 0; }
+.gk-chart__cursorBand { fill: var(--surface-2); opacity: 0; }
+.gk-chart__dot { fill: var(--c); stroke: var(--surface); stroke-width: 2px; opacity: 0; }
+.gk-chart__dot.is-shown { opacity: 1; }
+.gk-chart__cat:hover .gk-chart__cursor, .gk-chart__cat:focus-visible .gk-chart__cursor,
+.gk-chart__cat:hover .gk-chart__cursorBand, .gk-chart__cat:focus-visible .gk-chart__cursorBand,
+.gk-chart__cat:hover .gk-chart__dot, .gk-chart__cat:focus-visible .gk-chart__dot { opacity: 1; }
+
+/* lines and their entrance: drawn with the stroke offset, which stays still under reduced motion */
+.gk-chart__line {
+  fill: none;
+  stroke: var(--c);
+  stroke-width: 2px;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-dasharray: none;
+}
+.gk-chart__line.is-dashed { stroke-dasharray: 6 4; }
+.gk-chart__line.is-dotted { stroke-dasharray: 1 5; }
+.gk-chart[data-enter] .gk-chart__line:not(.is-dashed):not(.is-dotted) {
+  stroke-dasharray: 1;
+  stroke-dashoffset: 0;
+  transition: stroke-dashoffset var(--dur-5) var(--ease-enter), opacity var(--dur-4) var(--ease-enter);
+}
+@starting-style {
+  .gk-chart[data-enter] .gk-chart__line:not(.is-dashed):not(.is-dotted) {
+    stroke-dashoffset: var(--motion-scale);
+    opacity: 0;
+  }
+}

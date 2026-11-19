@@ -15,10 +15,10 @@ import { guardUnsaved, notKept } from "gas_shared/ui/accessSave.js";
 import {
   ADD_REJECTION, isAddable, isDirty, outsideDomain, pendingSaves, removals, splitRoster,
 } from "../../../vendor/gas_hub/src/client/js/pages/accessModel.js";
-import { delegate } from "../../lib/dom.js";
+import { delegate } from "@gas-kit/client/dom.js";
 import { confirmDialog } from "../../lib/confirm.js";
-import { count } from "../../lib/format.js";
-import { html } from "../../lib/html.js";
+import { pluralize } from "@gas-kit/client/format.js";
+import { html } from "@gas-kit/client/html.js";
 import * as rpc from "../../lib/rpc.js";
 import { toast } from "../../lib/toast.js";
 
@@ -60,7 +60,7 @@ export function modeConfirm(mode, info) {
   const n = keepers(info).length;
   return {
     title: "Go back to the list?",
-    body: count(n, "person", "people") + " keep" + (n === 1 ? "s" : "") + " access: the owner, the admins and the people on the list. Everyone else at " + (domain || "your organization") + " loses access on their next request.",
+    body: pluralize(n, "person", "people") + " keep" + (n === 1 ? "s" : "") + " access: the owner, the admins and the people on the list. Everyone else at " + (domain || "your organization") + " loses access on their next request.",
     confirmLabel: "Use the list",
     danger: true,
   };
@@ -256,7 +256,7 @@ export function createAccess({ el, redraw }) {
       state.mode = res.mode === "org" ? "org" : "list";
       toast(state.mode === "org"
         ? "Everyone at " + state.domain + " can now open CCCP."
-        : "Back to the list. " + count(keepers(info).length, "person", "people") + " keep access.");
+        : "Back to the list. " + pluralize(keepers(info).length, "person", "people") + " keep access.");
     } catch (e) {
       toast(e.message, { kind: "err" });
     }
@@ -266,7 +266,7 @@ export function createAccess({ el, redraw }) {
   /** @returns {string[]} */
   const listOf = (name) => (name === "admins" ? state.admins : state.users);
 
-  offs.push(delegate(el, "click", "[data-act]", (ev, b) => {
+  offs.push(delegate(el, "click", "[data-act]", (ev, /** @type {any} */ b) => {
     const act = b.getAttribute("data-act");
     if (act.indexOf("a-") !== 0) return;
     const list = b.getAttribute("data-list");
@@ -278,17 +278,17 @@ export function createAccess({ el, redraw }) {
       if (at >= 0) { listOf(list).splice(at, 1); redraw(); }
     }
   }));
-  offs.push(delegate(el, "input", "input[data-add]", (ev, t) => {
+  offs.push(delegate(el, "input", "input[data-add]", (ev, /** @type {any} */ t) => {
     state.typed[t.getAttribute("data-add")] = t.value;
     if (state.note[t.getAttribute("data-add")]) state.note[t.getAttribute("data-add")] = "";
   }));
-  offs.push(delegate(el, "keydown", "input[data-add]", (ev, t) => {
+  offs.push(delegate(el, "keydown", "input[data-add]", (ev, /** @type {any} */ t) => {
     if (ev.key !== "Enter") return;
     ev.preventDefault();
     const a = addInputs.get(t.getAttribute("data-add"));
     if (a) a.commit(false);
   }));
-  offs.push(delegate(el, "change", "input[data-mode]", (ev, t) => setMode(t.getAttribute("data-mode"))));
+  offs.push(delegate(el, "change", "input[data-mode]", (ev, /** @type {any} */ t) => setMode(t.getAttribute("data-mode"))));
 
   // A reload with unsaved edits, or an address still in its box, asks first.
   guardUnsaved(el, () => isDirty(state, saved) || typedButNotAdded());

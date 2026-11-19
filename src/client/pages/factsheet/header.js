@@ -1,8 +1,8 @@
 // The fact sheet header (identity G): breadcrumb, the large name with the review seal and its
 // link actions, one meta line (tier, lifecycle, typology, hosting, owner), the exposure tags and
 // the four-pillar scorecard whose cells jump to their section. Pure.
-import { html } from "../../lib/html.js";
-import { icon } from "../../lib/icons.js";
+import { html } from "@gas-kit/client/html.js";
+import { icon } from "@gas-kit/client/icons.js";
 import { glyphMark } from "../../components/glyph.js";
 import { tagsView, tierBadge } from "../../components/tags.js";
 
@@ -42,7 +42,7 @@ export function headerView(h, from, sheetEnabled) {
     <div class="r1"><h1 tabindex="-1" data-k="fs-title">${h.name}</h1>
       <div class="acts">${sealView(h.seal)}
         <button type="button" class="icon-btn" data-act="copy" data-k="fs-copy" aria-label="Copy link" data-tip="Copy link">${icon("link")}</button>
-        ${h.sheetLink && sheetEnabled !== false ? html`<a class="icon-btn" data-act="sheet" data-k="fs-sheet" href="${h.sheetLink}" target="_blank" rel="noopener noreferrer" aria-label="Open row in the Sheet. Needs access to the Sheet." data-tip="Open row in the Sheet. Needs access to the Sheet.">${icon("sheet")}</a>` : ""}</div></div>
+        ${h.sheetLink && sheetEnabled !== false ? html`<a class="icon-btn" data-act="sheet" data-k="fs-sheet" href="${h.sheetLink}" target="_blank" rel="noopener noreferrer" aria-label="Open row in the Sheet. Needs access to the Sheet." data-tip="Open row in the Sheet. Needs access to the Sheet.">${icon("table")}</a>` : ""}</div></div>
     ${metaView(h)}
     ${tagsView(h.tags)}
     ${scorecardView(h.statuses)}

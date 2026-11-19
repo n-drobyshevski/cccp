@@ -1,7 +1,7 @@
 // A short message at the bottom of the window. It lives in a polite live region, so a screen
 // reader announces it. opts: kind ('ok'|'err'), ms, link {href, label} (href from the server).
-import { renderRegion } from "./dom.js";
-import { html } from "./html.js";
+import { renderRegion } from "@gas-kit/client/dom.js";
+import { html } from "@gas-kit/client/html.js";
 
 /** @type {HTMLDivElement | null} */
 let host = null;

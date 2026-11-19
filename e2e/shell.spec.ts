@@ -219,7 +219,7 @@ test.describe("history and hidden count", () => {
 test.describe("renderRegion in a real browser", () => {
   test("keeps focus, caret and scroll across a re-render, and rejects strings", async ({ page }) => {
     const out = await build({
-      stdin: { contents: 'import { renderRegion } from "./src/client/lib/dom.js"; import { html } from "./src/client/lib/html.js"; window.__rr = { renderRegion, html };', resolveDir: process.cwd(), loader: "js" },
+      stdin: { contents: 'import { renderRegion } from "./src/kit/client/src/dom.js"; import { html } from "./src/kit/client/src/html.js"; window.__rr = { renderRegion, html };', resolveDir: process.cwd(), loader: "js" },
       bundle: true, format: "iife", write: false, supported: { "template-literal": false },
     });
     await page.goto("about:blank");

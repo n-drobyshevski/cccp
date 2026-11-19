@@ -1,13 +1,13 @@
 // The inventory table (lx3 list). Pure views: header cells with aria-sort, body cells per column
 // key, the Show-more footer and the empty state. The page decides which rows and columns; this
 // file only draws them. A name is a real button, so the row opens from the keyboard.
-import { html, raw } from "../lib/html.js";
+import { html, raw } from "@gas-kit/client/html.js";
 import { nextSort } from "../../vendor/gas_shared/ui/tableModel";
 import { lifecycleLabel } from "../../domain/facets";
 import { PILLARS } from "../../domain/types";
 import { PILLAR_LABEL } from "../../domain/facets";
 import { PILLAR_CODE, glyphs, pillarGlyph } from "./glyph.js";
-import { num } from "../lib/format.js";
+import { fmtCount } from "@gas-kit/client/format.js";
 
 export const PAGE_STEP = 50;
 
@@ -98,7 +98,7 @@ export function moreView(shown, total) {
   const left = total - shown;
   if (left <= 0) return html``;
   const step = Math.min(PAGE_STEP, left);
-  return html`<div class="more"><button type="button" class="btn" data-act="more" data-k="more">Show ${step} more · ${num(left)} left</button></div>`;
+  return html`<div class="more"><button type="button" class="btn" data-act="more" data-k="more">Show ${step} more · ${fmtCount(left)} left</button></div>`;
 }
 
 /** Nothing matches: offers Clear all. With an empty register there is nothing to clear. */

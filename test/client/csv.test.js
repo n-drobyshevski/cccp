@@ -1,6 +1,6 @@
 // The CSV export: formula defence, BOM, CRLF, quoting, visible column order, every filtered row.
 import { describe, expect, it } from "vitest";
-import { BOM, csvLine, exportName, toCsv } from "../../src/client/export/csv.js";
+import { BOM, csvLine, exportFileName, toCsv } from "@gas-kit/client/csv.js";
 import { runQuery } from "../../src/domain/query";
 import { exportHeader, exportRows } from "../../src/domain/exportRows";
 import { visibleColumnDefs } from "../../src/domain/columns";
@@ -65,10 +65,11 @@ describe("the export of a list", () => {
   });
 });
 
-describe("exportName", () => {
+describe("the export file name (the parts exportMenu passes)", () => {
+  const name = (route, today, ext) => exportFileName(["cccp", route || "export", today], ext);
   it("is cccp-<route>-<today>.<ext>", () => {
-    expect(exportName("list", "2026-11-11", "csv")).toBe("cccp-list-2026-11-11.csv");
-    expect(exportName("", "", "xlsx")).toBe("cccp-export.xlsx");
-    expect(exportName("../x/y", "2026-11-11", "csv")).toBe("cccp-xy-2026-11-11.csv");
+    expect(name("list", "2026-11-11", "csv")).toBe("cccp-list-2026-11-11.csv");
+    expect(name("", "", "xlsx")).toBe("cccp-export.xlsx");
+    expect(name("../x/y", "2026-11-11", "csv")).toBe("cccp-xy-2026-11-11.csv");
   });
 });

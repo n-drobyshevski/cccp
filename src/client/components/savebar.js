@@ -2,7 +2,7 @@
 // changes and what they are (for the rules, 'Pentest too old: 18 \u2192 24 months (131 \u2192 74 apps)'),
 // a link to each tab that holds some, Discard and Save. It is absent when nothing changed.
 // Buttons: data-act s-discard, s-save; the jump links are data-act s-tab with data-tab.
-import { html } from "../lib/html.js";
+import { html } from "@gas-kit/client/html.js";
 
 const SHOWN_NOTES = 2;
 

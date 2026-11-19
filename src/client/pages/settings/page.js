@@ -7,9 +7,9 @@
 // Saving sends ONE api_saveSettings({patch, baseGen}). A conflict reloads the server's settings
 // and says so. After a source or fields change the register is fetched again; after a rules or
 // display change it is derived again from the copy in memory.
-import { delegate, qs, renderRegion } from "../../lib/dom.js";
-import { html } from "../../lib/html.js";
-import { icon } from "../../lib/icons.js";
+import { delegate, qs, renderRegion } from "@gas-kit/client/dom.js";
+import { html } from "@gas-kit/client/html.js";
+import { icon } from "@gas-kit/client/icons.js";
 import * as rpc from "../../lib/rpc.js";
 import { toast } from "../../lib/toast.js";
 import { savebar } from "../../components/savebar.js";
@@ -265,7 +265,7 @@ export const settingsPage = {
       if (n.settingsDraft !== p.settingsDraft || n.tab !== p.tab || n.core !== p.core) draw();
     }));
 
-    offs.push(delegate(el, "click", "[data-act]", (ev, b) => {
+    offs.push(delegate(el, "click", "[data-act]", (ev, /** @type {any} */ b) => {
       const act = b.getAttribute("data-act");
       if (act.indexOf("s-") !== 0) return;
       const s = sessionOf();
@@ -306,13 +306,13 @@ export const settingsPage = {
     offs.push(delegate(el, "change", "select[data-tabpick]", onTab));
     offs.push(delegate(el, "change", "select[data-key], input[type=checkbox][data-key]", onField));
 
-    offs.push(delegate(el, "keydown", '[role="tab"]', (ev, t) => {
+    offs.push(delegate(el, "keydown", '[role="tab"]', (ev, /** @type {any} */ t) => {
       const step = ev.key === "ArrowRight" || ev.key === "ArrowDown" ? 1 : ev.key === "ArrowLeft" || ev.key === "ArrowUp" ? -1 : 0;
       if (!step) return;
       ev.preventDefault();
       const to = nextTab(t.getAttribute("data-tab"), step);
       navigate({ tab: to }, "replace");
-      const b = qs(el, '[data-k="stt-' + to + '"]');
+      const b = /** @type {HTMLElement | null} */ (qs(el, '[data-k="stt-' + to + '"]'));
       if (b) b.focus();
     }));
 

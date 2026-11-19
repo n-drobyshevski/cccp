@@ -177,9 +177,8 @@ describe("no unreviewed raw()", () => {
   noRaw.register(describe, it, expect, {
     dirs: [join(SRC, "client")],
     allow: {
-      "lib/icons.js": "wraps the static, hard-coded SVG markup of the icon set; no interpolated data",
+      "lib/icons.js": "the one icon the kit lacks (the bang mark): a static, hard-coded SVG, no interpolated data",
       "components/table.js": "raw(icon): the output of icons.js, a static SVG in a header cell",
-      "shell/appbar.js": "raw(' aria-current=...'): a constant attribute fragment, no data",
     },
   });
 });

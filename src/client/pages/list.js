@@ -6,17 +6,17 @@
 // in the store and the URL; the limit does not. Everything is computed here in the browser over the
 // whole register. Opening an application remembers the scroll position so Back lands where the
 // viewer was. The old Heatmap and Landscape routes open this page on their lens (state/url.js).
-import { delegate, qs, renderRegion } from "../lib/dom.js";
-import { html } from "../lib/html.js";
-import { icon } from "../lib/icons.js";
-import { count, num } from "../lib/format.js";
+import { delegate, qs, renderRegion } from "@gas-kit/client/dom.js";
+import { html } from "@gas-kit/client/html.js";
+import { icon } from "@gas-kit/client/icons.js";
+import { pluralize, fmtCount } from "@gas-kit/client/format.js";
 import { closePopovers, openPopover } from "../lib/popover.js";
 
 import { facetPanelView, toggled, withFacet } from "../components/facetPanel.js";
 import { mountViewList } from "../components/viewList.js";
 import { heatLens, resetClosed, toggleGroup } from "./heatmap.js";
 import { landscapeLens } from "./landscape.js";
-import { tabKeys } from "../lib/tabKeys.js";
+import { tabKeys } from "@gas-kit/client/tabKeys.js";
 import { chooserView, readCols, writeCols } from "../components/columnChooser.js";
 import { exportMenuView, runExport } from "../components/exportMenu.js";
 import { PAGE_STEP, emptyView, moreView, sortAfter, tableView } from "../components/table.js";
@@ -61,7 +61,7 @@ export function lensSwitch(lens) {
 export function headView(s, shown, total, hidden) {
   const tags = activeTags(s);
   const n = activeFilterCount(s.f);
-  return html`<div class="rhead"><div class="rleft"><span class="rcount"><span data-count="visible"><b class="num mono">${num(shown)}</b></span> <span class="mut" data-count="of">of ${count(total, "application")}</span>${hidden ? html` <span class="mut" data-count="hidden"> and ${count(hidden, "application")} hidden by the display settings</span>` : ""}</span><span class="ftags">${tags.map((t) => html`<span class="ftag" data-tag="${t.key}"><span data-tip="${t.label}">${t.label}</span><button type="button" data-act="${t.act}" data-facet="${t.key}" data-k="tag-${t.key}" aria-label="Remove ${t.label}">${icon("close", 10)}</button></span>`)}${tags.length ? html`<button type="button" class="tlink" data-act="clear-all" data-k="clear-all">Clear all</button>` : ""}</span></div><div class="rtools"><button type="button" class="tlink fbtn" data-act="fopen" data-k="fopen" aria-haspopup="dialog" aria-expanded="false">Filters${n ? " (" + n + ")" : ""}</button>${s.lens === "table" || !s.lens ? html`<button type="button" class="tlink" data-act="cols" data-k="cols" aria-haspopup="dialog" aria-expanded="false">Columns</button>` : ""}<button type="button" class="tlink" data-act="export" data-k="export" aria-haspopup="dialog" aria-expanded="false">Export</button>${lensSwitch(s.lens)}</div></div>`;
+  return html`<div class="rhead"><div class="rleft"><span class="rcount"><span data-count="visible"><b class="num mono">${fmtCount(shown)}</b></span> <span class="mut" data-count="of">of ${pluralize(total, "application")}</span>${hidden ? html` <span class="mut" data-count="hidden"> and ${pluralize(hidden, "application")} hidden by the display settings</span>` : ""}</span><span class="ftags">${tags.map((t) => html`<span class="ftag" data-tag="${t.key}"><span data-tip="${t.label}">${t.label}</span><button type="button" data-act="${t.act}" data-facet="${t.key}" data-k="tag-${t.key}" aria-label="Remove ${t.label}">${icon("close", 10)}</button></span>`)}${tags.length ? html`<button type="button" class="tlink" data-act="clear-all" data-k="clear-all">Clear all</button>` : ""}</span></div><div class="rtools"><button type="button" class="tlink fbtn" data-act="fopen" data-k="fopen" aria-haspopup="dialog" aria-expanded="false">Filters${n ? " (" + n + ")" : ""}</button>${s.lens === "table" || !s.lens ? html`<button type="button" class="tlink" data-act="cols" data-k="cols" aria-haspopup="dialog" aria-expanded="false">Columns</button>` : ""}<button type="button" class="tlink" data-act="export" data-k="export" aria-haspopup="dialog" aria-expanded="false">Export</button>${lensSwitch(s.lens)}</div></div>`;
 }
 
 /** The pillar tabs: All and one per pillar, each with its count over the filtered set. Pure. */
@@ -72,7 +72,7 @@ export function pillarTabsView(s, visible) {
     const sel = on === t;
     const n = t === "all" ? c.all : c.gaps[t];
     const word = t === "all" ? "shown" : n === 1 ? "gap" : "gaps";
-    return html`<button type="button" role="tab" class="pt pc-${t}" tabindex="${sel || (on === null && t === "all") ? "0" : "-1"}" aria-selected="${sel ? "true" : "false"}" aria-controls="inv-panel" data-act="ptab" data-tab="${t}" data-k="pt-${t}"><span class="k">${tabName(t)}</span><span class="v"><b class="num mono">${num(n)}</b> ${word}</span></button>`;
+    return html`<button type="button" role="tab" class="pt pc-${t}" tabindex="${sel || (on === null && t === "all") ? "0" : "-1"}" aria-selected="${sel ? "true" : "false"}" aria-controls="inv-panel" data-act="ptab" data-tab="${t}" data-k="pt-${t}"><span class="k">${tabName(t)}</span><span class="v"><b class="num mono">${fmtCount(n)}</b> ${word}</span></button>`;
   })}</div>`;
 }
 
@@ -95,11 +95,11 @@ export function resultsView(s, all, visible, hidden, limit) {
 export const listPage = {
   mount(el, ctx) {
     renderRegion(el, html`<div class="wb"><aside class="facets" data-region="facets" aria-label="Views and filters"><div class="fhead"><b>Views and filters</b><button type="button" class="tlink" data-act="fclose" data-k="fdone">Done</button></div><div class="views" data-slot="views"></div><div data-region="facetbody"></div></aside><button type="button" class="fscrim" data-act="fclose" data-k="fscrim" aria-label="Close filters" tabindex="-1"></button><div class="wmain"><div data-region="content" data-page="list"></div></div></div>`, { keepFocus: false, keepScroll: false });
-    const aside = qs(el, '[data-region="facets"]');
-    const facetBody = qs(el, '[data-region="facetbody"]');
-    const content = qs(el, '[data-region="content"]');
-    const wb = qs(el, ".wb");
-    const offViews = mountViewList(qs(el, "[data-slot=views]"));
+    const aside = /** @type {HTMLElement} */ (qs(el, '[data-region="facets"]'));
+    const facetBody = /** @type {HTMLElement} */ (qs(el, '[data-region="facetbody"]'));
+    const content = /** @type {HTMLElement} */ (qs(el, '[data-region="content"]'));
+    const wb = /** @type {HTMLElement} */ (qs(el, ".wb"));
+    const offViews = mountViewList(/** @type {HTMLElement} */ (qs(el, "[data-slot=views]")));
 
     const first = store.get();
     if (!restoredCols) {
@@ -159,7 +159,7 @@ export const listPage = {
       if (drawer === on) return;
       drawer = on;
       drawDrawer();
-      const t = on ? qs(aside, '[data-k="fdone"]') : qs(content, '[data-act="fopen"]');
+      const t = /** @type {HTMLElement | null} */ (on ? qs(aside, '[data-k="fdone"]') : qs(content, '[data-act="fopen"]'));
       if (t && typeof t.focus === "function") t.focus({ preventScroll: true });
     };
 
@@ -172,7 +172,7 @@ export const listPage = {
       chooser = h;
       h.el.classList.add("pop-cols");
       h.setAnchor(btn);
-      delegate(h.el, "change", "[data-act=col]", (ev, input) => {
+      delegate(h.el, "change", "[data-act=col]", (ev, /** @type {any} */ input) => {
         const s = store.get();
         const next = toggleColumnKey(s.cols, input.getAttribute("data-col"), s.sort);
         writeCols(next);
@@ -197,7 +197,7 @@ export const listPage = {
       exporter = h;
       h.el.classList.add("pop-menu");
       h.setAnchor(btn);
-      delegate(h.el, "click", "[data-act^=export-]", (ev, b) => {
+      delegate(h.el, "click", "[data-act^=export-]", (ev, /** @type {any} */ b) => {
         const kind = b.getAttribute("data-act").slice("export-".length);
         const ctx = exportCtx();
         h.close();
@@ -212,7 +212,7 @@ export const listPage = {
 
     const offs = [];
     offs.push(tabKeys(content));
-    offs.push(delegate(content, "click", "[data-act]", (ev, b) => {
+    offs.push(delegate(content, "click", "[data-act]", (ev, /** @type {any} */ b) => {
       const act = b.getAttribute("data-act");
       const s = store.get();
       if (act === "sort") {
@@ -231,8 +231,8 @@ export const listPage = {
       else if (act === "grp") { toggleGroup(runQuery(register.visibleRows(), s), b.getAttribute("data-grp")); draw(); }
       else if (act === "open") open(b.getAttribute("data-id"));
     }));
-    offs.push(delegate(content, "click", "tr[data-id]", (ev, tr) => open(tr.getAttribute("data-id"))));
-    offs.push(delegate(aside, "click", "[data-act]", (ev, b) => {
+    offs.push(delegate(content, "click", "tr[data-id]", (ev, /** @type {any} */ tr) => open(tr.getAttribute("data-id"))));
+    offs.push(delegate(aside, "click", "[data-act]", (ev, /** @type {any} */ b) => {
       const act = b.getAttribute("data-act");
       const key = b.getAttribute("data-facet");
       if (act === "clear-facet") setF(withFacet(store.get().f, key, []));
@@ -241,8 +241,8 @@ export const listPage = {
         drawFacets();
       } else if (act === "fclose") setDrawer(false);
     }));
-    offs.push(delegate(aside, "change", "[data-act=pick]", (ev, input) => setF(toggled(store.get().f, input.getAttribute("data-facet"), input.getAttribute("data-v"), input.checked))));
-    offs.push(delegate(aside, "input", "[data-find]", (ev, input) => {
+    offs.push(delegate(aside, "change", "[data-act=pick]", (ev, /** @type {any} */ input) => setF(toggled(store.get().f, input.getAttribute("data-facet"), input.getAttribute("data-v"), input.checked))));
+    offs.push(delegate(aside, "input", "[data-find]", (ev, /** @type {any} */ input) => {
       panel.finds = { ...panel.finds, [input.getAttribute("data-find")]: input.value };
       drawFacets();
     }));

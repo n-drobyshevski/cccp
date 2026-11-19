@@ -1,7 +1,7 @@
 // A modal yes/no. Resolves true on the confirm button, false on Cancel, Escape or a click on
 // the backdrop. Focus moves into the dialog and returns to where it was.
-import { delegate, renderRegion } from "./dom.js";
-import { html } from "./html.js";
+import { delegate, renderRegion } from "@gas-kit/client/dom.js";
+import { html } from "@gas-kit/client/html.js";
 
 let seq = 0;
 

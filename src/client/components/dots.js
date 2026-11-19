@@ -1,7 +1,7 @@
 // Status dots, the small round marker the Overview, Heatmap, Landscape and the checklists use, and
 // the text a pillar's status says. The list and the fact sheet use glyph.js instead. The 'none'
 // dot is dashed, so colour is never the only signal.
-import { html } from "../lib/html.js";
+import { html } from "@gas-kit/client/html.js";
 import { PILLAR_LABEL, STATUS_WORD } from "../../domain/facets";
 
 /** One dot for a status ('ok' | 'warn' | 'bad' | 'none'). Decorative on its own. */

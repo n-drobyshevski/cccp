@@ -2,9 +2,9 @@
 // figures in mono, a status bar per pillar and the domains with the most gaps (with the number of
 // applications with a gap in each pillar), over the whole visible register. Every figure, bar and domain opens the
 // Inventory with the filters that reproduce it.
-import { delegate, renderRegion } from "../lib/dom.js";
-import { html } from "../lib/html.js";
-import { count, num, stamp } from "../lib/format.js";
+import { delegate, renderRegion } from "@gas-kit/client/dom.js";
+import { html } from "@gas-kit/client/html.js";
+import { pluralize, fmtCount, fmtStamp } from "@gas-kit/client/format.js";
 import { PILLAR_CODE } from "../components/glyph.js";
 import { kpiTile } from "../components/kpiTile.js";
 import { legend } from "../components/legend.js";
@@ -21,14 +21,14 @@ const go = (t) => JSON.stringify(t);
 function pillarBar(p) {
   const c = p.counts;
   const text = segmentText("bad", c.bad) + ", " + segmentText("warn", c.warn) + ", " + segmentText("none", c.none) + ", " + segmentText("ok", c.ok);
-  return html`<button type="button" class="pbar pc-${p.pillar}" data-act="go" data-pillar="${p.pillar}" data-go="${go(p.target)}" data-k="pillar-${p.pillar}" data-tip="${text}"><span class="pn">${p.label}</span>${stackBar(c)}<small><b class="mono">${num(c.bad)}</b> ${c.bad === 1 ? "gap" : "gaps"}<span class="sr-only"> and ${num(c.warn)} needing attention. Open in inventory.</span></small></button>`;
+  return html`<button type="button" class="pbar pc-${p.pillar}" data-act="go" data-pillar="${p.pillar}" data-go="${go(p.target)}" data-k="pillar-${p.pillar}" data-tip="${text}"><span class="pn">${p.label}</span>${stackBar(c)}<small><b class="mono">${fmtCount(c.bad)}</b> ${c.bad === 1 ? "gap" : "gaps"}<span class="sr-only"> and ${fmtCount(c.warn)} needing attention. Open in inventory.</span></small></button>`;
 }
 
 function domainRow(d) {
-  return html`<tr data-domain="${d.name}"><td><button type="button" class="lk" data-act="go" data-go="${go(d.target)}" data-k="dom-${d.name}"><b>${d.name}</b></button></td><td class="num mono">${num(d.apps)}</td><td class="num mono"><button type="button" class="lk gapn" data-act="go" data-go="${go(d.gapTarget)}" data-k="domgap-${d.name}" aria-label="${count(d.gaps, "application") + " with a gap in " + d.name}">${num(d.gaps)}</button></td>${PILLARS.map((p) => {
+  return html`<tr data-domain="${d.name}"><td><button type="button" class="lk" data-act="go" data-go="${go(d.target)}" data-k="dom-${d.name}"><b>${d.name}</b></button></td><td class="num mono">${fmtCount(d.apps)}</td><td class="num mono"><button type="button" class="lk gapn" data-act="go" data-go="${go(d.gapTarget)}" data-k="domgap-${d.name}" aria-label="${pluralize(d.gaps, "application") + " with a gap in " + d.name}">${fmtCount(d.gaps)}</button></td>${PILLARS.map((p) => {
     const g = d.pillarGaps[p];
     return html`<td class="p num mono" data-pillar="${p}">${g.n > 0
-      ? html`<button type="button" class="lk pgap" data-act="go" data-go="${go(g.target)}" data-k="dompg-${d.name}-${p}" aria-label="${count(g.n, "application") + " with a " + PILLAR_LABEL[p] + " gap in " + d.name}" data-tip="${count(g.n, "application") + " with a " + PILLAR_LABEL[p] + " gap"}">${num(g.n)}</button>`
+      ? html`<button type="button" class="lk pgap" data-act="go" data-go="${go(g.target)}" data-k="dompg-${d.name}-${p}" aria-label="${pluralize(g.n, "application") + " with a " + PILLAR_LABEL[p] + " gap in " + d.name}" data-tip="${pluralize(g.n, "application") + " with a " + PILLAR_LABEL[p] + " gap"}">${fmtCount(g.n)}</button>`
       : html`<span class="mut" aria-label="${"No " + PILLAR_LABEL[p] + " gap in " + d.name}">–</span>`}</td>`;
   })}</tr>`;
 }
@@ -36,7 +36,7 @@ function domainRow(d) {
 /** The whole page for a model. Pure. */
 export function overviewView(m, hidden, loadedAt) {
   return html`<div class="ov" data-page="overview">
-    <div class="ovh"><h1>Overview</h1><p class="mut">${count(m.total, "application")}${loadedAt ? html` · read ${loadedAt}` : ""}${hidden ? html` · ${count(hidden, "application")} hidden by the display settings` : ""}</p></div>
+    <div class="ovh"><h1>Overview</h1><p class="mut">${pluralize(m.total, "application")}${loadedAt ? html` · read ${loadedAt}` : ""}${hidden ? html` · ${pluralize(hidden, "application")} hidden by the display settings` : ""}</p></div>
     <div class="kpis">${m.kpis.map(kpiTile)}</div>
     <div class="two">
       <section class="ovs" aria-label="${OVERVIEW_TITLES.pillars}"><h2 class="lbl">${OVERVIEW_TITLES.pillars}</h2><div class="pbars">${m.pillars.map(pillarBar)}</div>${legend()}</section>
@@ -54,7 +54,7 @@ export const overviewPage = {
   mount(el) {
     const draw = () => {
       const m = overviewModel(register.visibleRows());
-      renderRegion(el, overviewView(m, register.hiddenCount(), stamp(register.loadedMeta().loadedAt)));
+      renderRegion(el, overviewView(m, register.hiddenCount(), fmtStamp(register.loadedMeta().loadedAt)));
     };
     draw();
     const offReg = register.subscribe(draw);

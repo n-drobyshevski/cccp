@@ -2,8 +2,8 @@
 // it; an admin reads it), the cache time, the table of Sheet tabs with their rows and missing
 // columns, and the advanced join and pick options under a disclosure. A pure view: page.js owns
 // the draft and runs the actions (s-probe, s-reload, s-adv).
-import { html } from "../../lib/html.js";
-import { count, num, stamp } from "../../lib/format.js";
+import { html } from "@gas-kit/client/html.js";
+import { pluralize, fmtCount, fmtStamp } from "@gas-kit/client/format.js";
 import { dot } from "../../components/dots.js";
 import { SAME_TAB, TAB_LABEL, tabChoice } from "./draft.js";
 import { TAB_KEYS } from "../../../domain/types";
@@ -67,8 +67,8 @@ function connection(ctx) {
   const { meta, ui, rows } = ctx;
   const connected = meta.title !== "";
   const missing = !!(meta.issues && meta.issues.missingTabs && meta.issues.missingTabs.length) || (meta.tabs || []).some((t) => t.missingHeaders && t.missingHeaders.length);
-  const when = ui.reloadedAt ? "just now" : meta.loadedAt ? stamp(meta.loadedAt) : "never";
-  return html`<div class="conn" data-region="conn"><div><b>${dot(connected && !missing ? "ok" : "warn")}${connected ? html`Connected to “${meta.title}”` : "No Sheet connected"}</b><small data-loaded>Last loaded ${when} · ${count(rows.length, "application")}</small></div>
+  const when = ui.reloadedAt ? "just now" : meta.loadedAt ? fmtStamp(meta.loadedAt) : "never";
+  return html`<div class="conn" data-region="conn"><div><b>${dot(connected && !missing ? "ok" : "warn")}${connected ? html`Connected to “${meta.title}”` : "No Sheet connected"}</b><small data-loaded>Last loaded ${when} · ${pluralize(rows.length, "application")}</small></div>
     <button type="button" class="btn" data-act="s-reload" data-k="reload"${ui.reloadBusy || !connected ? html` disabled` : ""}>${ui.reloadBusy ? html`<span class="spin" aria-hidden="true"></span>Loading…` : "Reload data"}</button></div>`;
 }
 
@@ -77,7 +77,7 @@ function probeResult(p) {
   if (p.state === "busy") return html`<p class="probe" role="status"><span class="spin" aria-hidden="true"></span>Looking at the Sheet…</p>`;
   if (p.state === "err") return html`<p class="probe bad" role="alert" data-probe>${p.message}</p>`;
   const r = p.result;
-  return html`<p class="probe ok" role="status" data-probe>Found “${r.title}” (${r.tz}) with ${count(r.tabs.length, "tab")}: ${r.tabs.map((t, i) => html`${i ? ", " : ""}${t.name} (${count(t.rows, "row")})`)}.</p>`;
+  return html`<p class="probe ok" role="status" data-probe>Found “${r.title}” (${r.tz}) with ${pluralize(r.tabs.length, "tab")}: ${r.tabs.map((t, i) => html`${i ? ", " : ""}${t.name} (${pluralize(t.rows, "row")})`)}.</p>`;
 }
 
 function linkField(ctx) {
@@ -107,7 +107,7 @@ function tabsTable(ctx) {
       const t = meta.tabs.find((x) => x.key === k);
       const sep = choice !== SAME_TAB;
       const same = sep && choice === saved[key] && !(k !== "apps" && saved["source.tabs." + k + ".sameTab"]);
-      const unmatched = same && t && t.unmatched ? html`<small class="mut"> · ${count(t.unmatched, "row")} ${t.unmatched === 1 ? "matches" : "match"} no application</small>` : "";
+      const unmatched = same && t && t.unmatched ? html`<small class="mut"> · ${pluralize(t.unmatched, "row")} ${t.unmatched === 1 ? "matches" : "match"} no application</small>` : "";
       const det = k === "apps" ? detectedApps(ctx) : null;
       const opts = names.filter((n) => !det || n !== det.name).map((n) => html`<option value="${n}"${n === choice ? html` selected` : ""}>${n}</option>`);
       const picker = k === "apps"
@@ -115,7 +115,7 @@ function tabsTable(ctx) {
         : html`<select class="sel" data-tabpick="${k}" data-k="tab-${k}" aria-label="${TAB_LABEL[k]} tab"><option value="${SAME_TAB}"${choice === SAME_TAB ? html` selected` : ""}>Same tab as Applications</option><option value=""${choice === "" ? html` selected` : ""}>Not used</option>${opts}</select>`;
       return html`<tr data-tab-row="${k}"><td>${TAB_LABEL[k]}</td>
         <td>${picker}</td>
-        <td class="num" data-rows>${(k === "apps" || same) && t && choice !== "" ? num(t.rows) : "—"}</td>
+        <td class="num" data-rows>${(k === "apps" || same) && t && choice !== "" ? fmtCount(t.rows) : "—"}</td>
         <td>${st.cls ? html`<span class="res ${st.cls}"${st.tip ? html` tabindex="0" data-tip="${st.tip}" aria-label="${st.word + ": " + st.tip}"` : ""}>${st.word}</span>` : st.tip ? html`<span class="mut" data-neutral tabindex="0" data-tip="${st.tip}" aria-label="${st.word + ": " + st.tip}">${st.word}</span>` : html`<span class="mut" data-neutral>${st.word}</span>`}${unmatched}</td></tr>`;
     })}
   </tbody></table></div></div>`;
@@ -125,9 +125,9 @@ function issues(ctx) {
   const iss = ctx.meta.issues || {};
   const items = [];
   const dup = (iss.duplicateIds || []).length;
-  if (dup) items.push(count(dup, "repeated id") + " in the Sheet: the first row of each is used.");
+  if (dup) items.push(pluralize(dup, "repeated id") + " in the Sheet: the first row of each is used.");
   const unp = (iss.unparseable || []).reduce((n, u) => n + u.count, 0);
-  if (unp) items.push(count(unp, "value") + " could not be read as a date or number and stay empty.");
+  if (unp) items.push(pluralize(unp, "value") + " could not be read as a date or number and stay empty.");
   if (!items.length) return "";
   return html`<ul class="issues" data-issues>${items.map((t) => html`<li>${dot("warn")}<span>${t}</span></li>`)}</ul>`;
 }

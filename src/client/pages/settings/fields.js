@@ -1,8 +1,8 @@
 // Field mapping tab: every field of the catalogue by group, the Sheet column that feeds it (a
 // select of the real headers of the bound tab) and an example value from the Sheet. The callout
 // counts the fields with no column and follows the draft. A pure view.
-import { html } from "../../lib/html.js";
-import { count } from "../../lib/format.js";
+import { html } from "@gas-kit/client/html.js";
+import { pluralize } from "@gas-kit/client/format.js";
 import { dot } from "../../components/dots.js";
 import { FIELDS, GROUPS } from "../../../domain/fields";
 import { unmappedFields } from "./draft.js";
@@ -27,10 +27,10 @@ function callout(session) {
   const miss = missingColumns(session).length;
   const pending = missingColumns(session, true).length;
   const note = pending
-    ? html`<div class="callout note" role="status" data-callout-note>${dot("none")}<span><b>${count(pending, "column")} ${pending === 1 ? "is" : "are"} not provided yet.</b> The Applications tab does not have ${pending === 1 ? "it" : "them"}, so those fields stay empty and their pillars show No data. Add the column to the tab, or point the pillar at its own tab in Data source.</span></div>`
+    ? html`<div class="callout note" role="status" data-callout-note>${dot("none")}<span><b>${pluralize(pending, "column")} ${pending === 1 ? "is" : "are"} not provided yet.</b> The Applications tab does not have ${pending === 1 ? "it" : "them"}, so those fields stay empty and their pillars show No data. Add the column to the tab, or point the pillar at its own tab in Data source.</span></div>`
     : "";
   if (!un && !miss) return note;
-  return html`<div class="callout" role="status" data-callout>${dot("warn")}<span>${un ? html`<b>${count(un, "field")} ${un === 1 ? "is" : "are"} not mapped.</b> They show as empty on every application and count as missing in completeness. Pick the column that holds them, or leave them unmapped until the data exists.` : ""}${un && miss ? " " : ""}${miss ? html`<b>${count(miss, "mapped column")} ${miss === 1 ? "was" : "were"} not found in the Sheet.</b> Those fields stay empty until a column with that name exists.` : ""}</span></div>${note}`;
+  return html`<div class="callout" role="status" data-callout>${dot("warn")}<span>${un ? html`<b>${pluralize(un, "field")} ${un === 1 ? "is" : "are"} not mapped.</b> They show as empty on every application and count as missing in completeness. Pick the column that holds them, or leave them unmapped until the data exists.` : ""}${un && miss ? " " : ""}${miss ? html`<b>${pluralize(miss, "mapped column")} ${miss === 1 ? "was" : "were"} not found in the Sheet.</b> Those fields stay empty until a column with that name exists.` : ""}</span></div>${note}`;
 }
 
 function row(session, d) {

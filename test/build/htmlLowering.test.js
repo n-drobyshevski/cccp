@@ -8,7 +8,7 @@ const root = new URL("../../", import.meta.url).pathname;
 describe("html tag lowering", () => {
   it("bundles with no backtick and renders the expected escaped markup", async () => {
     const sample = [
-      'import { html, raw } from "./src/client/lib/html.js";',
+      'import { html, raw } from "@gas-kit/client/html.js";',
       "const evil = '<img src=x onerror=\"a\">&';",
       "globalThis.__out = String(html`<p class=\"${'a\"b'}\">${evil}${raw('<b>ok</b>')}${[1, html`<i>${'<'}</i>`]}${null}${false}</p>`);",
     ].join("\n");
@@ -26,9 +26,10 @@ describe("html tag lowering", () => {
     );
   });
 
-  it("html.js source itself has no backtick", () => {
-    const src = readFileSync(root + "src/client/lib/html.js", "utf8");
-    expect(src).not.toContain("`");
+  it("the kit html.js has no backtick in its code (its JSDoc comments may name parameters in backticks)", () => {
+    const src = readFileSync(root + "src/kit/client/src/html.js", "utf8");
+    const code = src.replace(/\/\*[\s\S]*?\*\//g, "").replace(/^[ \t]*\/\/.*$/gm, "");
+    expect(code).not.toContain("`");
   });
 });
 

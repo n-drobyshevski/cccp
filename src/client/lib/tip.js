@@ -2,7 +2,7 @@
 // scroll, press or leaving. The tip text must also be in the trigger's aria-label or visible
 // text (the caller's job): the card is a courtesy, not the only copy. Placement maths is the
 // vendored tipPlace.js.
-import { CLOSE_GRACE, tipDelay, tipPlacement } from "../../vendor/gas_shared/ui/tipPlace.js";
+import { CLOSE_GRACE, tipDelay, tipPlacement } from "@gas-kit/client/tipPlace.js";
 
 /** @type {HTMLDivElement | null} */
 let card = null;

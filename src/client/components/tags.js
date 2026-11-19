@@ -1,6 +1,6 @@
 // The small labels of the fact sheet header: the tier, the lifecycle mark and the tag group. Pure views. A tag always carries its words, so
 // colour is never the only signal.
-import { html } from "../lib/html.js";
+import { html } from "@gas-kit/client/html.js";
 import { lifecycleClass } from "./table.js";
 
 /** The tier in words: 'Tier 2', or a dashed 'No tier' (the same unset meaning as the dash in the table). */

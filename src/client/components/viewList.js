@@ -6,12 +6,12 @@
 // a sort, columns and a colour metric, never a page: it opens in the lens the viewer is on.
 // Personal views are kept in this browser, so when storage is refused + Save hides (an admin can
 // still publish a shared view). viewListView is pure; mountViewList wires it to the store.
-import { delegate, qs, renderRegion } from "../lib/dom.js";
+import { delegate, qs, renderRegion } from "@gas-kit/client/dom.js";
 import { confirmDialog } from "../lib/confirm.js";
-import { copyText } from "../lib/clipboard.js";
-import { html } from "../lib/html.js";
-import { icon } from "../lib/icons.js";
-import { num } from "../lib/format.js";
+import { copyText } from "@gas-kit/client/clipboard.js";
+import { html } from "@gas-kit/client/html.js";
+import { icon } from "@gas-kit/client/icons.js";
+import { fmtCount } from "@gas-kit/client/format.js";
 import { toast } from "../lib/toast.js";
 import * as register from "../state/register.js";
 import { store } from "../state/store.js";
@@ -59,7 +59,7 @@ function rowView(m, v) {
     ? html`<button type="button" class="vdelb" data-act="vrm" data-id="${v.id}" data-k="vrm-${v.id}" aria-label="Delete the shared view ${v.name}" data-tip="Delete ${v.name}">${icon("trash")}</button>`
     : "";
   const state = on ? stateView(m) : "";
-  return html`<li class="vi${on ? " on" : ""}" data-view="${v.id}"><div class="vr"><button type="button" class="vrow" data-act="view" data-id="${v.id}" data-k="vt-${v.id}" aria-current="${on ? "true" : "false"}"><span class="vn">${v.scope === "shared" ? icon("share") : ""}<span>${v.name}</span></span><span class="vc mono" data-vcount>${num(v.count)}</span></button>${del}</div>${state}</li>`;
+  return html`<li class="vi${on ? " on" : ""}" data-view="${v.id}"><div class="vr"><button type="button" class="vrow" data-act="view" data-id="${v.id}" data-k="vt-${v.id}" aria-current="${on ? "true" : "false"}"><span class="vn">${v.scope === "shared" ? icon("users") : ""}<span>${v.name}</span></span><span class="vc mono" data-vcount>${fmtCount(v.count)}</span></button>${del}</div>${state}</li>`;
 }
 
 /** Under the open view: the "changed" cue with Save and Save as new, and Copy link and Delete. */
@@ -102,7 +102,7 @@ export function mountViewList(slot) {
     renderRegion(slot, viewListView(model()));
     if (focusName) {
       focusName = false;
-      const i = qs(slot, "[data-k=vname]");
+      const i = /** @type {HTMLElement | null} */ (qs(slot, "[data-k=vname]"));
       if (i) i.focus();
     }
   };
@@ -172,7 +172,7 @@ export function mountViewList(slot) {
   const find = (id) => views.allViews(store.get().core, views.listPersonal()).find((v) => v.id === id);
 
   const offs = [];
-  offs.push(delegate(slot, "click", "[data-act]", (ev, b) => {
+  offs.push(delegate(slot, "click", "[data-act]", (ev, /** @type {any} */ b) => {
     const act = b.getAttribute("data-act");
     const m = model();
     if (act === "view") {
@@ -188,8 +188,8 @@ export function mountViewList(slot) {
     else if (act === "vrm") { const v = find(b.getAttribute("data-id")); if (v) remove(v); }
     else if (act === "vmanage") { local.manage = !local.manage; draw(); }
   }));
-  offs.push(delegate(slot, "input", "[data-k=vname]", (ev, el) => { local.name = el.value; if (local.error) { local.error = ""; draw(); } }));
-  offs.push(delegate(slot, "change", "[data-act=vshare]", (ev, el) => { local.share = el.checked; }));
+  offs.push(delegate(slot, "input", "[data-k=vname]", (ev, /** @type {any} */ el) => { local.name = el.value; if (local.error) { local.error = ""; draw(); } }));
+  offs.push(delegate(slot, "change", "[data-act=vshare]", (ev, /** @type {any} */ el) => { local.share = el.checked; }));
   offs.push(delegate(slot, "keydown", "[data-k=vname]", (ev) => {
     if (ev.key === "Enter") { ev.preventDefault(); save(); }
     else if (ev.key === "Escape") { ev.preventDefault(); endForm(); draw(); }

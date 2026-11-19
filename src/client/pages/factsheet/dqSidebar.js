@@ -2,7 +2,7 @@
 // mandatory fields with Missing in red and Filled in green (the words carry the state, never the
 // colour alone), the review state and Recently viewed. It collapses to a thin strip; the choice
 // is remembered by the page. Pure.
-import { html } from "../../lib/html.js";
+import { html } from "@gas-kit/client/html.js";
 import { dot } from "../../components/dots.js";
 import { sealView } from "./header.js";
 import { DQ_TITLE } from "../../../domain/factsheet";

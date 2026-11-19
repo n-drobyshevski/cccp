@@ -49,6 +49,10 @@ export default {
     // page modules replace the app's smaller copies and the kit barrel keeps a few of its module-level
     // tables (policy, audit) that nothing here calls; the cap drops again as the app's own kernel
     // files are deleted in the next work packages.
-    budgets: { server: 157_600, js: 183_000, css: 59_300 },
+    // C3a: the js cap rises to 196100 (bundle 195962, +13.3 KB): the kit html template scans every call site's
+    // literal parts for the context of each interpolation (about 30 KB of source, 866 lines) and throws on
+    // a value that does not fit, against the app's 37-line escape-only template; the app's own dom, format,
+    // icons, csv, xlsx and zip files are gone, which gives back part of it.
+    budgets: { server: 157_600, js: 196_100, css: 59_300 },
   },
 };

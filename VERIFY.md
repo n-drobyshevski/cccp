@@ -30,7 +30,7 @@ UTC+14 as well as UTC.
 |---|---|---|
 | `SpreadsheetApp` only in `sourceSheet.ts` | `grep -rln SpreadsheetApp src` excluding vendor | `src/server/sourceSheet.ts` only |
 | Sheets and Drive advanced services only in `exportSheet.ts` | `grep -rnE "\b(Sheets\|Drive)\.[A-Za-z]" src --include=*.ts --include=*.js` excluding vendor; also `grep -rlE "\bSheets\b\|\bDrive\b" src/server src/gas` | calls in `src/server/exportSheet.ts` only (`Sheets!.Spreadsheets!.create/update/batchUpdate`, `Drive!.Permissions!.create`); the only other hit is the service declaration in `src/gas/appsscript.json` |
-| `innerHTML` only in `renderRegion` | `grep -rn "innerHTML\|outerHTML\|insertAdjacentHTML" src` excluding vendor | `src/client/lib/dom.js:57` (`el.innerHTML = String(safe)`) plus a comment on line 2; no `outerHTML`, no `insertAdjacentHTML` |
+| `innerHTML` only in `renderRegion` | `grep -rn "innerHTML\|outerHTML\|insertAdjacentHTML" src` excluding vendor | the kit's `src/kit/client/src/dom.js` (`el.innerHTML = String(safe)`; since C3a the app has no sink of its own, so the grep excludes `src/kit` too); no `outerHTML`, no `insertAdjacentHTML` |
 | No source mutators in `src/server` | `grep -rn "setValue\|appendRow\|clearContent\|setValues\|insertSheet\|deleteSheet\|mutat" src/server` | no match |
 | No `title` attributes | `grep -rnE "title=\|\.title\s*=\|setAttribute\(.title" src/client`; `test/build/noTitleAttr.test.js` | no attribute use (the one hit is `m.title === ""`, a data field); static test passes |
 | No colour literals outside tokens | `grep -rlE "#[0-9a-fA-F]{3,8}\b\|rgba?\(\|hsla?\(" src/client`; `test/build/noHexOutsideTokens.test.js` | `src/client/styles/tokens.css` only; static test passes |

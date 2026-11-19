@@ -30,9 +30,9 @@ in the architecture spec; the approved UI is in `mockups/` (never edited, never 
 ## Client rendering rules
 
 - Views are pure functions returning `SafeHtml`, built with the `html` tagged template in
-  `src/client/lib/html.js`, which escapes every interpolation. Raw markup needs an explicit,
+  `@gas-kit/client/html.js`, which escapes every interpolation. Raw markup needs an explicit,
   reviewed `raw()` call.
-- Only `renderRegion(el, safe, {keepFocus, keepScroll})` in `src/client/lib/dom.js` may assign
+- Only `renderRegion(el, safe, {keepFocus, keepScroll})` in `@gas-kit/client/dom.js` (the kit; the app has no sink of its own) may assign
   `innerHTML`. `outerHTML` and `insertAdjacentHTML` are banned. ESLint enforces it. renderRegion
   restores focus by `data-k` and the scrollTop of `[data-keep-scroll]`.
 - Events use delegation on `data-*` attributes: `delegate(root, 'click', '[data-act]', fn)`. No

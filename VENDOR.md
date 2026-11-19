@@ -31,11 +31,11 @@ run sync, and list it below.
 | --- | --- |
 | `gas_shared/ui/settingsForm.js` | pure settings draft kernel; import by this direct path only |
 | `gas_shared/ui/tableModel.js` | compareValues, nullsLast, sortRows, nextSort, column choice and its URL encoding |
-| `gas_shared/ui/timing.js` | debounce, onPageTeardown, runPageTeardown |
-| `gas_shared/ui/tipPlace.js` | tooltip and popover placement and delay maths |
+| `gas_shared/ui/timing.js` | unused (the app never imported it); the kit's `timing.js` is the one to use; goes with `src/vendor` |
+| `gas_shared/ui/tipPlace.js` | unused since C3a (the kit's `tipPlace.js` replaced it); goes with `src/vendor` |
 | `gas_shared/ui/accessSave.js` | notKept, guardUnsaved |
 | `gas_hub/src/client/js/pages/accessModel.js` | DOM-free access roster rules |
-| `gas_shared/domain/csv.ts` | csvCell |
+| `gas_shared/domain/csv.ts` | unused since C3a (the kit's `csv.js` replaced it; the kit also guards a formula lead after blanks, full-width signs and embedded separators); goes with `src/vendor` |
 | `gas_shared/domain/sha1.ts` | sha1Hex |
 | `gas_shared/domain/snapshotCodec.ts` | encodeRows / decodeRows for the register payload |
 | `gas_shared/server/inlineBoot.ts` | unused since C2a (the kit's `inlineIfWarm` replaced it); goes with `src/vendor` |

@@ -1,7 +1,7 @@
 // The app lints itself with the kit's preset (src/kit/tooling/src/eslint/preset.mjs): the rules
 // the kit obeys are the rules the app gets. What the preset does not cover stays below.
-//  - src/client/lib/dom.js is the one markup sink (renderRegion): the preset's `sinks` entry lets it
-//    write innerHTML only; outerHTML, insertAdjacentHTML and the rest stay banned there too.
+//  - The app has no markup sink of its own: renderRegion is the kit's (src/kit/client/src/dom.js, never
+//    linted), so no app file may write innerHTML and `sinks` is empty (it was src/client/lib/dom.js).
 //  - dev/*.js are classic scripts loaded in order by the dev page; they share window globals.
 //  - src/vendor is verbatim sidekick code and src/kit is the vendored kit: never linted or edited.
 import { kitDirs } from "./tools/kitPaths.mjs";
@@ -20,15 +20,14 @@ const browserGlobals = readonly([
 export default [
   ...gasKitPreset({
     client: ["src/client/**/*.js"],
-    sinks: ["src/client/lib/dom.js"],
+    sinks: [],
     node: ["tools/**/*.mjs", "dev/**/*.mjs", "*.config.js", "*.config.mjs"],
     tests: ["test/**/*.js", "test/**/*.mjs"],
     // Each use of raw() (or html() as a function) is a reviewed decision with its reason. The same
     // list, with the same reasons, is the noRaw contract's allow in test/contracts.test.ts.
     rawAllowed: [
-      "src/client/lib/icons.js", // wraps the static, hard-coded SVG markup of the icon set; no interpolated data
+      "src/client/lib/icons.js", // the one icon the kit lacks (bang): a static, hard-coded SVG; no interpolated data
       "src/client/components/table.js", // raw(icon): the output of icons.js, a static SVG in a header cell
-      "src/client/shell/appbar.js", // raw(' aria-current=...'): a constant attribute fragment, no data
     ],
     ignores: [
       "src/kit/**", "src/vendor/**", "src/gas/**", "dist/**", "node_modules/**", "mockups/**", "test-results/**",

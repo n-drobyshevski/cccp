@@ -1,10 +1,13 @@
 // The Excel export: the zip's headers and CRCs verify, every XML part is well-formed, text is
 // inline and numbers are numeric, special characters round-trip, nothing is a formula, and
-// the built file survives the middlebox guard.
-import { readFileSync } from "node:fs";
+// the file carries the cccp sheet name.
 import { describe, expect, it } from "vitest";
-import { SHEET_NAME, buildXlsx, cellXml, colName, xmlText } from "../../src/client/export/xlsx.js";
-import { crc32, zipStore } from "../../src/client/export/zip.js";
+import { buildXlsx as kitBuildXlsx, colName, xmlText } from "@gas-kit/client/xlsx.js";
+import { crc32, zipStore } from "@gas-kit/client/zip.js";
+
+// The kit builds the workbook; cccp names its one sheet "Applications".
+const SHEET_NAME = "Applications";
+const buildXlsx = (m) => kitBuildXlsx(m, { sheetName: SHEET_NAME });
 
 const dec = new TextDecoder("utf-8", { fatal: true });
 const u16 = (b, o) => b[o] | (b[o + 1] << 8);
@@ -188,8 +191,8 @@ describe("buildXlsx", () => {
   });
 
   it("caps a cell at the Excel limit", () => {
-    const c = cellXml("x".repeat(40000), "A1", 0);
-    expect(c.length).toBeLessThan(33000);
+    const sheet = dec.decode(readZip(buildXlsx([["h"], ["x".repeat(40000)]]))["xl/worksheets/sheet1.xml"]);
+    expect(sheet.length).toBeLessThan(34000);
   });
 });
 
@@ -201,20 +204,5 @@ describe("helpers", () => {
     expect(xmlText('<a href="x">&</a>')).toBe("&lt;a href=&quot;x&quot;&gt;&amp;&lt;/a&gt;");
     expect(xmlText("a\u0000b\ud800c\udc00d￾")).toBe("a b c d ");
     expect(xmlText("\u{1f600}")).toBe("\u{1f600}");
-  });
-});
-
-describe("the middlebox guard", () => {
-  const srcs = ["csv.js", "zip.js", "xlsx.js"].map((f) => [f, readFileSync(new URL("../../src/client/export/" + f, import.meta.url), "utf8")]);
-  it("finds no double slash or backtick in the export modules", () => {
-    for (const [f, src] of srcs) {
-      const code = src.replace(/\/\*[\s\S]*?\*\//g, "").replace(/^[ \t]*\/\/.*$/gm, "");
-      expect(code, f).not.toContain("//");
-      expect(code, f).not.toContain("`");
-    }
-  });
-  it("the URLs the workbook uses are joined, not written out", () => {
-    const x = srcs.find(([f]) => f === "xlsx.js")[1];
-    expect(x).not.toContain("http://");
   });
 });

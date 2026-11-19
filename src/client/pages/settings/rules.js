@@ -5,8 +5,8 @@
 // anything is saved; the switches do not change a count (a rule shows what it would do before it is
 // switched on). This module holds the draft edits as pure functions; page.js wires the controls
 // (data-rule and data-prop, data-trule and data-tier) to them.
-import { html } from "../../lib/html.js";
-import { num } from "../../lib/format.js";
+import { html } from "@gas-kit/client/html.js";
+import { fmtCount } from "@gas-kit/client/format.js";
 import { PILLAR_CODE } from "../../components/glyph.js";
 import { PILLAR_LABEL, STATUS_WORD } from "../../../domain/facets";
 import { RULES, RULE_BY_ID, ruleCounts, rulesOf } from "../../../domain/rules";
@@ -70,7 +70,7 @@ export const RULE_TITLE = {
 export const ruleTitle = (rule) => RULE_TITLE[rule.id] || rule.sentence({ months: "N", tiers: [] });
 
 function aff(id, n) {
-  return html`<span class="aff" data-cnt="${id}"><b>${num(n)}</b> ${n === 1 ? "app" : "apps"}</span>`;
+  return html`<span class="aff" data-cnt="${id}"><b>${fmtCount(n)}</b> ${n === 1 ? "app" : "apps"}</span>`;
 }
 
 function monthsCtl(rule, p) {
@@ -132,7 +132,7 @@ export function ruleChangeNotes(ctx) {
     if (!what) continue;
     const x = before[rule.id] || 0;
     const y = after[rule.id] || 0;
-    notes.push(ruleTitle(rule) + ": " + what + (x !== y ? " (" + num(x) + " \u2192 " + num(y) + " " + (y === 1 ? "app" : "apps") + ")" : ""));
+    notes.push(ruleTitle(rule) + ": " + what + (x !== y ? " (" + fmtCount(x) + " \u2192 " + fmtCount(y) + " " + (y === 1 ? "app" : "apps") + ")" : ""));
   }
   return notes;
 }

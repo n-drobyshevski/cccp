@@ -7,9 +7,9 @@
 // open and a toggle closes it in a separate set that a filter change clears. The Inventory page owns
 // the count line, the pillar tabs and the clicks; this file draws the content and holds the open
 // groups.
-import { html } from "../lib/html.js";
-import { icon } from "../lib/icons.js";
-import { num } from "../lib/format.js";
+import { html } from "@gas-kit/client/html.js";
+import { icon } from "@gas-kit/client/icons.js";
+import { fmtCount } from "@gas-kit/client/format.js";
 import { glyphMark } from "../components/glyph.js";
 import { emptyView } from "../components/table.js";
 import { HEATMAP_LEAD_HEADS } from "../../domain/heatmap";
@@ -29,7 +29,7 @@ const tierMark = (a) => a.tier
 
 /** The words for one bar: '3 gaps · 2 need attention · 1 no data · 10 OK'. */
 export function barText(c) {
-  return num(c.bad) + (c.bad === 1 ? " gap" : " gaps") + " · " + num(c.warn) + (c.warn === 1 ? " needs attention" : " need attention") + " · " + num(c.none) + " no data · " + num(c.ok) + " OK";
+  return fmtCount(c.bad) + (c.bad === 1 ? " gap" : " gaps") + " · " + fmtCount(c.warn) + (c.warn === 1 ? " needs attention" : " need attention") + " · " + fmtCount(c.none) + " no data · " + fmtCount(c.ok) + " OK";
 }
 
 function barCell(g, p) {
@@ -48,7 +48,7 @@ function appRow(r) {
 }
 
 function groupRows(g, isOpen) {
-  return html`<tr class="grp" data-group="${g.name}"><td colspan="2"><button type="button" class="gb" data-act="grp" data-grp="${g.name}" data-k="grp-${g.name}" aria-expanded="${isOpen ? "true" : "false"}">${icon("chevron")}${g.name} <span>${num(g.apps)} apps</span></button></td>${PILLARS.map((p) => barCell(g, p))}</tr>${isOpen ? g.rows.map(appRow) : ""}`;
+  return html`<tr class="grp" data-group="${g.name}"><td colspan="2"><button type="button" class="gb" data-act="grp" data-grp="${g.name}" data-k="grp-${g.name}" aria-expanded="${isOpen ? "true" : "false"}">${icon("chevron")}${g.name} <span>${fmtCount(g.apps)} apps</span></button></td>${PILLARS.map((p) => barCell(g, p))}</tr>${isOpen ? g.rows.map(appRow) : ""}`;
 }
 
 /** The table for a model and the set of open group names. Pure. */

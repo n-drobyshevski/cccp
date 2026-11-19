@@ -2,7 +2,7 @@
 // vendored tableModel's signed deviations from the defaults ('-so' hidden, '+ty' shown), held
 // in the URL (store.cols) and remembered in this browser under 'cccp.cols'. Because only the
 // deviations are stored, a column added later arrives at its own default for everybody.
-import { html } from "../lib/html.js";
+import { html } from "@gas-kit/client/html.js";
 import * as storage from "../lib/storage.js";
 import { columnChoices } from "../../vendor/gas_shared/ui/tableModel";
 import { COLUMNS, choiceOf, signedKeys } from "../../domain/columns";
@@ -28,5 +28,5 @@ export function chooserRows(signed, sort) {
 /** The menu body. */
 export function chooserView(signed, sort) {
   const rows = chooserRows(signed, sort);
-  return html`<div class="popin"><span class="lbl mlbl">Columns</span><div class="plist" data-list="cols">${rows.map((c) => html`<label class="ck${c.hideable ? "" : " zero"}"${c.hideable ? "" : html` data-tip="Always shown"`}><input type="checkbox" data-act="col" data-col="${c.key}" data-k="col-${c.key}"${c.shown ? " checked" : ""}${c.hideable ? "" : " disabled"}><span>${c.label}</span></label>`)}</div>${signed.length ? html`<div class="pfoot"><button type="button" class="linkbtn" data-act="cols-reset" data-k="cols-reset">Reset to default</button></div>` : ""}</div>`;
+  return html`<div class="popin"><span class="lbl mlbl">Columns</span><div class="plist" data-list="cols">${rows.map((c) => html`<label class="ck${c.hideable ? "" : " zero"}"${c.hideable ? "" : html` data-tip="Always shown"`}><input type="checkbox" data-act="col" data-col="${c.key}" data-k="col-${c.key}"${c.shown ? html` checked` : ""}${c.hideable ? "" : html` disabled`}><span>${c.label}</span></label>`)}</div>${signed.length ? html`<div class="pfoot"><button type="button" class="linkbtn" data-act="cols-reset" data-k="cols-reset">Reset to default</button></div>` : ""}</div>`;
 }

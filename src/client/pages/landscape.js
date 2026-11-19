@@ -5,8 +5,8 @@
 // 'Colour by' choice (worst, each pillar in its colour, tier, completeness) lives in the store, and so
 // in the address and in saved views; the legend sits at its right. Tiles open the fact sheet. The
 // Inventory page owns the count line, the pillar tabs and the clicks.
-import { html } from "../lib/html.js";
-import { num } from "../lib/format.js";
+import { html } from "@gas-kit/client/html.js";
+import { fmtCount } from "@gas-kit/client/format.js";
 import { emptyView } from "../components/table.js";
 import { LANDSCAPE_METRICS, landscapeModel, legendFor, metricOf } from "../../domain/landscape";
 
@@ -17,7 +17,7 @@ const tile = (t) => html`<button type="button" class="tl ls-${t.tone}" data-act=
 
 const groupView = (g) => html`<div class="sdg"><span>${g.name}</span><div class="tiles2">${g.tiles.map(tile)}</div></div>`;
 
-const boxView = (d) => html`<section class="dbox" data-domain="${d.name}"><header><b>${d.name}</b><small class="mono">${num(d.apps)}</small></header>${d.groups.map(groupView)}</section>`;
+const boxView = (d) => html`<section class="dbox" data-domain="${d.name}"><header><b>${d.name}</b><small class="mono">${fmtCount(d.apps)}</small></header>${d.groups.map(groupView)}</section>`;
 
 /** The 'Colour by' switch; the pillar choices carry their pillar's colour. */
 export function metricSwitch(metric) {

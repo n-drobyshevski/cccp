@@ -3,7 +3,7 @@
 // to open the long ones (with a find box on the big facets). It reuses facetList's checklist and
 // the domain's facetOptions, so the counts and the filter rules are the ones every page uses.
 // Pure: the page owns the selection, the find text and which sections are open.
-import { html } from "../lib/html.js";
+import { html } from "@gas-kit/client/html.js";
 import { FACET_BY_KEY } from "../../domain/facets";
 import { facetOptions } from "../../domain/query";
 import { checklist, findBox } from "./facetList.js";

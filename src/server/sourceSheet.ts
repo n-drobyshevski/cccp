@@ -1,16 +1,16 @@
-// The ONLY module that calls SpreadsheetApp. The register Sheet is read here and nowhere
-// else, and what leaves this file is plain data: strings, numbers, booleans and null. No
-// Spreadsheet, Sheet or Range ever crosses the boundary, so nothing downstream can write to
-// the source even by accident. test/build/staticScan.test.js holds that line.
+// The app's one reader of the register Sheet. Its cell formatting is the kit's plainCell; what stays
+// here is what the kit's readTables / probeTabs cannot give yet: from ONE openById, the workbook's
+// title and url and each tab's gid (the register meta and the fact sheet's row links use them) and
+// the Applications-tab detection. It is read-only and what leaves it is plain data: strings,
+// numbers, booleans and null. No Spreadsheet, Sheet or Range ever crosses the boundary.
+// test/build/staticScan.test.js holds that line, and names this the only app file that mentions
+// SpreadsheetApp.
 //
-// Pattern (read half only) from sidekick gas/src/server/sheetsDb.ts at commit 77bcf22 (see
-// VENDOR.md). There are no writers.
-//
-// Dates: a date cell comes back as a Date; it is formatted in the SPREADSHEET's time zone as
-// 'yyyy-MM-dd' (or 'yyyy-MM-dd HH:mm' when the time is not midnight), because a server-zone
-// or UTC conversion would move a midnight date to the neighbouring day. An empty cell is null.
+// Dates: a date cell is formatted in the SPREADSHEET's time zone as 'yyyy-MM-dd' (or
+// 'yyyy-MM-dd HH:mm' when the time is not midnight), because a server-zone or UTC conversion would
+// move a midnight date to the neighbouring day. An empty cell is null.
 
-import { ApiError } from "@gas-kit/server";
+import { ApiError, plainCell } from "@gas-kit/server";
 import type { SourceSettings, TabKey } from "../domain/types";
 import { TAB_KEYS } from "../domain/types";
 import { LEGACY_TAB_NAMES } from "../domain/settings";
@@ -51,19 +51,8 @@ export interface ReadOptions {
 
 type Cell = string | number | boolean | null;
 
-const isDate = (v: unknown): v is Date => Object.prototype.toString.call(v) === "[object Date]";
-
-/** One cell as plain data. */
-function plain(v: unknown, tz: string): Cell {
-  if (v === null || v === undefined || v === "") return null;
-  if (isDate(v)) {
-    if (isNaN(v.getTime())) return null;
-    const time = Utilities.formatDate(v, tz, "HH:mm");
-    return Utilities.formatDate(v, tz, time === "00:00" ? "yyyy-MM-dd" : "yyyy-MM-dd HH:mm");
-  }
-  if (typeof v === "string" || typeof v === "number" || typeof v === "boolean") return v;
-  return String(v);
-}
+/** One cell as plain data: the kit's plainCell with the time of day kept and no time-only special case. */
+const plain = (v: unknown, tz: string): Cell => plainCell(v, tz, { timestamps: true, timeOfDay: false }) as Cell;
 
 function open(sheetId: string): GoogleAppsScript.Spreadsheet.Spreadsheet {
   if (!sheetId) throw new ApiError("error", "No data source is configured.");

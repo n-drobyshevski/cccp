@@ -28,8 +28,8 @@ UTC+14 as well as UTC.
 
 | invariant | command (from repo root) | result |
 |---|---|---|
-| `SpreadsheetApp` only in `sourceSheet.ts` | `grep -rln SpreadsheetApp src` excluding vendor | `src/server/sourceSheet.ts` only |
-| Sheets and Drive advanced services only in `exportSheet.ts` | `grep -rnE "\b(Sheets\|Drive)\.[A-Za-z]" src --include=*.ts --include=*.js` excluding vendor; also `grep -rlE "\bSheets\b\|\bDrive\b" src/server src/gas` | calls in `src/server/exportSheet.ts` only (`Sheets!.Spreadsheets!.create/update/batchUpdate`, `Drive!.Permissions!.create`); the only other hit is the service declaration in `src/gas/appsscript.json` |
+| `SpreadsheetApp` only in `sourceSheet.ts` (app) and the kit's `sheetSource.ts`, `openById` only | `grep -rln SpreadsheetApp src` excluding vendor | `src/server/sourceSheet.ts` and `src/kit/server/src/sheetSource.ts` |
+| Sheets and Drive advanced services in no app file (the kit's `sheetExport.ts` only) | `grep -rnE "\b(Sheets\|Drive)\.[A-Za-z]" src --include=*.ts --include=*.js` excluding vendor; also `grep -rlE "\bSheets\b\|\bDrive\b" src/server src/gas` | calls in `src/kit/server/src/sheetExport.ts` only (`Sheets!.Spreadsheets!.create/update/batchUpdate`, `Drive!.Permissions!.create`); the only other hit is the service declaration in `src/gas/appsscript.json` |
 | `innerHTML` only in `renderRegion` | `grep -rn "innerHTML\|outerHTML\|insertAdjacentHTML" src` excluding vendor | the kit's `src/kit/client/src/dom.js` (`el.innerHTML = String(safe)`; since C3a the app has no sink of its own, so the grep excludes `src/kit` too); no `outerHTML`, no `insertAdjacentHTML` |
 | No source mutators in `src/server` | `grep -rn "setValue\|appendRow\|clearContent\|setValues\|insertSheet\|deleteSheet\|mutat" src/server` | no match |
 | No `title` attributes | `grep -rnE "title=\|\.title\s*=\|setAttribute\(.title" src/client`; `test/build/noTitleAttr.test.js` | no attribute use (the one hit is `m.title === ""`, a data field); static test passes |

@@ -34,6 +34,11 @@ describe("html tag lowering", () => {
 });
 
 describe("index.html", () => {
+  it("carries the kit's own pre-paint theme script for the cccp. prefix, light when nothing is stored", async () => {
+    const { themeBootScript } = await import("../../src/kit/client/src/theme.js");
+    const text = readFileSync(root + "src/client/index.html", "utf8");
+    expect(text).toContain("<script>" + themeBootScript({ prefix: "cccp.", default: "light" }) + "</script>");
+  });
   const index = readFileSync(root + "src/client/index.html", "utf8");
   it("includes styles, the boot-data slot and js_app", () => {
     expect(index).toContain("include('styles')");

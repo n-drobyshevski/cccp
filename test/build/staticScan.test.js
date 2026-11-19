@@ -1,5 +1,6 @@
 // The read-only guarantee, as a scan of src/server: the register Sheet is touched in ONE app file
-// (sourceSheet.ts, which keeps the multi-tab read the kit has no equivalent for), no app file calls
+// (sourceSheet.ts, which keeps what the kit's sheetSource.ts cannot give from one open: the workbook
+// title and url, each tab's gid, the Applications-tab detection), no app file calls
 // the advanced Sheets and Drive services (the kit's sheetExport.ts is the only module that does,
 // and it writes a NEW file), and no source mutator is named anywhere.
 import { readdirSync, readFileSync } from "node:fs";
@@ -20,8 +21,21 @@ describe("static scan of src/server", () => {
     expect(files).toEqual(expect.arrayContaining(["sourceSheet.ts", "registerStore.ts", "api.ts"]));
   });
 
-  it("calls SpreadsheetApp only in sourceSheet.ts", () => {
-    expect(using(/\bSpreadsheetApp\b/)).toEqual(["sourceSheet.ts"]);
+  const SPREADSHEET_APP = /\bSpreadsheetApp\b/;
+  const OPEN_BY_ID_ONLY = /SpreadsheetApp\s*\.\s*(?!openById\b)\w+/;
+
+  it("calls SpreadsheetApp only in sourceSheet.ts, and only openById", () => {
+    expect(using(SPREADSHEET_APP)).toEqual(["sourceSheet.ts"]);
+    expect(using(OPEN_BY_ID_ONLY)).toEqual([]);
+  });
+
+  it("the SpreadsheetApp patterns fire on a seeded violation", () => {
+    expect(SPREADSHEET_APP.test("const ss = SpreadsheetApp.openById(id);")).toBe(true);
+    expect(SPREADSHEET_APP.test("const spreadsheetApps = 1")).toBe(false);
+    expect(OPEN_BY_ID_ONLY.test("SpreadsheetApp.getActiveSpreadsheet()")).toBe(true);
+    expect(OPEN_BY_ID_ONLY.test("SpreadsheetApp.create('x')")).toBe(true);
+    expect(OPEN_BY_ID_ONLY.test("SpreadsheetApp.openById(id)")).toBe(false);
+    expect(code("// SpreadsheetApp.create\nconst a = 1;")).not.toMatch(SPREADSHEET_APP);
   });
 
   // A member access, with the TypeScript non-null mark: Sheets!.Spreadsheets!.create, Drive.Files.update.

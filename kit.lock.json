@@ -1,7 +1,7 @@
 {
   "kit": {
     "version": "0.1.0",
-    "commit": "77e0038bb20a79a8bb35eee391c0925b6705c959",
+    "commit": "a9f8834e0581c96ced61bfcc860a92a59be6870e",
     "source": "local checkout",
     "remote": null
   },
@@ -41,7 +41,7 @@
     "client/src/store.js": "452c9c9945d33776f165e0c7b819768bc7baffde8f9c970d9aed8abd2c82be76",
     "client/src/swr.js": "06e47042bebe78543b037289177687ccc2aa71ef289dd7365f98c3300a937d74",
     "client/src/tabKeys.js": "1991f8ab1de9a24000aaffb7710dd4131180777b0492caa95e83e5b49498e6c3",
-    "client/src/theme.js": "283fa1743c8718e6e601728353c8aee0d957c7539ed6ab79cf06bfb835f8638c",
+    "client/src/theme.js": "1098045eb316cb7dcc19648968f3ea6dec0a54cb7660096f7c0fda8d2541e4a7",
     "client/src/timing.js": "e1f63e10e8cefb78288dfc88496863622c8d2386ec6c71875dfb29f3a4dd8d94",
     "client/src/tip.js": "5a1ee8f9426b584d6c9dd802d733687c69df788353ca4633747a2f04f86e85bb",
     "client/src/tipPlace.js": "f3ae944a525f52edfdddb5b6b0e0f304b1dd1ee0bdee076e1d98b1ffddf7526e",
@@ -74,7 +74,7 @@
     "server/src/settings.ts": "0ce902307f301c2496679ba8b05b6f0ec4edabe47529439b2c69291cfaea5542",
     "server/src/setup.ts": "d0ff68d2225204d58d78566548a566815a72b33899ff6f3d865bbcee3bd327e6",
     "server/src/sheetExport.ts": "fc9334114659d0df2d5315cefc4050c4f3f49472e3f144b3b324270a98fb0d50",
-    "server/src/sheetSource.ts": "3dc1659da873fab92151f25c0713c148b52fb6259bfd8f8bbb09f838d316c845",
+    "server/src/sheetSource.ts": "5da36baad08b56f8cdcfbce30aa27c1c9ecea97df44a80f1869be7676c37ea4a",
     "server/src/triggers.ts": "9483df452694f09ef39f88bb67563214cd2c7bf92a448d80679257dd84ae6d4f",
     "tooling/package.json": "8e8c2ce1cbcb7418faa19649723780120f9907bd79fbceebd63970d373f74183",
     "tooling/src/brandPresets.mjs": "e705b6f7629bab978f778be6406735c9be55b52a9b164c0c16fc4cbaaaac9e36",

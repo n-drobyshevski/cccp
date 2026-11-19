@@ -10,16 +10,35 @@ import { withViewTransition } from "./motion.js";
 
 /**
  * The text of a small script that applies the stored theme before first paint. Embed it in a
- * script element in the head of the page.
- * @param {string} [prefix] the same prefix the app passes to createStorage
+ * script element in the head of the page. A stored value is read as JSON ("dark" in quotes, what
+ * createStorage writes) or as a bare string (dark); anything but light or dark is ignored.
+ *
+ * With no usable stored choice data-theme stays unset, unless `default` is "light" or "dark": an
+ * app whose CSS keys light on data-theme="light" passes themeBootScript({ default: "light" }).
+ * Any other `default` is ignored (the unset behaviour). The first argument may be the options
+ * object itself, for an app with no storage prefix.
+ * @param {string | { prefix?: string, default?: "light" | "dark" }} [prefix] the same prefix the app passes to createStorage
+ * @param {{ prefix?: string, default?: "light" | "dark" }} [opts]
  * @returns {string}
  */
-export function themeBootScript(prefix) {
-  const key = JSON.stringify(String(prefix || "") + "theme").replace(/</g, "\\u003c");
+export function themeBootScript(prefix, opts) {
+  const o = prefix && typeof prefix === "object" ? prefix : opts && typeof opts === "object" ? opts : {};
+  const p = typeof prefix === "string" ? prefix : o.prefix == null ? "" : String(o.prefix);
+  const key = JSON.stringify(p + "theme").replace(/</g, "\\u003c");
+  const d = o.default === "light" || o.default === "dark" ? o.default : "";
+  // Without a default the script is the original text, so a page that embeds it is unchanged.
+  if (!d) {
+    return (
+      "try{var v=localStorage.getItem(" + key + ");" +
+      "if(v){try{v=JSON.parse(v)}catch(e){}" +
+      "if(v==='light'||v==='dark')document.documentElement.setAttribute('data-theme',v)}}catch(e){}"
+    );
+  }
   return (
-    "try{var v=localStorage.getItem(" + key + ");" +
+    "var t='" + d + "';try{var v=localStorage.getItem(" + key + ");" +
     "if(v){try{v=JSON.parse(v)}catch(e){}" +
-    "if(v==='light'||v==='dark')document.documentElement.setAttribute('data-theme',v)}}catch(e){}"
+    "if(v==='light'||v==='dark')t=v}}catch(e){}" +
+    "try{document.documentElement.setAttribute('data-theme',t)}catch(e){}"
   );
 }
 

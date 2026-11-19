@@ -67,6 +67,18 @@ export interface ReadOptions {
    * blank is null, and no per-cell date formatting runs. timestamps has no effect.
    */
   display?: boolean;
+  /** Trim every header name. Default true; false keeps the header text exactly as the sheet shows it. */
+  trimHeaders?: boolean;
+  /** Render time-only cells as "HH:mm". Default true; false formats them as dates like any other. */
+  timeOfDay?: boolean;
+}
+
+/** The options of plainCell. */
+export interface PlainCellOptions {
+  /** Keep the time of day on a Date that has one ("yyyy-MM-dd HH:mm"). Default false. */
+  timestamps?: boolean;
+  /** Render time-only cells (1899-12-30 and -31) as "HH:mm". Default true. */
+  timeOfDay?: boolean;
 }
 
 export interface SourceRead extends SourceHandle {
@@ -83,8 +95,12 @@ export interface SourceRead extends SourceHandle {
  * zone's local-mean-time offset of that year, so it can be off by minutes (for example :32 or :53
  * past) from what the cell shows. For a column that holds time-only or duration cells, read the
  * displayed text with getDisplayValues instead of getValues.
+ *
+ * Exported so an app that formats cells itself matches the reader. Anything that is not a
+ * string, number, boolean or Date becomes String(v).
  */
-function plain(v: unknown, tz: string, timestamps: boolean): unknown {
+export function plainCell(v: unknown, tz: string, opts: PlainCellOptions = {}): unknown {
+  const timestamps = !!opts.timestamps;
   if (v === null || v === undefined || v === "") return null;
   if (Object.prototype.toString.call(v) === "[object Date]") {
     const d = v as Date;
@@ -93,7 +109,7 @@ function plain(v: unknown, tz: string, timestamps: boolean): unknown {
     const ymd = stamp.slice(0, 10);
     const hm = stamp.slice(11);
     // Only the time-only epoch day (and the day beside it, for zone edges), not any 1899 date.
-    if (ymd === "1899-12-30" || ymd === "1899-12-31") return hm;
+    if (opts.timeOfDay !== false && (ymd === "1899-12-30" || ymd === "1899-12-31")) return hm;
     return timestamps && hm !== "00:00" ? ymd + " " + hm : ymd;
   }
   if (typeof v === "number" || typeof v === "boolean" || typeof v === "string") return v;
@@ -119,20 +135,21 @@ function readFrom(book: GoogleAppsScript.Spreadsheet.Spreadsheet, tz: string, ta
   }
   const width = sheet.getLastColumn();
   const lastRow = sheet.getLastRow();
-  const full = sheet.getRange(1, 1, 1, width).getDisplayValues()[0]!.map((h) => String(h).trim());
+  const trim = opts.trimHeaders !== false;
+  const full = sheet.getRange(1, 1, 1, width).getDisplayValues()[0]!.map((h) => (trim ? String(h).trim() : String(h)));
   // Source column index per output column; -1 is a column the tab does not have.
   const pick: number[] = want ? want.map((name) => full.indexOf(name)) : full.map((_, i) => i);
   const header = want ?? full;
   if (lastRow < 2) return { header, rows: [], tz, found: true };
   const range = sheet.getRange(2, 1, lastRow - 1, width);
   const grid: unknown[][] = opts.display ? range.getDisplayValues() : range.getValues();
-  const timestamps = !!opts.timestamps;
+  const cellOpts: PlainCellOptions = { timestamps: !!opts.timestamps, timeOfDay: opts.timeOfDay !== false };
   const rows = grid.map((r) => {
     const out: unknown[] = new Array<unknown>(pick.length);
     for (let j = 0; j < pick.length; j++) {
       const i = pick[j]!;
       const c = i < 0 ? null : r[i];
-      out[j] = opts.display ? displayCell(c) : plain(c, tz, timestamps);
+      out[j] = opts.display ? displayCell(c) : plainCell(c, tz, cellOpts);
     }
     return out;
   });
@@ -158,6 +175,78 @@ export function readSource(sheetId: string, tabName: string, opts: ReadOptions =
   });
 }
 
+export interface SourceTables extends SourceHandle {
+  /** One table per requested name, in the order asked (a repeated name is read once per ask). */
+  tables: SourceTable[];
+  /** The requested names the workbook does not have; their tables are found:false. */
+  missing: string[];
+}
+
+/**
+ * Open the workbook ONCE and read several tabs, each as readTable reads it (same opts for all). A
+ * missing tab is found:false and listed in missing, not a throw.
+ */
+export function readTables(sheetId: string, tabNames: string[], opts: ReadOptions = {}): SourceTables {
+  const names = (Array.isArray(tabNames) ? tabNames : []).map((n) => String(n == null ? "" : n));
+  const book = open(sheetId);
+  return guarded("read", () => {
+    const tz = book.getSpreadsheetTimeZone();
+    const tabs = book.getSheets().map((s) => s.getName());
+    const tables = names.map((n) => readFrom(book, tz, n, opts));
+    return { tz, tabs, tables, missing: names.filter((_, i) => !tables[i]!.found) };
+  });
+}
+
+/** One tab of a workbook as plain data. */
+export interface TabProbe {
+  name: string;
+  /** The sheet id (getSheetId), the number in the tab's URL. */
+  gid: number;
+  rows: number;
+  cols: number;
+  /** Row 1 as displayed (trimmed unless trimHeaders is false); only when asked for. */
+  headers?: string[];
+}
+
+export interface ProbeOptions {
+  /** Also read row 1 of each tab: one more read per tab. Default false. */
+  headers?: boolean;
+  /** Trim header names. Default true. */
+  trimHeaders?: boolean;
+}
+
+/** List a workbook's tabs with size (and, on request, header row) using read-only calls. */
+export function probeTabs(sheetId: string, opts: ProbeOptions = {}): TabProbe[] {
+  return probeWith(sheetId, opts, () => true);
+}
+
+function probeWith(sheetId: string, opts: ProbeOptions, keep: (name: string) => boolean): TabProbe[] {
+  const book = open(sheetId);
+  return guarded("probe", () => {
+    const trim = opts.trimHeaders !== false;
+    return book.getSheets().filter((s) => keep(s.getName())).map((s) => {
+      const rows = s.getLastRow();
+      const cols = s.getLastColumn();
+      const t: TabProbe = { name: s.getName(), gid: s.getSheetId(), rows, cols };
+      if (opts.headers) {
+        t.headers = rows < 1 || cols < 1 ? [] : s.getRange(1, 1, 1, cols).getDisplayValues()[0]!.map((h) => (trim ? String(h).trim() : String(h)));
+      }
+      return t;
+    });
+  });
+}
+
+/** The first probed tab whose headers include every required name, or null. Needs probeTabs headers. */
+export function findTabByHeaders(probe: TabProbe[], required: string[]): TabProbe | null {
+  const need = (Array.isArray(required) ? required : []).map(String);
+  if (!need.length) return null;
+  for (const t of Array.isArray(probe) ? probe : []) {
+    const have = t && Array.isArray(t.headers) ? t.headers : null;
+    if (have && need.every((h) => have.includes(h))) return t;
+  }
+  return null;
+}
+
 export const SOURCE_TAB_REFUSED_MESSAGE = "That tab is not one this app reads.";
 
 export interface BoundSourceOptions {
@@ -172,6 +261,10 @@ export interface BoundSource {
   openSource(): SourceHandle;
   readTable(tabName: string, opts?: ReadOptions): SourceTable;
   readSource(tabName: string, opts?: ReadOptions): SourceRead;
+  /** Every name must be allowed, or none is read. */
+  readTables(tabNames: string[], opts?: ReadOptions): SourceTables;
+  /** With a tab list, only the allowed tabs are probed (headers of other tabs are never read). */
+  probeTabs(opts?: ProbeOptions): TabProbe[];
 }
 
 /**
@@ -197,6 +290,16 @@ export function createSource(o: BoundSourceOptions): BoundSource {
     readSource: (tabName, opts = {}) => {
       const t = tab(tabName);
       return readSource(id(), t, opts);
+    },
+    readTables: (tabNames, opts = {}) => {
+      const ts = (Array.isArray(tabNames) ? tabNames : []).map(tab);
+      return readTables(id(), ts, opts);
+    },
+    probeTabs: (opts = {}) => {
+      if (!o.tabs) return probeTabs(id(), opts);
+      const allowed = o.tabs();
+      const ok = Array.isArray(allowed) ? allowed.map(String) : [];
+      return probeWith(id(), opts, (n) => ok.includes(n));
     },
   };
 }

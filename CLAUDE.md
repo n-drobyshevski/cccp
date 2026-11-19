@@ -7,8 +7,9 @@ in the architecture spec; the approved UI is in `mockups/` (never edited, never 
 ## Hard rules
 
 - **The source is read-only.** The register Sheet is never written, by any code path. Only
-  `src/server/sourceSheet.ts` calls `SpreadsheetApp`, and it returns plain arrays. Only
-  `src/server/exportSheet.ts` calls the Sheets or Drive advanced services. No mutator method
+  `src/server/sourceSheet.ts` (app code) and the kit's `sheetSource.ts` call `SpreadsheetApp`
+  (`openById` only), and both return plain arrays. No app code calls the Sheets or Drive advanced
+  services; the kit's `sheetExport.ts` does, and it writes only a new file. No mutator method
   names in `src/server`. Fakes in tests throw on any source write.
 - **Every RPC is classified twice.** Each export of `src/server/api.ts` must be listed in
   `src/server/roles.ts` `ENDPOINT_ROLES` (viewer, admin or owner) and have a delegator in

@@ -9,6 +9,12 @@
 @import "@gas-kit/ui/components/button.css";
 @import "@gas-kit/ui/components/toast.css";
 @import "@gas-kit/ui/components/confirm.css";
+@import "@gas-kit/ui/components/facetList.css";
+@import "@gas-kit/ui/components/dropdownMenu.css";
+@import "@gas-kit/ui/components/exportMenu.css";
+@import "@gas-kit/ui/components/kbd.css";
+@import "@gas-kit/ui/components/columnChooser.css";
+@import "@gas-kit/ui/components/switch.css";
 @import "./base.css";
 @import "./loading.css";
 @import "./appbar.css";

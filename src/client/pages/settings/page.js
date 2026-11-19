@@ -273,6 +273,8 @@ export const settingsPage = {
       if (act === "s-tab") navigate({ tab: b.getAttribute("data-tab") }, "replace");
       else if (act === "s-back") navigate({ route: homeRoute(store.get()), app: null, tab: null, view: null }, "push");
       else if (act === "s-tier") setRule(b.getAttribute("data-trule"), "tier", Number(b.getAttribute("data-tier")));
+      else if (act === "s-toggle") setDraft(b.getAttribute("data-v"), b.getAttribute("aria-checked") !== "true");
+      else if (act === "s-rule-on") setRule(b.getAttribute("data-v"), "on", b.getAttribute("aria-checked") !== "true");
       else if (act === "s-set") setDraft(b.getAttribute("data-key"), b.getAttribute("data-v"));
       else if (act === "s-discard" && s) { banner = null; ui.probe = { state: "idle" }; store.set({ settingsDraft: discard(s) }); draw(); }
       else if (act === "s-save") save();

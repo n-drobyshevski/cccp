@@ -10,7 +10,9 @@ import { delegate, qs, renderRegion } from "@gas-kit/client/dom.js";
 import { html } from "@gas-kit/client/html.js";
 import { icon } from "@gas-kit/client/icons.js";
 import { pluralize, fmtCount } from "@gas-kit/client/format.js";
-import { closePopovers, openPopover } from "../lib/popover.js";
+import { mountIslands } from "@gas-kit/client/islands.js";
+import { columnChooserIsland } from "@gas-kit/ui/components/columnChooser.js";
+import { dropdownMenuIsland } from "@gas-kit/ui/components/dropdownMenu.js";
 
 import { facetPanelView, toggled, withFacet } from "../components/facetPanel.js";
 import { mountViewList } from "../components/viewList.js";
@@ -61,7 +63,7 @@ export function lensSwitch(lens) {
 export function headView(s, shown, total, hidden) {
   const tags = activeTags(s);
   const n = activeFilterCount(s.f);
-  return html`<div class="rhead"><div class="rleft"><span class="rcount"><span data-count="visible"><b class="num mono">${fmtCount(shown)}</b></span> <span class="mut" data-count="of">of ${pluralize(total, "application")}</span>${hidden ? html` <span class="mut" data-count="hidden"> and ${pluralize(hidden, "application")} hidden by the display settings</span>` : ""}</span><span class="ftags">${tags.map((t) => html`<span class="ftag" data-tag="${t.key}"><span data-tip="${t.label}">${t.label}</span><button type="button" data-act="${t.act}" data-facet="${t.key}" data-k="tag-${t.key}" aria-label="Remove ${t.label}">${icon("close", 10)}</button></span>`)}${tags.length ? html`<button type="button" class="tlink" data-act="clear-all" data-k="clear-all">Clear all</button>` : ""}</span></div><div class="rtools"><button type="button" class="tlink fbtn" data-act="fopen" data-k="fopen" aria-haspopup="dialog" aria-expanded="false">Filters${n ? " (" + n + ")" : ""}</button>${s.lens === "table" || !s.lens ? html`<button type="button" class="tlink" data-act="cols" data-k="cols" aria-haspopup="dialog" aria-expanded="false">Columns</button>` : ""}<button type="button" class="tlink" data-act="export" data-k="export" aria-haspopup="dialog" aria-expanded="false">Export</button>${lensSwitch(s.lens)}</div></div>`;
+  return html`<div class="rhead"><div class="rleft"><span class="rcount"><span data-count="visible"><b class="num mono">${fmtCount(shown)}</b></span> <span class="mut" data-count="of">of ${pluralize(total, "application")}</span>${hidden ? html` <span class="mut" data-count="hidden"> and ${pluralize(hidden, "application")} hidden by the display settings</span>` : ""}</span><span class="ftags">${tags.map((t) => html`<span class="ftag" data-tag="${t.key}"><span data-tip="${t.label}">${t.label}</span><button type="button" data-act="${t.act}" data-facet="${t.key}" data-k="tag-${t.key}" aria-label="Remove ${t.label}">${icon("close", 10)}</button></span>`)}${tags.length ? html`<button type="button" class="tlink" data-act="clear-all" data-k="clear-all">Clear all</button>` : ""}</span></div><div class="rtools"><button type="button" class="tlink fbtn" data-act="fopen" data-k="fopen" aria-haspopup="dialog" aria-expanded="false">Filters${n ? " (" + n + ")" : ""}</button>${s.lens === "table" || !s.lens ? chooserView(s.cols, s.sort) : ""}${exportMenuView(shown)}${lensSwitch(s.lens)}</div></div>`;
 }
 
 /** The pillar tabs: All and one per pillar, each with its count over the filtered set. Pure. */
@@ -108,10 +110,9 @@ export const listPage = {
       if (!first.cols.length && saved.length && (!first.currentViewId || first.currentViewId === ALL_ID)) replace({ cols: saved });
     }
 
-    /** @type {import("../lib/popover.js").Popover | null} */
-    let chooser = null;
-    /** @type {import("../lib/popover.js").Popover | null} */
-    let exporter = null;
+    // The kit menus (Columns, Export) are islands on the content region: torn down before each
+    // render and mounted again after it (the column chooser reopens itself across that).
+    let offIslands = () => {};
     let drawer = false;
     const panel = { open: new Set(), finds: {} };
 
@@ -129,16 +130,10 @@ export const listPage = {
     const draw = () => {
       const s = store.get();
       const visible = register.visibleRows();
+      offIslands();
       renderRegion(content, resultsView(s, register.allRows().length, visible, register.hiddenCount(), s.limit));
+      offIslands = mountIslands(content, { dropdownMenu: dropdownMenuIsland, columnChooser: columnChooserIsland });
       drawDrawer();
-      if (chooser) {
-        chooser.update(chooserView(s.cols, s.sort));
-        chooser.setAnchor(qs(content, '[data-act="cols"]'));
-      }
-      if (exporter) {
-        exporter.update(exportMenuView(runQuery(visible, s).length));
-        exporter.setAnchor(qs(content, '[data-act="export"]'));
-      }
     };
     drawFacets();
     draw();
@@ -163,46 +158,9 @@ export const listPage = {
       if (t && typeof t.focus === "function") t.focus({ preventScroll: true });
     };
 
-    const openChooser = (btn) => {
-      if (chooser) { chooser.close(); return; }
-      const h = openPopover(btn, chooserView(store.get().cols, store.get().sort), {
-        label: "Columns", align: "end",
-        onClose: () => { if (chooser === h) chooser = null; },
-      });
-      chooser = h;
-      h.el.classList.add("pop-cols");
-      h.setAnchor(btn);
-      delegate(h.el, "change", "[data-act=col]", (ev, /** @type {any} */ input) => {
-        const s = store.get();
-        const next = toggleColumnKey(s.cols, input.getAttribute("data-col"), s.sort);
-        writeCols(next);
-        replace({ cols: next });
-      });
-      delegate(h.el, "click", "[data-act=cols-reset]", () => {
-        writeCols([]);
-        replace({ cols: [] });
-      });
-    };
-
     const exportCtx = () => {
       const s = store.get();
       return { rows: runQuery(register.visibleRows(), s), cols: visibleColumnDefs(s.cols, s.sort), route: "list", today: (s.live && s.live.today) || "", title: "Inventory" };
-    };
-    const openExport = (btn) => {
-      if (exporter) { exporter.close(); return; }
-      const h = openPopover(btn, exportMenuView(exportCtx().rows.length), {
-        label: "Export", align: "end",
-        onClose: () => { if (exporter === h) exporter = null; },
-      });
-      exporter = h;
-      h.el.classList.add("pop-menu");
-      h.setAnchor(btn);
-      delegate(h.el, "click", "[data-act^=export-]", (ev, /** @type {any} */ b) => {
-        const kind = b.getAttribute("data-act").slice("export-".length);
-        const ctx = exportCtx();
-        h.close();
-        runExport(kind, ctx);
-      });
     };
 
     const clearAll = () => {
@@ -224,12 +182,20 @@ export const listPage = {
       else if (act === "rm-q") replace({ q: "", limit: PAGE_STEP });
       else if (act === "clear-facet") setF(withFacet(s.f, b.getAttribute("data-facet"), []));
       else if (act === "fopen") setDrawer(!drawer);
-      else if (act === "cols") openChooser(b);
-      else if (act === "export") openExport(b);
+      else if (act === "columnChooser:reset") {
+        writeCols([]);
+        replace({ cols: [] });
+      } else if (act === "exportMenu:pick") runExport(b.getAttribute("data-v"), exportCtx());
       else if (act === "lens") { if (LENSES.indexOf(b.getAttribute("data-lens")) >= 0) replace({ lens: b.getAttribute("data-lens") }); }
       else if (act === "metric") replace({ metric: b.getAttribute("data-v") });
       else if (act === "grp") { toggleGroup(runQuery(register.visibleRows(), s), b.getAttribute("data-grp")); draw(); }
       else if (act === "open") open(b.getAttribute("data-id"));
+    }));
+    offs.push(delegate(content, "change", '[data-act="columnChooser:toggle"]', (ev, /** @type {any} */ input) => {
+      const s = store.get();
+      const next = toggleColumnKey(s.cols, input.getAttribute("data-col"), s.sort);
+      writeCols(next);
+      replace({ cols: next });
     }));
     offs.push(delegate(content, "click", "tr[data-id]", (ev, /** @type {any} */ tr) => open(tr.getAttribute("data-id"))));
     offs.push(delegate(aside, "click", "[data-act]", (ev, /** @type {any} */ b) => {
@@ -241,13 +207,13 @@ export const listPage = {
         drawFacets();
       } else if (act === "fclose") setDrawer(false);
     }));
-    offs.push(delegate(aside, "change", "[data-act=pick]", (ev, /** @type {any} */ input) => setF(toggled(store.get().f, input.getAttribute("data-facet"), input.getAttribute("data-v"), input.checked))));
-    offs.push(delegate(aside, "input", "[data-find]", (ev, /** @type {any} */ input) => {
-      panel.finds = { ...panel.finds, [input.getAttribute("data-find")]: input.value };
+    offs.push(delegate(aside, "change", '[data-act="facetToolbar:set"]', (ev, /** @type {any} */ input) => setF(toggled(store.get().f, input.getAttribute("data-facet"), input.getAttribute("data-v"), input.checked))));
+    offs.push(delegate(aside, "input", '[data-act="facetList:find"]', (ev, /** @type {any} */ input) => {
+      panel.finds = { ...panel.finds, [input.getAttribute("data-facet")]: input.value };
       drawFacets();
     }));
     offs.push(delegate(el, "click", ".fscrim", () => setDrawer(false)));
-    const onKey = (ev) => { if (ev.key === "Escape" && drawer && !document.querySelector(".pop")) setDrawer(false); };
+    const onKey = (ev) => { if (ev.key === "Escape" && drawer && !document.querySelector(".gk-menu__panel:popover-open, .gk-columnChooser__panel:popover-open")) setDrawer(false); };
     document.addEventListener("keydown", onKey);
 
     const offStore = store.subscribe((s, p) => {
@@ -256,7 +222,7 @@ export const listPage = {
       if (s.lens !== p.lens || s.metric !== p.metric || s.q !== p.q || s.f !== p.f || s.sort !== p.sort || s.desc !== p.desc || s.cols !== p.cols || s.limit !== p.limit) draw();
     });
     const offReg = register.subscribe(() => { drawFacets(); draw(); });
-    return () => { document.removeEventListener("keydown", onKey); offViews(); offReg(); offStore(); offs.forEach((f) => f()); closePopovers(false); };
+    return () => { document.removeEventListener("keydown", onKey); offViews(); offReg(); offStore(); offs.forEach((f) => f()); offIslands(); };
   },
 };
 

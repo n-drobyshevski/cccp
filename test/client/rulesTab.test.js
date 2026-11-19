@@ -118,13 +118,13 @@ describe("the view", () => {
       const row = out.slice(out.indexOf('data-rule-row="' + r.id + '"'));
       const end = row.indexOf('data-rule-row=', 10) < 0 ? row.length : row.indexOf('data-rule-row=', 10);
       const mine = row.slice(0, end);
-      if (r.toggle) expect(mine).toContain('data-prop="on"');
+      if (r.toggle) expect(mine).toContain('data-act="s-rule-on" data-k="rs-' + r.id + '"');
       else {
-        expect(mine).not.toContain('data-prop="on"');
+        expect(mine).not.toContain('data-act="s-rule-on"');
         expect(mine).toContain("Always on");
       }
     }
-    expect((out.match(/data-prop="on"/g) || []).length).toBe(RULES.filter((r) => r.toggle).length);
+    expect((out.match(/data-act="s-rule-on"/g) || []).length).toBe(RULES.filter((r) => r.toggle).length);
   });
 
   it("months rules carry a number input, the tier rule four tier checkboxes, and both mark state", () => {

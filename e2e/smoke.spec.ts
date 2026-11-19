@@ -132,13 +132,13 @@ test.describe("keyboard", () => {
 
   test("a popover opens from the keyboard and Escape returns focus to its trigger", async ({ page }) => {
     await page.goto("/?r=list");
-    const pill = page.locator("[data-region=content] [data-act=cols]");
+    const pill = page.locator("[data-region=content] #cols-trigger");
     await expect(pill).toBeVisible();
     await pill.focus();
     await page.keyboard.press("Enter");
-    await expect(page.locator(".pop")).toBeVisible();
+    await expect(page.locator("#cols")).toBeVisible();
     await page.keyboard.press("Escape");
-    await expect(page.locator(".pop")).toHaveCount(0);
+    await expect(page.locator("#cols")).toBeHidden();
     await expect(pill).toBeFocused();
   });
 

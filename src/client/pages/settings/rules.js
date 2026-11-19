@@ -6,6 +6,7 @@
 // switched on). This module holds the draft edits as pure functions; page.js wires the controls
 // (data-rule and data-prop, data-trule and data-tier) to them.
 import { html } from "@gas-kit/client/html.js";
+import { switchView } from "@gas-kit/ui/components/switch.js";
 import { fmtCount } from "@gas-kit/client/format.js";
 import { PILLAR_CODE } from "../../components/glyph.js";
 import { PILLAR_LABEL, STATUS_WORD } from "../../../domain/facets";
@@ -89,7 +90,7 @@ const always = html`<span class="sr-only" data-fixed>Always on</span>`;
 function control(rule, p, on) {
   if (p.months !== undefined) return html`${monthsCtl(rule, p)}${rule.toggle ? "" : always}`;
   if (rule.params && rule.params.tiers !== undefined && !rule.paramsFrom) return html`${tiersCtl(rule, p)}${rule.toggle ? "" : always}`;
-  if (rule.toggle) return html`<label class="sw"><input type="checkbox" data-rule="${rule.id}" data-prop="on" data-type="bool" data-k="rs-${rule.id}"${on ? html` checked` : ""} aria-label="Rule on: ${rule.sentence({ months: "N", tiers: [] })}"><span aria-hidden="true"></span><b class="swt" aria-hidden="true"></b></label>`;
+  if (rule.toggle) return html`<span class="sw">${switchView({ label: "Rule on: " + rule.sentence({ months: "N", tiers: [] }), checked: on, hideLabel: true, act: "s-rule-on", v: rule.id, k: "rs-" + rule.id })}<b class="swt" aria-hidden="true">${on ? "On" : "Off"}</b></span>`;
   return html`<span class="fixed" data-fixed>Always on</span>`;
 }
 

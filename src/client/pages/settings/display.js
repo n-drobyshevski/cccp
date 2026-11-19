@@ -2,7 +2,7 @@
 // with a live count of how many applications it hides now. A pure view.
 import { html } from "@gas-kit/client/html.js";
 import { fmtCount } from "@gas-kit/client/format.js";
-import { switchView } from "../../components/switch.js";
+import { switchView } from "@gas-kit/ui/components/switch.js";
 import { isHidden } from "../../state/register.js";
 
 const OPENS = [["overview", "Overview"], ["list", "Inventory"], ["heatmap", "Heatmap"], ["landscape", "Landscape"]];
@@ -42,5 +42,5 @@ export function displayView(ctx) {
     ${sf("Theme", "People can still switch with the sun icon.", segs("display.theme", d["display.theme"], THEMES, "Theme"))}</div>
     <div class="sgrp"><h3>Hidden applications</h3>
     ${sf("Hide names starting with", "Leftover or test entries. Leave empty to show everything.", html`<input id="st-prefix" class="inp" data-key="display.hidePrefix" data-type="text" data-k="prefix" value="${d["display.hidePrefix"]}" aria-label="Hide names starting with"${err ? html` aria-invalid="true"` : ""}>${aff("hidePrefix", c.prefix)}${err ? html`<small class="errtxt" role="alert">${err}</small>` : ""}`, "st-prefix")}
-    ${sf("Hide applications at end of life", "End of life and end of support.", html`${switchView({ key: "display.hideEol", on: d["display.hideEol"] === true, label: "Hide end of life applications" })}${aff("hideEol", c.eol)}`)}</div>`;
+    ${sf("Hide applications at end of life", "End of life and end of support.", html`<span class="sw">${switchView({ label: "Hide end of life applications", checked: d["display.hideEol"] === true, hideLabel: true, act: "s-toggle", v: "display.hideEol", k: "sw-display.hideEol" })}</span>${aff("hideEol", c.eol)}`)}</div>`;
 }

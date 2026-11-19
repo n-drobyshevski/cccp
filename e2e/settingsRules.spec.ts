@@ -55,11 +55,11 @@ test("the catalogue is shown by pillar; fixed rules have no switch, the others d
   await expect(page.locator("[data-pillar]")).toHaveCount(4);
   await expect(page.locator("[data-pillar=cyber] [data-rule-row]")).toHaveCount(5);
   for (const id of ["cy.high", "ct.drpMissing", "ct.drpNeverTested", "pl.decommissioning", "cy.pentestAge", "co.review", "ct.drpAge"]) {
-    await expect(page.locator('[data-rule-row="' + id + '"] input[data-prop=on]')).toHaveCount(0);
+    await expect(page.locator('[data-rule-row="' + id + '"] [role=switch]')).toHaveCount(0);
     await expect(page.locator('[data-rule-row="' + id + '"] [data-fixed]')).toHaveText("Always on");
   }
   for (const id of ["cy.noOfficer", "cy.exposedUntested", "cy.critical", "co.majorAudit", "ct.drpFailed", "pl.eol", "pl.noSso"]) {
-    await expect(page.locator('[data-rule-row="' + id + '"] input[data-prop=on]')).toHaveCount(1);
+    await expect(page.locator('[data-rule-row="' + id + '"] [role=switch]')).toHaveCount(1);
   }
   await expect(page.locator('[data-rule-row="cy.pentestAge"]')).toContainText("Last pentest older than");
   expect(await page.locator("[title]").count()).toBe(0);
@@ -168,7 +168,7 @@ test("a switch maps to on or off, dims the rule, keeps its count, and saves as o
   await spy(page);
   const row = page.locator('[data-rule-row="pl.noSso"]');
   const n = await cnt(page, "pl.noSso");
-  await row.locator("input[data-prop=on]").uncheck({ force: true });
+  await row.locator("[role=switch]").click();
   await expect(row).toHaveClass(/off/);
   expect(await cnt(page, "pl.noSso")).toBe(n);
   await expect(page.locator(".savebar")).toContainText("1 unsaved change");
@@ -180,7 +180,7 @@ test("a switch maps to on or off, dims the rule, keeps its count, and saves as o
   expect(typeof s[0].baseGen).toBe("number");
   await expect(page.locator(".savebar")).toHaveCount(0);
   await expect(row).toHaveClass(/off/);
-  await row.locator("input[data-prop=on]").check({ force: true });
+  await row.locator("[role=switch]").click();
   await expect(row).not.toHaveClass(/off/);
 });
 

@@ -152,7 +152,28 @@ describe("columns", () => {
     const r = chooserRows([], "n").find((c) => c.key === "n");
     expect(r.hideable).toBe(false);
     expect(r.shown).toBe(true);
-    expect(s(chooserView([], "n"))).toMatch(/data-col="n"[^>]*checked[^>]*disabled/);
+    const box = s(chooserView([], "n")).match(/<input[^>]*data-col="n"[^>]*>/)[0];
+    expect(box).toContain("checked");
+    expect(box).toContain("disabled");
+  });
+  it("a list stored by an earlier build reads back and draws the same boxes", () => {
+    mem.set("cccp.cols", '["-so","+ty"]');
+    expect(readCols()).toEqual(["-so", "+ty"]);
+    const out = s(chooserView(readCols(), "n"));
+    const box = (k) => out.match(new RegExp("<input[^>]*data-col=\"" + k + "\"[^>]*>"))[0];
+    expect(box("so")).not.toContain("checked");
+    expect(box("ty")).toContain("checked");
+    expect(out).toContain("Reset to default");
+    mem.set("cccp.cols", '["-zz","bogus",5]');
+    expect(readCols()).toEqual([]);
+    writeCols(["-so"]);
+    expect(mem.get("cccp.cols")).toBe('["-so"]');
+    writeCols([]);
+    expect(mem.has("cccp.cols")).toBe(false);
+  });
+  it("the sorted column is passed as always shown", () => {
+    const out = s(chooserView([], "so"));
+    expect(out.match(/<input[^>]*data-col="so"[^>]*>/)[0]).toContain("disabled");
   });
   it("a toggle records a deviation, a toggle back removes it", () => {
     const off = toggleColumnKey([], "so", "n");
@@ -198,7 +219,8 @@ describe("columns", () => {
   });
   it("the chooser lists every column; Reset appears only with a deviation", () => {
     const out = s(chooserView(["-so"], "n"));
-    expect([...out.matchAll(/data-act="col"/g)].length).toBe(COLUMNS.length);
+    expect([...out.matchAll(/data-act="columnChooser:toggle"/g)].length).toBe(COLUMNS.length - COLUMNS.filter((c) => c.pinned).length);
+    expect([...out.matchAll(/data-col="/g)].length).toBe(COLUMNS.length);
     expect(out).toContain("Reset to default");
     expect(s(chooserView([], "n"))).not.toContain("Reset to default");
   });
@@ -219,10 +241,10 @@ describe("Show more, the count and the empty state", () => {
     expect(s(headView(state(), 1, 1, 3))).toContain("and 3 applications hidden by the display settings");
     expect(s(headView(state(), 1, 1, 0))).toContain("of 1 application<");
   });
-  it("the head holds Columns and Export as text links, and Filters for the drawer", () => {
+  it("the head holds the Columns and Export menus, and Filters for the drawer", () => {
     const h = s(headView(state(), 4, 4, 0));
-    expect(h).toMatch(/<button type="button" class="tlink" data-act="cols"[^>]*>Columns<\/button>/);
-    expect(h).toMatch(/<button type="button" class="tlink" data-act="export"[^>]*>Export<\/button>/);
+    expect(h).toMatch(/<button[^>]*id="cols-trigger"[^>]*>.*?Columns<\/button>/);
+    expect(h).toMatch(/<button[^>]*id="export-trigger"[^>]*>Export<svg/);
     expect(h).toContain('data-act="fopen"');
     expect(h).toContain(">Filters<");
     expect(s(headView(state({ f: { tier: ["T1"], dom: ["A", "B"] } }), 4, 4, 0))).toContain(">Filters (3)<");

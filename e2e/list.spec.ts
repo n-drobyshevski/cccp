@@ -71,7 +71,7 @@ test.describe("columns", () => {
     await ready(page);
     await page.getByRole("button", { name: "Columns" }).focus();
     await page.keyboard.press("Enter");
-    const f = page.locator("input[data-act=col]:focus");
+    const f = page.locator('input[data-act="columnChooser:toggle"]:focus');
     await expect(f).toHaveCount(1);
     await expect(f).toBeEnabled();
     await page.keyboard.press("Space");
@@ -135,7 +135,7 @@ test.describe("count, Show more and the empty state", () => {
     await expect(page.getByRole("button", { name: /^Show 50 more/ })).toContainText((n - 50).toLocaleString("en-US") + " left");
     await page.getByRole("button", { name: /^Show 50 more/ }).click();
     await expect(rowsOf(page)).toHaveCount(100);
-    await page.locator('[data-k="side-tier-T1"]').check();
+    await page.locator('[data-k="side-tier:T1"]').check();
     const t1 = await visible(page);
     expect(t1).toBeLessThan(n);
     await expect(page.locator("[data-count=of]")).toContainText("of " + n.toLocaleString("en-US"));

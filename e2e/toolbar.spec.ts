@@ -24,14 +24,14 @@ async function heavy(page: Page, lens = "table") {
   await expect(page.locator("[data-region=content] .rhead")).toBeVisible();
   const drawer = (page.viewportSize()?.width ?? 1280) < 1024;
   if (drawer) await page.locator('[data-k="fopen"]').click();
-  await sec(page, "tier").locator('[data-k="side-tier-T1"]').check();
-  await sec(page, "tier").locator('[data-k="side-tier-T2"]').check();
+  await sec(page, "tier").locator('[data-k="side-tier:T1"]').check();
+  await sec(page, "tier").locator('[data-k="side-tier:T2"]').check();
   const dom = sec(page, "dom");
   if (await dom.locator('[data-k="fmore-dom"]').count()) await dom.locator('[data-k="fmore-dom"]').click();
-  for (const i of [0, 1, 2, 3, 4]) await dom.locator(".ck input").nth(i).check();
+  for (const i of [0, 1, 2, 3, 4]) await dom.locator(".gk-facetList__box").nth(i).check();
   const so = sec(page, "so");
   if (await so.locator('[data-k="fmore-so"]').count()) await so.locator('[data-k="fmore-so"]').click();
-  const values = await so.locator(".ck input").evaluateAll((els) => els.map((e) => e.getAttribute("data-v") as string));
+  const values = await so.locator(".gk-facetList__box").evaluateAll((els) => els.map((e) => e.getAttribute("data-v") as string));
   await so.locator(`input[data-v="${values.reduce((a, b) => (b.length > a.length ? b : a), "")}"]`).check();
   if (drawer) await page.locator('[data-k="fdone"]').click();
   await expect(page.locator(".ftag")).toHaveCount(3);
@@ -41,7 +41,7 @@ async function heavy(page: Page, lens = "table") {
 async function oneRow(page: Page) {
   const tops = await page.locator("[data-region=content] .rtools").evaluate((row) => {
     const out: { name: string; mid: number }[] = [];
-    row.querySelectorAll<HTMLElement>(".tlink, .lens button").forEach((el) => {
+    row.querySelectorAll<HTMLElement>(".tlink, .gk-menu__trigger, .gk-columnChooser__trigger, .lens button").forEach((el) => {
       const r = el.getBoundingClientRect();
       if (r.width > 0 && r.height > 0) out.push({ name: el.className + ":" + (el.textContent || "").trim().slice(0, 20), mid: r.top + r.height / 2 });
     });
@@ -118,7 +118,7 @@ test("the panel, the Filters button and the lens switch work by keyboard", async
   await page.keyboard.press("Enter");
   await expect(facets(page)).toBeVisible();
   await expect(btn).toHaveAttribute("aria-expanded", "true");
-  const box = sec(page, "tier").locator('[data-k="side-tier-T1"]');
+  const box = sec(page, "tier").locator('[data-k="side-tier:T1"]');
   await box.focus();
   await page.keyboard.press("Space");
   await expect(box).toBeChecked();

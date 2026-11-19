@@ -161,7 +161,7 @@ test("display counts are live", async ({ page }) => {
   await expect(page.locator("#st-tab-display .dirtydot")).toHaveCount(1);
   const eol = page.locator("[data-cnt=hideEol]");
   await expect(eol).toContainText("apps");
-  await page.locator(".sw input[data-key='display.hideEol']").check({ force: true });
+  await page.locator('.sw [role=switch][data-v="display.hideEol"]').click();
   await expect(page.locator(".savebar")).toContainText("2 unsaved changes");
   await page.getByRole("button", { name: "Dark", exact: true }).click();
   await expect(page.locator(".savebar")).toContainText("3 unsaved changes");
@@ -176,7 +176,7 @@ test("publishing a shared view keeps an unsaved settings draft", async ({ page }
   await expect(page.locator(".savebar")).toContainText("1 unsaved change");
   await page.getByRole("button", { name: "Inventory", exact: true }).first().click();
   await expect(page.locator("table[data-table=list]")).toBeVisible();
-  await page.locator('[data-k="side-tier-T1"]').check();
+  await page.locator('[data-k="side-tier:T1"]').check();
   await page.getByRole("button", { name: "+ Save" }).click();
   await page.getByLabel("View name").fill("Draft survivor");
   await page.getByLabel("Share with everyone").check();

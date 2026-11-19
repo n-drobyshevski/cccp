@@ -68,6 +68,9 @@ export default {
     // spacing, type, motion, chart, sidebar and shadow tokens the app does not use yet) now loads before theme.css.
     // C5a: js 208000 (bundle 207909, +8.0 KB: the kit toaster with its motion helpers, and the confirm island, replace
     // the app's 31 and 47 line modules) and css 72700 (bundle 72654, +6.2 KB: kit button, toast and confirm styles).
-    budgets: { server: 157_600, js: 208_000, css: 72_700 },
+    // C5b: js 215700 (bundle 215603, +7.7 KB: kit exportMenu with runExport, dropdownMenu and columnChooser islands, facetList,
+    // switch, tableModel helpers) and css 81400 (bundle 81361, +8.7 KB: kit dropdownMenu, columnChooser, facetList, exportMenu, kbd and
+    // switch styles, plus the app's overrides); the app's popover, switch and checklist modules and styles are gone.
+    budgets: { server: 157_600, js: 215_700, css: 81_400 },
   },
 };

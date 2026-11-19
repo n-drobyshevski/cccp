@@ -1,12 +1,12 @@
 // The Inventory's left facet panel (identity G). One section per facet: an uppercase heading with
 // Clear while something is selected, the values with a checkbox and a live count, and "+ N more"
-// to open the long ones (with a find box on the big facets). It reuses facetList's checklist and
+// to open the long ones (with a find box on the big facets). It reuses the kit facetList (through components/facetList.js) and
 // the domain's facetOptions, so the counts and the filter rules are the ones every page uses.
 // Pure: the page owns the selection, the find text and which sections are open.
 import { html } from "@gas-kit/client/html.js";
 import { FACET_BY_KEY } from "../../domain/facets";
 import { facetOptions } from "../../domain/query";
-import { checklist, findBox } from "./facetList.js";
+import { checklist } from "./facetList.js";
 
 /** The facets the panel lists, in order. */
 export const PANEL_FACETS = ["tier", "lc", "dom", "so", "gap", "sd", "ty", "h"];
@@ -37,7 +37,7 @@ function section(s, rows, key, st) {
   const toggle = v.total > TOP_N
     ? html`<button type="button" class="tlink" data-act="more-facet" data-facet="${key}" data-k="fmore-${key}" aria-expanded="${open ? "true" : "false"}">${open ? "Show fewer" : "+ " + v.hidden + " more"}</button>`
     : "";
-  return html`<section class="fg" data-facet="${key}" aria-labelledby="fh-${key}"><h4 class="fh"><span id="fh-${key}">${def.label}</span><span class="fact">${n ? html`<button type="button" class="tlink" data-act="clear-facet" data-facet="${key}" data-k="fclear-${key}" aria-label="Clear ${def.label}">Clear</button>` : ""}${toggle}</span></h4>${open && def.big ? findBox({ key, label: def.label, scope: "side", find }) : ""}${checklist({ key, options: v.shown, find: open ? find : "", scope: "side" })}</section>`;
+  return html`<section class="fg" data-facet="${key}" aria-labelledby="fh-${key}"><h4 class="fh"><span id="fh-${key}">${def.label}</span><span class="fact">${n ? html`<button type="button" class="tlink" data-act="clear-facet" data-facet="${key}" data-k="fclear-${key}" aria-label="Clear ${def.label}">Clear</button>` : ""}${toggle}</span></h4>${checklist({ key, label: def.label, options: v.shown, find: open ? find : "", big: open && def.big, scope: "side" })}</section>`;
 }
 
 /** The panel body. st = {open: Set of facet keys, finds: {key: text}}. */

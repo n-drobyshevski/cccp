@@ -1,4 +1,4 @@
-/* Reset, type, buttons, scrollbars and the small shared widgets (tip, popover, toast, dialog,
+/* Reset, type, buttons, scrollbars and the small shared widgets (tip, toast, dialog,
    state cards, skeleton). Everything uses tokens; colours live in tokens.css only. */
 *, *::before, *::after { box-sizing: border-box; }
 html { -webkit-text-size-adjust: 100%; }
@@ -72,10 +72,6 @@ a { color: var(--accent); }
 /* ---------- tooltip (lib/tip.js) ---------- */
 .tip { position: fixed; z-index: 70; max-width: 260px; padding: 5px 9px; border-radius: 6px; background: var(--tip-bg); color: var(--tip-fg); font: 500 12px/1.35 var(--font-sans); pointer-events: none; }
 .tip[hidden] { display: none; }
-
-/* ---------- popover (lib/popover.js) ---------- */
-.pop { position: fixed; z-index: 60; width: 280px; max-width: calc(100vw - 16px); max-height: min(420px, calc(100vh - 16px)); overflow: auto; background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); box-shadow: var(--shadow-md); padding: 8px; }
-.pop:focus { outline: none; }
 
 /* ---------- kit overrides: Identity G on the kit's classes (tokens only) ---------- */
 /* Buttons: the kit's gk-btn drawn as the app's .btn (quiet outline; primary and danger filled). */

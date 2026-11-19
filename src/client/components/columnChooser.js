@@ -6,8 +6,7 @@
 // the kit's store helpers), so a list saved by an earlier build still reads back.
 import { columnChooser } from "@gas-kit/ui/components/columnChooser.js";
 import * as storage from "../lib/storage.js";
-import { columnChoices } from "../../vendor/gas_shared/ui/tableModel";
-import { COLUMNS, choiceOf, signedKeys } from "../../domain/columns";
+import { COLUMNS, deviationsOf } from "../../domain/columns";
 
 export const COLS_KEY = "cols";
 
@@ -15,16 +14,11 @@ export const COLS_KEY = "cols";
 export function readCols() {
   const raw = storage.getJson(COLS_KEY, []);
   if (!Array.isArray(raw)) return [];
-  return signedKeys(choiceOf(raw.filter((k) => typeof k === "string")));
+  return deviationsOf(raw.filter((k) => typeof k === "string"));
 }
 
 export function writeCols(signed) {
   return signed.length ? storage.setJson(COLS_KEY, signed) : storage.remove(COLS_KEY);
-}
-
-/** The chooser's rows for a signed choice and the active sort: {key, label, shown, hideable}. */
-export function chooserRows(signed, sort) {
-  return columnChoices(COLUMNS, choiceOf(signed), sort);
 }
 
 /**

@@ -2,7 +2,7 @@
 // click), cells and their escaping, the Columns choice and its persistence, Show more and the
 // empty state. The DOM behaviour (clicks, keyboard, Back and scroll) is in e2e/list.spec.ts.
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
-import { chooserRows, chooserView, readCols, writeCols } from "../../src/client/components/columnChooser.js";
+import { chooserView, readCols, writeCols } from "../../src/client/components/columnChooser.js";
 import { PAGE_STEP, cell, emptyView, headCell, lifecycleClass, moreView, sortAfter, tableView } from "../../src/client/components/table.js";
 import { headView, resultsView } from "../../src/client/pages/list.js";
 import * as register from "../../src/client/state/register.js";
@@ -12,7 +12,7 @@ import { COLUMNS, COLUMN_BY_KEY, DEFAULT_COLUMN_KEYS, statusKey, toggleColumnKey
 import { runQuery } from "../../src/domain/query";
 import { DEFAULT_RULES } from "../../src/domain/rules";
 import { fromQuery } from "../../src/domain/viewState";
-import { columnShown, toggleColumn, visibleColumns } from "../../src/vendor/gas_shared/ui/tableModel";
+import { toggleColumn, visibleColumns } from "@gas-kit/ui/components/tableModel.js";
 import { installLocalStorage, installRefusingLocalStorage, removeLocalStorage } from "./localStorageFake.js";
 import { mk } from "../domain/mk";
 
@@ -149,9 +149,6 @@ describe("columns", () => {
   });
   it("Application is fixed: it cannot be switched off", () => {
     expect(toggleColumnKey([], "n", "n")).toEqual([]);
-    const r = chooserRows([], "n").find((c) => c.key === "n");
-    expect(r.hideable).toBe(false);
-    expect(r.shown).toBe(true);
     const box = s(chooserView([], "n")).match(/<input[^>]*data-col="n"[^>]*>/)[0];
     expect(box).toContain("checked");
     expect(box).toContain("disabled");
@@ -211,11 +208,11 @@ describe("columns", () => {
   });
   it("a column added later shows by default for a reader with an old choice", () => {
     const before = [{ key: "n", label: "Name", pinned: true }, { key: "a", label: "A" }, { key: "b", label: "B" }];
-    const after = [...before, { key: "c", label: "C" }, { key: "d", label: "D", defaultHidden: true }];
-    const choice = toggleColumn(before, null, "a");
+    const after = [...before, { key: "c", label: "C" }, { key: "d", label: "D", hidden: true }];
+    const choice = toggleColumn(before, [], "a");
     expect(visibleColumns(before, choice).map((c) => c.key)).toEqual(["n", "b"]);
     expect(visibleColumns(after, choice).map((c) => c.key)).toEqual(["n", "b", "c"]);
-    expect(columnShown(after[4], choice)).toBe(false);
+    expect(visibleColumns(after, choice).map((c) => c.key)).not.toContain("d");
   });
   it("the chooser lists every column; Reset appears only with a deviation", () => {
     const out = s(chooserView(["-so"], "n"));

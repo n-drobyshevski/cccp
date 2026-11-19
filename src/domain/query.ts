@@ -4,7 +4,7 @@
 
 import type { FacetKey, Pillar, ViewState } from "./types";
 import { PILLARS } from "./types";
-import { sortRows as sortWith } from "../vendor/gas_shared/ui/tableModel";
+import { sortRows as sortWith } from "@gas-kit/ui/components/tableModel.js";
 import type { Row } from "./facets";
 import { FACETS, FACET_KEYS, PILLAR_LABEL, facetValues, facetValuesOf, fold } from "./facets";
 import { COLUMN_BY_KEY, DEFAULT_SORT } from "./columns";
@@ -59,14 +59,26 @@ export function activeFilterCount(f: Selection): number {
   return FACETS.reduce((n, d) => n + (f[d.key] ? f[d.key]!.length : 0), 0);
 }
 
-/** Sort by a column key with the vendored comparison: unknowns last, name tie-break. */
+/**
+ * Text sorts as lower-case text and unknowns (null) sort last in both directions, ties by name then id.
+ * The kit's comparison reads a string that looks like a plain number as a number ("10" after "9"); the
+ * list has always ordered text as text, so a string value gets a constant prefix, which keeps the
+ * text order and keeps it from reading as a number. A number value (tier, status key, completeness)
+ * stays a number.
+ */
+const textOrder = (v: string | number | null): string | number | null => (typeof v === "string" ? "s" + v : v);
+
+/** The tie-break is never flipped by the direction: lower-case text of name and id. */
+const byNameThenId = (a: Row, b: Row): number => {
+  const x = (a.app.name + "\u0000" + a.app.id).toLowerCase();
+  const y = (b.app.name + "\u0000" + b.app.id).toLowerCase();
+  return x < y ? -1 : x > y ? 1 : 0;
+};
+
+/** Sort by a column key with the kit's stable sort: unknowns last, name tie-break. */
 export function sortRows(rows: readonly Row[], key: string, desc: boolean): Row[] {
   const col = COLUMN_BY_KEY[key] || COLUMN_BY_KEY[DEFAULT_SORT]!;
-  return sortWith(rows as Row[], {
-    value: (r: Row) => col.sort(r),
-    descending: desc,
-    tiebreak: (r: Row) => r.app.name + "\u0000" + r.app.id,
-  }) as Row[];
+  return sortWith(rows as Row[], { value: (r: Row) => textOrder(col.sort(r)), descending: desc, tiebreak: byNameThenId }) as Row[];
 }
 
 /** The filtered and sorted rows for a view state. */

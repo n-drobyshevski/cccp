@@ -4,7 +4,7 @@
 
 import type { FacetKey, SavedView, ViewState } from "./types";
 import { FACET_KEYS, isFacetKey } from "./facets";
-import { DEFAULT_SORT, choiceOf, isColumnKey, signedKeys } from "./columns";
+import { DEFAULT_SORT, deviationsOf, isColumnKey } from "./columns";
 
 export const URL_MAX = 2000;
 export const STRING_MAX = 200;
@@ -71,7 +71,7 @@ export function cleanState(raw: unknown): ViewState {
   s.f = cleanF(r.f);
   if (typeof r.sort === "string" && isColumnKey(r.sort)) s.sort = r.sort;
   s.desc = r.desc === true;
-  if (Array.isArray(r.cols)) s.cols = signedKeys(choiceOf(r.cols.filter((x): x is string => typeof x === "string")));
+  if (Array.isArray(r.cols)) s.cols = deviationsOf(r.cols.filter((x): x is string => typeof x === "string"));
   if (typeof r.metric === "string" && METRICS.includes(r.metric)) s.metric = r.metric;
   if (typeof r.lens === "string" && LENSES.includes(r.lens)) s.lens = r.lens;
   return s;
@@ -178,7 +178,7 @@ export function fromParams(params: ParamMap): ParsedLink {
   const desc = one(params.desc);
   state.desc = desc === "1" || desc === "true";
   const cols = one(params.cols);
-  if (cols) state.cols = signedKeys(choiceOf(cols.split(",")));
+  if (cols) state.cols = deviationsOf(cols.split(","));
   const metric = one(params.metric);
   if (metric && METRICS.includes(metric)) state.metric = metric;
   const out: ParsedLink = { state };

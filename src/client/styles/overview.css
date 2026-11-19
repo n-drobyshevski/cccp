@@ -5,14 +5,17 @@
 .ovh h1 { font-size: 30px; letter-spacing: -0.01em; }
 .ovh p { font-size: 15px; }
 .kpis { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); border-bottom: 1px solid var(--line2); }
-.kpi { display: flex; flex-direction: column; align-items: flex-start; gap: 3px; text-align: left; border: 0; border-right: 1px solid var(--line2); background: none; border-radius: 0; padding: 18px 22px 18px 0; margin-right: 22px; color: var(--text); min-width: 0; }
-.kpi:last-child { border-right: 0; margin-right: 0; }
-.kpi:focus-visible { outline-offset: -2px; }
-.kpi b { font: 500 42px/1.05 var(--font-mono); letter-spacing: -0.03em; }
-.kpi .kl { font-size: 16px; font-weight: 600; margin-top: 4px; }
-.kpi small { color: var(--text-muted); font-size: 13.5px; }
-.kpi .kgo { color: var(--accent); font-weight: 600; margin-top: 8px; font-size: 14px; }
-.kpi:hover .kgo { text-decoration: underline; text-underline-offset: 2px; }
+/* The kit kpiTile in the Identity G look: value first, in mono; label; note; then "Open in inventory ›".
+   The selector is as specific as the kit's own interactive rules so the border and hover are ours. */
+.kpis button.gk-kpiTile.is-interactive { gap: 3px; text-align: left; border: 0; border-right: 1px solid var(--line2); background: none; border-radius: 0; box-shadow: none; padding: 18px 22px 18px 0; margin-right: 22px; color: var(--text); min-width: 0; }
+.kpis button.gk-kpiTile.is-interactive:hover { background: none; }
+.kpis button.gk-kpiTile.is-interactive:last-child { border-right: 0; margin-right: 0; }
+.kpis .gk-kpiTile:focus-visible { outline-offset: -2px; }
+.kpis .gk-kpiTile__value { order: 0; font: 500 42px/1.05 var(--font-mono); letter-spacing: -0.03em; }
+.kpis .gk-kpiTile__label { order: 1; font-size: 16px; font-weight: 600; margin-top: 4px; color: var(--text); }
+.kpis .gk-kpiTile__note { order: 2; color: var(--text-muted); font-size: 13.5px; }
+.kpis .gk-kpiTile::after { order: 3; content: "Open in inventory \203A"; color: var(--accent); font-weight: 600; margin-top: 8px; font-size: 14px; }
+.kpis .gk-kpiTile:hover::after { text-decoration: underline; text-underline-offset: 2px; }
 .two { display: grid; grid-template-columns: minmax(0, 4fr) minmax(0, 5fr); gap: 0 40px; align-items: start; padding-top: 22px; }
 .ovs { min-width: 0; }
 .ovs > h2.lbl { padding-bottom: 8px; border-bottom: 1px solid var(--line2); font-size: 12px; }
@@ -47,11 +50,11 @@
 @media (max-width: 1023px) {
   .two { grid-template-columns: minmax(0, 1fr); gap: 28px; }
   .kpis { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-  .kpi:nth-child(2) { border-right: 0; margin-right: 0; }
-  .kpi:nth-child(n+3) { border-top: 1px solid var(--line2); }
+  .kpis button.gk-kpiTile.is-interactive:nth-child(2) { border-right: 0; margin-right: 0; }
+  .kpis button.gk-kpiTile.is-interactive:nth-child(n+3) { border-top: 1px solid var(--line2); }
 }
 @media (max-width: 600px) {
-  .kpi b { font-size: 34px; }
+  .kpis .gk-kpiTile__value { font-size: 34px; }
   .pbar { grid-template-columns: minmax(0, 1fr) auto; gap: 6px 10px; }
   .pbar .stk { grid-column: 1 / -1; grid-row: 2; }
   .dt th, .dt td { padding-inline: 4px; }

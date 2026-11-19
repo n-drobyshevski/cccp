@@ -2,14 +2,14 @@
 // key, the Show-more footer and the empty state. The page decides which rows and columns; this
 // file only draws them. A name is a real button, so the row opens from the keyboard.
 import { html, raw } from "@gas-kit/client/html.js";
-import { nextSort } from "../../vendor/gas_shared/ui/tableModel";
+import { PAGE_STEP, moreStep, nextSort } from "@gas-kit/ui/components/tableModel.js";
 import { lifecycleLabel } from "../../domain/facets";
 import { PILLARS } from "../../domain/types";
 import { PILLAR_LABEL } from "../../domain/facets";
 import { PILLAR_CODE, glyphs, pillarGlyph } from "./glyph.js";
 import { fmtCount } from "@gas-kit/client/format.js";
 
-export const PAGE_STEP = 50;
+export { PAGE_STEP };
 
 const SORT_ICONS = {
   none: '<svg viewBox="0 0 10 10" fill="currentColor" aria-hidden="true" focusable="false"><path d="M5 1 8 4.5H2zM5 9 2 5.5h6z"/></svg>',
@@ -32,8 +32,8 @@ export const pctStep = (p) => (p < 50 ? "bad" : p < 80 ? "warn" : "ok");
 
 /** The sort that a click on `key` asks for, given the current one. */
 export function sortAfter(sort, desc, col) {
-  const n = nextSort({ key: sort, descending: !!desc }, col.key, !!col.descFirst);
-  return { sort: n.key, desc: n.descending };
+  const n = nextSort({ key: sort, desc: !!desc }, col.key, !!col.descFirst);
+  return { sort: n.key, desc: n.desc };
 }
 
 const blank = (v) => v == null || String(v).trim() === "";
@@ -97,7 +97,7 @@ export function tableView(m) {
 export function moreView(shown, total) {
   const left = total - shown;
   if (left <= 0) return html``;
-  const step = Math.min(PAGE_STEP, left);
+  const step = moreStep(shown, total, PAGE_STEP);
   return html`<div class="more"><button type="button" class="btn" data-act="more" data-k="more">Show ${step} more · ${fmtCount(left)} left</button></div>`;
 }
 

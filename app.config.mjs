@@ -71,6 +71,9 @@ export default {
     // C5c: js 218900 (bundle 218797, +3.2 KB: the kit accessModel and savebar, the kit sameValue the settings kernel
     // now reads, a smaller access controller) and css 83000 (bundle 82880, +1.5 KB: kit savebar styles and the app's
     // overrides); the vendored accessModel, accessSave and settingsForm are no longer imported.
-    budgets: { server: 157_600, js: 218_900, css: 83_000 },
+    // C5d: js 222100 (bundle 222012, +3.2 KB: the kit kpiTile with its count-up motion import and tags, the kit
+    // tableModel that replaces the vendored one) and css 86200 (bundle 86135, +3.3 KB: kit kpiTile and tags styles
+    // under the app's overrides). The server cap is unchanged (the kit tableModel is smaller than the vendored one).
+    budgets: { server: 157_600, js: 222_100, css: 86_200 },
   },
 };

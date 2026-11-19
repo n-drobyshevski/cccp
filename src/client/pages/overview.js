@@ -60,7 +60,7 @@ export const overviewPage = {
     const offReg = register.subscribe(draw);
     const off = delegate(el, "click", "[data-act=go]", (ev, b) => {
       let f = {};
-      try { f = JSON.parse(b.getAttribute("data-go") || "{}"); } catch (e) { return; }
+      try { f = JSON.parse(b.getAttribute("data-go") || b.getAttribute("data-v") || "{}"); } catch (e) { return; }
       navigate(listPatch(f), "push");
     });
     // The whole domain row opens the List, as the name button does; the buttons keep their own click.
@@ -69,7 +69,7 @@ export const overviewPage = {
       const b = row.querySelector("[data-act=go]");
       if (!b) return;
       let f = {};
-      try { f = JSON.parse(b.getAttribute("data-go") || "{}"); } catch (e) { return; }
+      try { f = JSON.parse(b.getAttribute("data-go") || b.getAttribute("data-v") || "{}"); } catch (e) { return; }
       navigate(listPatch(f), "push");
     });
     return () => { offReg(); off(); offRow(); };

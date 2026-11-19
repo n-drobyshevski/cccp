@@ -30,7 +30,7 @@ run sync, and list it below.
 | sidekick path (and path under `src/vendor/`) | Used for |
 | --- | --- |
 | `gas_shared/ui/settingsForm.js` | unused since C5c (now the derived `src/client/pages/settings/formKernel.js`); goes with `src/vendor` |
-| `gas_shared/ui/tableModel.js` | compareValues, nullsLast, sortRows, nextSort, column choice and its URL encoding |
+| `gas_shared/ui/tableModel.js` | unused since C5d (the kit's `tableModel.js` replaced it; `src/domain/columns.ts` and `query.ts` adapt at the boundary); goes with `src/vendor` |
 | `gas_shared/ui/timing.js` | unused (the app never imported it); the kit's `timing.js` is the one to use; goes with `src/vendor` |
 | `gas_shared/ui/tipPlace.js` | unused since C3a (the kit's `tipPlace.js` replaced it); goes with `src/vendor` |
 | `gas_shared/ui/accessSave.js` | unused since C5c (the kit's `notKept` and `guardUnsaved` replaced it); goes with `src/vendor` |

@@ -7,7 +7,7 @@ import { html } from "@gas-kit/client/html.js";
 import { pluralize } from "@gas-kit/client/format.js";
 import { runQuery } from "../../domain/query";
 import { closePopovers } from "../lib/popover.js";
-import { closeTips } from "../lib/tip.js";
+import { closeTips } from "@gas-kit/client/tip.js";
 import * as register from "../state/register.js";
 import { store } from "../state/store.js";
 import { navigate } from "../state/url.js";

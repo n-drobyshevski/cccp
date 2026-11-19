@@ -10,7 +10,7 @@
 import { delegate, qs, renderRegion } from "@gas-kit/client/dom.js";
 import { html } from "@gas-kit/client/html.js";
 import { icon } from "@gas-kit/client/icons.js";
-import * as rpc from "../../lib/rpc.js";
+import * as rpc from "@gas-kit/client/rpc.js";
 import { toast } from "../../lib/toast.js";
 import { savebar } from "../../components/savebar.js";
 import { homeRoute } from "../../shell/appbar.js";
@@ -31,6 +31,7 @@ import { displayView } from "./display.js";
 import { fieldsView } from "./fields.js";
 import { editRule, toggleTier, rulesView, ruleChangeNotes } from "./rules.js";
 import { sourceView } from "./source.js";
+import { errorText } from "../../lib/errorText.js";
 
 const VIEWS = { source: sourceView, fields: fieldsView, rules: rulesView, access: accessView, display: displayView };
 
@@ -172,7 +173,7 @@ export const settingsPage = {
       } catch (e) {
         endWait();
         if (!alive || !ctx.current()) return;
-        renderRegion(el, html`<section class="state error" role="alert"><h1>The settings could not be opened</h1><p>${e.message}</p><p class="state-act"><button type="button" class="btn" data-act="s-retry" data-k="retry">Retry</button></p></section>`, { keepFocus: false, keepScroll: false });
+        renderRegion(el, html`<section class="state error" role="alert"><h1>The settings could not be opened</h1><p>${errorText(e)}</p><p class="state-act"><button type="button" class="btn" data-act="s-retry" data-k="retry">Retry</button></p></section>`, { keepFocus: false, keepScroll: false });
         return;
       }
       draw();
@@ -194,7 +195,7 @@ export const settingsPage = {
       try {
         ui.probe = { state: "ok", result: await rpc.call("probeSource", { url: s.draft["source.sheetId"] }) };
       } catch (e) {
-        ui.probe = { state: "err", message: e.message };
+        ui.probe = { state: "err", message: errorText(e) };
       }
       draw();
     }
@@ -211,7 +212,7 @@ export const settingsPage = {
         ui.reloadedAt = true;
         toast("Data reloaded · " + register.allRows().length + " applications");
       } catch (e) {
-        toast(e.message, { kind: "err" });
+        toast(errorText(e), { kind: "err" });
       }
       ui.reloadBusy = false;
       draw();
@@ -224,7 +225,7 @@ export const settingsPage = {
         banner = { kind: "conflict", text: e.message + " The settings on this page were reloaded, so your unsaved changes were discarded. Make them again and save." };
         toast("Settings reloaded: someone else saved first", { kind: "err" });
       } catch (e2) {
-        banner = { kind: "error", text: e2.message };
+        banner = { kind: "error", text: errorText(e2) };
       }
     }
 
@@ -252,8 +253,8 @@ export const settingsPage = {
       } catch (e) {
         if (e.kind === "conflict") await conflict(e);
         else {
-          banner = { kind: "error", text: e.kind === "busy" ? "Someone else is saving the settings right now. Wait a moment and save again." : e.message };
-          toast(e.message, { kind: "err" });
+          banner = { kind: "error", text: e.kind === "busy" ? "Someone else is saving the settings right now. Wait a moment and save again." : errorText(e) };
+          toast(errorText(e), { kind: "err" });
         }
       }
       busy = false;

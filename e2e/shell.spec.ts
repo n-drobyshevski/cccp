@@ -103,10 +103,10 @@ test.describe("app bar", () => {
   test("a tip opens on keyboard focus", async ({ page }) => {
     await page.goto("/");
     await page.getByRole("button", { name: /Switch to/ }).focus();
-    await expect(page.locator("#cccp-tip")).toBeVisible();
-    await expect(page.locator("#cccp-tip")).toHaveText(/Switch to (dark|light) theme/);
+    await expect(page.locator("#gk-tip")).toBeVisible();
+    await expect(page.locator("#gk-tip")).toHaveText(/Switch to (dark|light) theme/);
     await page.keyboard.press("Escape");
-    await expect(page.locator("#cccp-tip")).toBeHidden();
+    await expect(page.locator("#gk-tip")).toBeHidden();
   });
 });
 

@@ -19,8 +19,9 @@ import { delegate } from "@gas-kit/client/dom.js";
 import { confirmDialog } from "../../lib/confirm.js";
 import { pluralize } from "@gas-kit/client/format.js";
 import { html } from "@gas-kit/client/html.js";
-import * as rpc from "../../lib/rpc.js";
+import * as rpc from "@gas-kit/client/rpc.js";
 import { toast } from "../../lib/toast.js";
+import { errorText } from "../../lib/errorText.js";
 
 /** Two letters for the avatar: 'jane.doe@x.com' is JD. */
 export function initials(email) {
@@ -198,7 +199,7 @@ export function createAccess({ el, redraw }) {
       else { adopt(info); state.status = "ready"; }
     } catch (e) {
       state.status = "error";
-      state.message = e.message;
+      state.message = errorText(e);
     }
     redraw();
   }
@@ -240,7 +241,7 @@ export function createAccess({ el, redraw }) {
       else toast("Access updated.");
       adopt(fresh);
     } catch (e) {
-      toast(e.message, { kind: "err" });
+      toast(errorText(e), { kind: "err" });
     }
     state.busy = false;
     redraw();
@@ -258,7 +259,7 @@ export function createAccess({ el, redraw }) {
         ? "Everyone at " + state.domain + " can now open CCCP."
         : "Back to the list. " + pluralize(keepers(info).length, "person", "people") + " keep access.");
     } catch (e) {
-      toast(e.message, { kind: "err" });
+      toast(errorText(e), { kind: "err" });
     }
     redraw();
   }

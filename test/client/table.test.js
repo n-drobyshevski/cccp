@@ -13,6 +13,7 @@ import { runQuery } from "../../src/domain/query";
 import { DEFAULT_RULES } from "../../src/domain/rules";
 import { fromQuery } from "../../src/domain/viewState";
 import { columnShown, toggleColumn, visibleColumns } from "../../src/vendor/gas_shared/ui/tableModel";
+import { installLocalStorage, installRefusingLocalStorage, removeLocalStorage } from "./localStorageFake.js";
 import { mk } from "../domain/mk";
 
 const today = "2026-11-11";
@@ -138,9 +139,9 @@ describe("columns", () => {
   const mem = new Map();
   beforeEach(() => {
     mem.clear();
-    globalThis.window = { localStorage: { getItem: (k) => (mem.has(k) ? mem.get(k) : null), setItem: (k, v) => { mem.set(k, String(v)); }, removeItem: (k) => { mem.delete(k); } } };
+    installLocalStorage({ getItem: (k) => (mem.has(k) ? mem.get(k) : null), setItem: (k, v) => { mem.set(k, String(v)); }, removeItem: (k) => { mem.delete(k); } });
   });
-  afterEach(() => { delete globalThis.window; });
+  afterEach(() => { removeLocalStorage(); });
 
   it("the defaults are the lx3 set, in the registry order", () => {
     expect(visibleColumnDefs([], "n").map((c) => c.key)).toEqual(DEFAULT_COLUMN_KEYS.slice());
@@ -183,7 +184,7 @@ describe("columns", () => {
     expect(readCols()).not.toContain("-gone");
   });
   it("a refusing storage reads as no choice and writes return false", () => {
-    globalThis.window = { get localStorage() { throw new Error("blocked"); } };
+    installRefusingLocalStorage();
     expect(readCols()).toEqual([]);
     expect(writeCols(["-so"])).toBe(false);
   });

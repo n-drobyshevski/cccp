@@ -61,8 +61,6 @@ dataTable.
 | `src/server/bootstrap.ts` | `gas_devsecops/src/server/bootCore.ts` | pattern only: cached viewer-free core plus live fields, with a key allowlist test |
 | `src/server/sourceSheet.ts` | `gas/src/server/sheetsDb.ts` (read half) | pattern only: no writers; dates formatted in the sheet's timezone |
 | `dev/serve.mjs`, `dev/boot.js`, `dev/gas-shims.js` | `gas_hub/dev/{serve.mjs,boot.js,gas-shims.js}`, `gas/dev/gas-shims.js` | port 8791; read-only SpreadsheetApp fake; Sheets and Drive fakes; url/history shims; flags as, mode, admins, nosource, empty, coldcache, slow, tz |
-| `src/client/lib/rpc.js` | `gas_shared/api.js` | keeps call() and the forbidden-envelope mapping; drops viewAs and previewRoute; adds an SWR cache with invalidate() |
-| `src/client/lib/download.js` | `gas_shared/ui/dom.js` (downloadText only) | blob download with a BOM option and a Uint8Array variant; no el() |
 | `src/client/components/facetList.js`, `src/client/state/views.js` | `gas_ai/src/client/js/{filters.js,savedViews.js}` | pattern only |
 | `test/server/access*.test.ts`, `test/client/accessModel.test.js`, `test/build/{entryPoints,manifestScopes}.test.js` | `gas/test/access.test.ts`, `gas_hub/test/{accessAdmin.test.ts,accessModel.test.js,entryPoints.test.js,manifestScopes.test.js}` | paths updated; scoped-tier cases dropped; org-mode, owner-only and exact-scope cases added |
 

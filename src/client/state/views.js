@@ -3,7 +3,7 @@
 // Shared views come from the bootstrap core and are written by admins through the server.
 // Every storage call is wrapped by lib/storage.js: on a refusal nothing is kept and the
 // controls that need it hide (see canKeepPersonal).
-import * as rpc from "../lib/rpc.js";
+import * as rpc from "@gas-kit/client/rpc.js";
 import * as storage from "../lib/storage.js";
 import { store } from "./store.js";
 import { stateOf } from "./url.js";

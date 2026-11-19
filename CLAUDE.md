@@ -37,7 +37,7 @@ in the architecture spec; the approved UI is in `mockups/` (never edited, never 
   restores focus by `data-k` and the scrollTop of `[data-keep-scroll]`.
 - Events use delegation on `data-*` attributes: `delegate(root, 'click', '[data-act]', fn)`. No
   inline handlers.
-- Tooltips are `data-tip`, shown on hover AND focus by `lib/tip.js`; the same text also appears
+- Tooltips are `data-tip`, shown on hover AND focus by the kit's `@gas-kit/client/tip.js` (`installTips`); the same text also appears
   in `aria-label` or visible text. `title` attributes are banned (ESLint and a static test).
 - No literal double slash in any client string, regex, namespace or CSS `url()`: the Apps Script
   middlebox strips it and the build guard fails. URLs come from the server or are built with a

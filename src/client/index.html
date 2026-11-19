@@ -9,6 +9,7 @@
 (function () {
   try {
     var t = window.localStorage.getItem('cccp.theme');
+    try { t = JSON.parse(t); } catch (e) { /* a bare string, as earlier builds wrote it */ }
     document.documentElement.setAttribute('data-theme', t === 'dark' ? 'dark' : 'light');
   } catch (e) { document.documentElement.setAttribute('data-theme', 'light'); }
 })();

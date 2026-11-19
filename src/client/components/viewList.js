@@ -18,6 +18,7 @@ import { store } from "../state/store.js";
 import { replace } from "../state/url.js";
 import * as views from "../state/views.js";
 import { VIEW_NAME_MAX } from "../../domain/viewState";
+import { errorText } from "../lib/errorText.js";
 
 /** What the list draws, from the store state, the local form state and the environment
  *  ({storage, personal, rows}). Pure. */
@@ -120,7 +121,7 @@ export function mountViewList(slot) {
       else draw();
       toast("View “" + name + "” " + verb);
     } catch (e) {
-      local.error = e.message || "The view could not be shared.";
+      local.error = errorText(e, "The view could not be shared.");
       draw();
     }
   }
@@ -153,7 +154,7 @@ export function mountViewList(slot) {
     try {
       if (cur.scope === "shared") await views.deleteShared(cur.id);
       else if (!views.removePersonal(cur.id)) throw new Error("The view could not be deleted.");
-    } catch (e) { toast(e.message || "The view could not be deleted.", { kind: "err" }); return; }
+    } catch (e) { toast(errorText(e, "The view could not be deleted."), { kind: "err" }); return; }
     if (store.get().currentViewId === cur.id) show(views.ALL_VIEW);
     else draw();
     toast("View “" + cur.name + "” deleted");

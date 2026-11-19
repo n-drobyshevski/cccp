@@ -6,11 +6,12 @@ import { attrs, html } from "@gas-kit/client/html.js";
 import { icon } from "@gas-kit/client/icons.js";
 import { downloadBytes, downloadText } from "@gas-kit/client/download.js";
 import { fmtCount } from "@gas-kit/client/format.js";
-import * as rpc from "../lib/rpc.js";
+import * as rpc from "@gas-kit/client/rpc.js";
 import { toast } from "../lib/toast.js";
 import { exportRows } from "../../domain/exportRows";
 import { exportFileName, toCsv } from "@gas-kit/client/csv.js";
 import { XLSX_MIME, buildXlsx } from "@gas-kit/client/xlsx.js";
+import { errorText } from "../lib/errorText.js";
 
 /** The menu body. `n` is the number of filtered applications. */
 export function exportMenuView(n, busy) {
@@ -44,7 +45,7 @@ export async function runExport(kind, ctx) {
     toast(res.shared ? "Google Sheet created, shared with you." : "Google Sheet created.", { link: { href: res.url, label: "Open Sheet" }, ms: 20000 });
   } catch (e) {
     wait.close();
-    toast(e && e.message ? e.message : "The Google Sheet could not be created.", { kind: "err", ms: 9000 });
+    toast(errorText(e, "The Google Sheet could not be created."), { kind: "err", ms: 9000 });
   } finally {
     creating = false;
   }

@@ -2,7 +2,7 @@
 // time. Positioning uses the local place() below rather than the vendored tipPlacement: it
 // aligns to either edge of the anchor and flips above when there is no room below. Escape and a press outside close it; Escape returns focus to the trigger.
 import { renderRegion } from "@gas-kit/client/dom.js";
-import { closeTips } from "./tip.js";
+import { closeTips } from "@gas-kit/client/tip.js";
 
 /** @type {{ pop: HTMLElement, anchor: any, onClose?: (() => void) | null, onDown: (ev: any) => void, onKey: (ev: any) => void, onResize: () => void } | null} */
 let open = null;

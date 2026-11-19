@@ -1,7 +1,7 @@
 // The URL bridge against a recording stand-in for google.script.
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
-import { createStore } from "../../src/client/state/store.js";
-import { store } from "../../src/client/state/store.js";
+import { createStore } from "@gas-kit/client/store.js";
+import { initialState, store } from "../../src/client/state/store.js";
 import * as url from "../../src/client/state/url.js";
 
 let calls;
@@ -29,7 +29,7 @@ afterEach(() => { delete globalThis.google; });
 
 describe("store", () => {
   it("merges, notifies on change only, and unsubscribes", () => {
-    const s = createStore();
+    const s = createStore(initialState);
     const seen = [];
     const off = s.subscribe((n, p) => seen.push([n.route, p.route]));
     s.set({ route: "list" });

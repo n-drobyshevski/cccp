@@ -53,6 +53,10 @@ export default {
     // literal parts for the context of each interpolation (about 30 KB of source, 866 lines) and throws on
     // a value that does not fit, against the app's 37-line escape-only template; the app's own dom, format,
     // icons, csv, xlsx and zip files are gone, which gives back part of it.
-    budgets: { server: 157_600, js: 196_100, css: 59_300 },
+    // C3b: the js cap rises again to 199900 (bundle 199794, +3.8 KB): the kit rpc (RpcError with ref and detail, busy
+    // retry, boot payload), tip (hoverable card, watch for a replaced trigger, nested installs), theme and storage
+    // modules are larger than the app's copies they replace; lib/storage.js keeps a thin wrapper for the bare-string
+    // preferences and lib/errorText.js is new (the reference of an unexpected fault).
+    budgets: { server: 157_600, js: 199_900, css: 59_300 },
   },
 };

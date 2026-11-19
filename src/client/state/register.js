@@ -5,7 +5,7 @@ import { completeness } from "../../domain/quality";
 import { decodeRegister } from "../../domain/payload";
 import { makeRow } from "../../domain/facets";
 import { evaluateAll } from "../../domain/rules";
-import * as rpc from "../lib/rpc.js";
+import * as rpc from "@gas-kit/client/rpc.js";
 
 const EOL = ["END_OF_LIFE", "END_OF_SUPPORT"];
 

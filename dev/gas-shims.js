@@ -2,8 +2,7 @@
 // two hosts: the browser dev harness (dev/serve.mjs) and the node test environment
 // (test/gasEnv.ts evaluates it with `window` aliased to `globalThis`).
 //
-// Derived from sidekick gas_hub/dev/gas-shims.js and gas/dev/gas-shims.js at commit 77bcf22
-// (see VENDOR.md). Added for CCCP: a read-only SpreadsheetApp fake over a loadable workbook,
+// Derived from the upstream hub and ledger apps' dev shims (commit 77bcf22; see KIT.md). Added for CCCP: a read-only SpreadsheetApp fake over a loadable workbook,
 // Sheets and Drive advanced-service fakes that record their calls, a fake clock, TTL-aware
 // CacheService, a LockService with timeouts, real gzip under node, formatDate with a zone.
 //

@@ -54,7 +54,7 @@ describe(app + ": nothing in the client reaches the vendored settings kernel", (
     const src = readFileSync(new URL("../../src/client/pages/settings/draft.js", import.meta.url), "utf8");
     expect(src).toMatch(/from\s+["']\.\/formKernel\.js["']/);
     expect(src).toMatch(/from\s+["']@gas-kit\/client\/unsaved\.js["']/);
-    expect(src).not.toMatch(/gas_shared/);
+    expect(src).not.toMatch(/vendor\//);
   });
 });
 

@@ -7,7 +7,7 @@
  * test/build/entryPoints.test.js and the build's drift guard hold it in step with
  * src/server/api.ts, because a missing delegator fails silently and only in production.
  *
- * Derived from sidekick gas_hub/dist/entry.js at commit 77bcf22 (see VENDOR.md), then moved onto
+ * Derived from the upstream hub app's entry file (commit 77bcf22; see KIT.md), then moved onto
  * the kit's entry shape (gas-kit templates/register/src/gas/entry.js).
  *
  * Every entry point (doGet, timedApi_, setup, deploymentDiagnostic) calls Server.beginExecution()

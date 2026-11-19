@@ -4,7 +4,7 @@
 //
 //   npm run dev  ->  http://localhost:8791
 //
-// Derived from sidekick gas_hub/dev/serve.mjs at commit 77bcf22 (see VENDOR.md). Every load of
+// Derived from the upstream hub app's dev server (commit 77bcf22; see KIT.md). Every load of
 // "/" reruns the build, so editing src and refreshing is the whole loop. PORT overrides 8791.
 //
 // Page order: gas-shims.js, workbook data, dist/server.js, dist/entry.js, dev/boot.js, then the

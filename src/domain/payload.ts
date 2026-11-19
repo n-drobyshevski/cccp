@@ -1,5 +1,5 @@
-import { decodeRows, encodeRows } from "../vendor/gas_shared/domain/snapshotCodec";
-import type { EncodedTable } from "../vendor/gas_shared/domain/snapshotCodec";
+import { decodeRows, encodeRows } from "./codec";
+import type { EncodedTable } from "./codec";
 import { FIELDS } from "./fields";
 import type { AppRecord, DisplaySettings, FieldKey, Issues, RulesSettings, SavedView, Settings, TabKey } from "./types";
 

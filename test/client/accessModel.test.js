@@ -1,4 +1,4 @@
-// What the Access panel decides, on the kit's accessModel (which replaced the vendored gas_hub
+// What the Access panel decides, on the kit's accessModel (which replaced the upstream hub
 // accessModel) and the few pure helpers access.js wraps around it.
 //
 // The authorization itself is `test/server/accessAdmin.test.ts` (server-side, where the boundary

@@ -1,5 +1,5 @@
-// The access decision table and the guards. Derived from sidekick gas/test/access.test.ts at
-// commit 77bcf22 (see VENDOR.md), with the org-mode rows added. The decision is the kit's
+// The access decision table and the guards. Derived from the upstream ledger app's access
+// test (commit 77bcf22; see KIT.md), with the org-mode rows added. The decision is the kit's
 // decideAccess; the table is kept here as CCCP's own statement of the rules, fed through the same
 // parsing of the stored lists that the bound access object uses.
 import { beforeEach, describe, expect, it, vi } from "vitest";

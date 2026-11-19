@@ -7,7 +7,7 @@
 // REGISTER: attached only when it is already warm in the cache and at most 600 KB, so the page
 // never pays a cold read for it; otherwise the client asks api_getRegister.
 //
-// Pattern from sidekick gas_devsecops/src/server/bootCore.ts at commit 77bcf22: nothing
+// Pattern from the upstream devsecops app's boot core (commit 77bcf22; see KIT.md): nothing
 // per-viewer may ever enter the core. test/server/bootstrap.test.ts pins it with a key
 // allowlist and a scan of the cache for the viewers' addresses.
 

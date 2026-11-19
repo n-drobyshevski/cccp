@@ -52,7 +52,7 @@ describe("access save: the editor cannot drop an edit without saying so", () => 
   it("asks before a reload throws unsaved edits away, with the kit guard", () => {
     expect(editorSrc).toMatch(/from "@gas-kit\/client\/unsaved\.js"/);
     expect(editorSrc).toMatch(/guardUnsaved\(\w+, \(\) => [^;]*typedButNotAdded\(\)\)/);
-    expect(editorSrc).not.toMatch(/gas_shared|vendor\//);
+    expect(editorSrc).not.toMatch(/vendor\//);
   });
 
   it("drops the guard when the page is torn down", () => {

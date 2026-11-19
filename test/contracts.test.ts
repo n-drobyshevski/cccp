@@ -42,8 +42,7 @@ const read = (p: string) => readFileSync(p, "utf8");
 const apiTs = read(join(SRC, "server/api.ts"));
 const entryJs = read(join(SRC, "gas/entry.js"));
 
-// The app's own code. src/kit is the vendored kit (hash-locked) and src/vendor is verbatim
-// sidekick code (pinned by tools/vendor.lock.json, replaced by a later work package): neither is
+// The app's own code. src/kit is the vendored kit (hash-locked by kit.lock.json); it is not
 // scanned by the app's contracts.
 const APP_DIRS = ["server", "client", "domain", "gas"].map((d) => join(SRC, d));
 
@@ -55,7 +54,7 @@ function walk(dir: string, exts: string[]): string[] {
   const out: string[] = [];
   for (const name of readdirSync(dir).sort()) {
     const p = join(dir, name);
-    if (name === "kit" || name === "vendor" || name === "node_modules") continue;
+    if (name === "kit" || name === "node_modules") continue;
     if (statSync(p).isDirectory()) out.push(...walk(p, exts));
     else if (exts.some((e) => name.endsWith(e))) out.push(p);
   }
@@ -241,7 +240,7 @@ describe("the built files pass the build guards", () => {
 describe("no private term", () => {
   // TODO(owner): put the names that must never appear here (an employer, an internal host, a
   // deployment id). The pattern below is a placeholder that matches nothing real. Scanning only
-  // the app's own files: the vendored trees are pinned elsewhere.
+  // the app's own files: the kit is pinned by kit.lock.json.
   scrubClean.register(describe, it, expect, { root: ROOT, extraTerms: [/zz-private-term-placeholder/i], allow: ["contracts.test.ts"] });
 });
 

@@ -59,7 +59,7 @@ function foreignImports(src: string): string[] {
   const out: string[] = [];
   for (const m of src.matchAll(/from\s+"([^"]+)"/g)) {
     const spec = m[1]!;
-    if (!(spec.startsWith("./") || spec === "@gas-kit/ui/components/tableModel.js" || /^\.\.\/vendor\/gas_shared\/domain\/snapshotCodec$/.test(spec))) out.push(spec);
+    if (!(spec.startsWith("./") || spec === "@gas-kit/ui/components/tableModel.js")) out.push(spec);
   }
   return out;
 }
@@ -83,7 +83,7 @@ describe("src/domain purity", () => {
 
   it("the import check fires on a seeded foreign import", () => {
     expect(foreignImports('import { a } from "./x";\nimport { t } from "@gas-kit/ui/components/tableModel.js";')).toEqual([]);
-    expect(foreignImports('import { x } from "../vendor/gas_shared/ui/tableModel";')).toHaveLength(1);
+    expect(foreignImports('import { x } from "../kit/ui/src/components/tableModel";')).toHaveLength(1);
     expect(foreignImports('import { x } from "@gas-kit/ui/components/dataTable.js";')).toHaveLength(1);
     expect(foreignImports('import { x } from "@gas-kit/client/html.js";')).toHaveLength(1);
     expect(foreignImports('import type { x } from "../server/props";')).toHaveLength(1);

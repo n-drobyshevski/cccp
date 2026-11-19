@@ -1,7 +1,7 @@
 // Local dev bootstrap. Runs after gas-shims.js, the workbook data, dist/server.js and
 // dist/entry.js, and before the client bundle.
 //
-// Derived from sidekick gas_hub/dev/boot.js at commit 77bcf22 (see VENDOR.md). Differences:
+// Derived from the upstream hub app's dev boot (commit 77bcf22; see KIT.md). Differences:
 //   - google.script.run dispatches to window.api_<name>, the delegators in dist/entry.js, so
 //     the access gate and the timing log are exercised exactly as in a deployment.
 //   - Results and parameters pass through JSON, as the real bridge serialises them.

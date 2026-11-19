@@ -2,8 +2,8 @@
 // what changed between the saved state and the draft, and the per-tab dirty and invalid state a
 // tablist reads without a reader opening a hidden tab first.
 //
-// Derived from sidekick gas_shared/ui/settingsForm.js at commit 77bcf22 (formerly vendored here
-// verbatim, listed in VENDOR.md). Changes: the leaf comparison is the kit's `sameValue`
+// Derived from the upstream shared settingsForm (commit 77bcf22; formerly vendored here
+// verbatim, see KIT.md). Changes: the leaf comparison is the kit's `sameValue`
 // (array order does not matter, NaN equals NaN, NaN is not null; it also copes with arrays of
 // objects), the long history comment is dropped, and the module is app-owned so it may change.
 // Pure: no DOM. The kit's settingsForm and settingsShell cannot stand in for it: the kit form is a

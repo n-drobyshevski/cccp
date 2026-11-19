@@ -3,7 +3,7 @@
 //  - The app has no markup sink of its own: renderRegion is the kit's (src/kit/client/src/dom.js, never
 //    linted), so no app file may write innerHTML and `sinks` is empty (it was src/client/lib/dom.js).
 //  - dev/*.js are classic scripts loaded in order by the dev page; they share window globals.
-//  - src/vendor is verbatim sidekick code and src/kit is the vendored kit: never linted or edited.
+//  - src/kit is the vendored kit: never linted or edited.
 import { kitDirs } from "./tools/kitPaths.mjs";
 import { pathToFileURL } from "node:url";
 import { join } from "node:path";
@@ -30,7 +30,7 @@ export default [
       "src/client/components/table.js", // raw(icon): the output of icons.js, a static SVG in a header cell
     ],
     ignores: [
-      "src/kit/**", "src/vendor/**", "src/gas/**", "dist/**", "node_modules/**", "mockups/**", "test-results/**",
+      "src/kit/**", "src/gas/**", "dist/**", "node_modules/**", "mockups/**", "test-results/**",
       "playwright-report/**", "dev/server.dev.js",
     ],
   }),

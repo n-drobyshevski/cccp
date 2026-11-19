@@ -2,7 +2,7 @@
 // guard hold the two together) and an entry in roles.ts ENDPOINT_ROLES. Later work packages
 // append their endpoints here in order.
 //
-// Derived from sidekick gas_hub/src/server/api.ts at commit 77bcf22 (see VENDOR.md). run() is the
+// Derived from the upstream hub app's api module (commit 77bcf22; see KIT.md). run() is the
 // kit's createRun, bound in run.ts: it checks the role before the body, keeps an ApiError's kind
 // and message, and answers any other fault with a fixed sentence and a reference (the text goes
 // to the error log, and to an admin as `detail`). A body is exactly `return run("<its name>", ...)`.

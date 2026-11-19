@@ -1,5 +1,5 @@
-// The Access panel's authorization, a privilege surface. Derived from sidekick
-// gas_hub/test/accessAdmin.test.ts at commit 77bcf22 (see VENDOR.md): the sibling-URL cases are
+// The Access panel's authorization, a privilege surface. Derived from the upstream hub app's
+// accessAdmin test (commit 77bcf22; see KIT.md): the sibling-URL cases are
 // gone, the owner-only mode and the logged-change cases are added.
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { __resetMemosForTest } from "../../src/server/access";

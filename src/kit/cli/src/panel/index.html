@@ -1,0 +1,46 @@
+<!doctype html>
+<html lang="en" data-theme="light">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>gas-kit control panel</title>
+<link rel="stylesheet" href="/brand.css">
+<link rel="stylesheet" href="/tokens.base.css">
+<link rel="stylesheet" href="/panel.css">
+</head>
+<body>
+<main class="page">
+<header class="head">
+<div>
+<p class="eyebrow">gas-kit control panel</p>
+<h1 id="app-name">Loading</h1>
+<p id="app-sub" class="muted"></p>
+</div>
+<div class="tools">
+<a id="docs" href="/docs" target="_blank" rel="noopener noreferrer" hidden>Kit docs</a>
+<div class="theme" role="group" aria-labelledby="theme-l">
+<span id="theme-l" class="muted">Theme</span>
+<button type="button" class="seg" data-theme-choice="light" aria-pressed="true">Light</button>
+<button type="button" class="seg" data-theme-choice="dark" aria-pressed="false">Dark</button>
+<button type="button" class="seg" data-theme-choice="system" aria-pressed="false">System</button>
+</div>
+</div>
+</header>
+<div class="panel">
+<section aria-labelledby="status-h">
+<h2 id="status-h">Your setup</h2>
+<ul id="status" class="status" aria-live="polite"></ul>
+<p id="status-sum" class="muted"></p>
+<button type="button" id="recheck">Check again</button>
+</section>
+<section aria-labelledby="act-h">
+<h2 id="act-h">What do you want to do?</h2>
+<div id="actions" class="actions"></div>
+<h3 id="job-h" role="status">Output</h3>
+<pre id="job" class="job" tabindex="0">Nothing has run yet.</pre>
+</section>
+</div>
+</main>
+<script src="/panel.js"></script>
+</body>
+</html>

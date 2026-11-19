@@ -3,6 +3,7 @@
 import { attrs, html } from "@gas-kit/client/html.js";
 import { fmtCount } from "@gas-kit/client/format.js";
 import { countUp } from "@gas-kit/client/motion.js";
+import { sparkline } from "./sparkline.js";
 
 /** What an empty value shows. */
 const ABSENT = "—";
@@ -32,17 +33,19 @@ function deltaView(d, note) {
  * @title KPI Tile
  * @category Data display
  * @summary A headline number with a label, an optional note and an optional delta.
- * @param {{label: string, value?: number|string|null, note?: string, delta?: number, deltaNote?: string, tip?: string, loading?: boolean, empty?: boolean, countUp?: boolean, act?: string, k?: string, v?: string}} p
+ * @param {{label: string, value?: number|string|null, note?: string, delta?: number, deltaNote?: string, tip?: string, loading?: boolean, empty?: boolean, spark?: Array<unknown>|{values: Array<unknown>, label?: string, variant?: "line"|"area"|"bar", tone?: string}, countUp?: boolean, act?: string, k?: string, v?: string}} p
  * `delta` is a signed change shown as a word ("Up 3", "Down 2", "Unchanged"); `act` makes the whole tile a button with `data-act`, `k` its `data-k` and `v` its `data-v`; a null, empty or non-finite `value`, or `empty: true`, shows a dash. A number `value` and `delta` are shown as rounded counts (99.5 reads "100"; a delta that rounds to 0 reads "Unchanged"); pass a string to show anything else as is.
+ * `spark` (off by default) adds a sparkline under the value: an array of readings or the sparkline props (gaps stay gaps); it is hidden while loading or empty. Its accessible label states the figures.
  * `countUp: true` (off by default) marks a finite number value with data-mount="kpiCount" so the kpiCountIsland counts it up from 0 on mount; the text is the final, formatted figure from the first render, and a string value is never animated. Mount it with mountIslands(root, { kpiCount: kpiCountIsland }).
  * @emits act (data-v; the act you pass)
- * @states default, delta, loading, empty, counted, interactive
+ * @states default, delta, loading, empty, counted, interactive, trend
  * @a11y Motion: the loading pulse is a slow fade that stops under reduced motion (the placeholder stays, dashed state is the sr-only "Loading"), the interactive tile eases its background over --dur-2 and presses in slightly, and the optional count-up only rewrites the figure's text (no live region, so a screen reader reads the final figure) and sets it at once under reduced motion. Label and value are read in that order as one run; the delta direction is a word, the arrow is decorative. Loading sets aria-busy and an sr-only "Loading"; empty reads "No data". A tile with a tip is focusable (role="group" named by its label and value, so focus announces both) and the tip is also sr-only text (after the label, separated by a full stop), with no static aria-describedby: tip.js sets that itself on hover and focus, the same pattern as switch and segmented.
  * @example default: kpiTile({ label: "Open items", value: 1042, note: "of 1,234 records" })
  * @example delta: kpiTile({ label: "Open items", value: 42, delta: -3, deltaNote: "since last week" })
  * @example loading: kpiTile({ label: "Open items", loading: true })
  * @example empty: kpiTile({ label: "Open items", value: null })
  * @example counted: kpiTile({ label: "Open items", value: 1042, countUp: true })
+ * @example trend: kpiTile({ label: "Open items", value: 25, spark: [12, 14, 13, null, 21, 19, 25] })
  * @example interactive: kpiTile({ label: "Overdue", value: 7, act: "kpi:open", k: "kpi-overdue", v: "overdue", tip: "Show the overdue items" })
  */
 export function kpiTile(p) {
@@ -55,7 +58,9 @@ export function kpiTile(p) {
   else if (isEmpty) value = html`<b class="gk-kpiTile__value is-empty" aria-hidden="true">${ABSENT}</b><span class="sr-only">No data</span>`;
   else if (q.countUp === true && typeof q.value === "number") value = html`<b class="gk-kpiTile__value num" ${attrs({ "data-mount": "kpiCount", "data-props": JSON.stringify({ to: q.value }) })}>${fmtCount(q.value)}</b>`;
   else value = html`<b class="gk-kpiTile__value num">${typeof q.value === "number" ? fmtCount(q.value) : q.value}</b>`;
-  const body = html`<span class="gk-kpiTile__label">${q.label}</span>${value}${!q.loading && !isEmpty && q.note ? html`<span class="gk-kpiTile__note">${q.note}</span>` : ""}${!q.loading && !isEmpty && typeof q.delta === "number" && Number.isFinite(q.delta) ? deltaView(q.delta, q.deltaNote) : ""}`;
+  const sparkProps = Array.isArray(q.spark) ? { values: q.spark } : q.spark && Array.isArray(q.spark.values) ? q.spark : null;
+  const sparkView = sparkProps && !q.loading && !isEmpty ? html`<span class="gk-kpiTile__spark">${sparkline({ values: sparkProps.values, label: typeof sparkProps.label === "string" && sparkProps.label ? sparkProps.label : q.label, variant: sparkProps.variant, tone: sparkProps.tone })}</span>` : "";
+  const body = html`<span class="gk-kpiTile__label">${q.label}</span>${value}${sparkView}${!q.loading && !isEmpty && q.note ? html`<span class="gk-kpiTile__note">${q.note}</span>` : ""}${!q.loading && !isEmpty && typeof q.delta === "number" && Number.isFinite(q.delta) ? deltaView(q.delta, q.deltaNote) : ""}`;
   const cls = "gk-kpiTile" + (q.loading ? " is-loading" : "") + (isEmpty ? " is-empty" : "") + (button ? " is-interactive" : "");
   // The tip text is also real (sr-only) text, so it is never hover-only.
   const tipText = tip ? html`<span class="sr-only">. ${tip}</span>` : "";

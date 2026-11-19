@@ -2,7 +2,9 @@
 // checkout whose own .git/config is not trusted.
 import { execFileSync, spawnSync } from "node:child_process";
 import { createHash } from "node:crypto";
-import { realpathSync } from "node:fs";
+import { existsSync, lstatSync, readFileSync, realpathSync, statSync } from "node:fs";
+import { dirname, isAbsolute, join, resolve } from "node:path";
+import { FriendlyError } from "./errors.mjs";
 
 /** Variables that would point git at another repository, index or config than the one asked for. */
 const DROP = new Set(["GIT_DIR", "GIT_WORK_TREE", "GIT_INDEX_FILE", "GIT_OBJECT_DIRECTORY", "GIT_ALTERNATE_OBJECT_DIRECTORIES", "GIT_COMMON_DIR", "GIT_NAMESPACE", "GIT_CONFIG", "GIT_ALLOW_PROTOCOL", "GIT_PROTOCOL_FROM_USER"]);
@@ -34,7 +36,7 @@ export function gitEnv(opts = {}, base = process.env) {
 /**
  * Run git with the clean environment.
  * @param {string[]} args
- * @param {{ cwd?: string, allowFile?: boolean, stderr?: "pipe" | "ignore" }} [opts]
+ * @param {{ cwd?: string, allowFile?: boolean, stderr?: "pipe" | "ignore", timeout?: number }} [opts]
  * @returns {string} stdout
  */
 export function runGit(args, opts = {}) {
@@ -44,76 +46,62 @@ export function runGit(args, opts = {}) {
     env: gitEnv({ allowFile: opts.allowFile === true }),
     stdio: ["ignore", "pipe", opts.stderr ?? "pipe"],
     maxBuffer: 256 * 1024 * 1024,
+    ...(opts.timeout ? { timeout: opts.timeout } : {}),
   });
 }
 
 /**
+ * Variables of the caller's environment that name a program git could run for a local read (an
+ * ssh or proxy command, a password prompt, a pager, an editor, an external diff). The local
+ * helpers drop them: a local read needs none of them.
+ */
+const LOCAL_DROP = ["GIT_SSH", "GIT_SSH_COMMAND", "GIT_SSH_VARIANT", "GIT_PROXY_COMMAND", "GIT_ASKPASS", "SSH_ASKPASS", "GIT_EXTERNAL_DIFF", "GIT_PAGER", "PAGER", "GIT_EDITOR"];
+
+/** How long a local git read may take before it is killed and read as "no answer". */
+export const LOCAL_GIT_TIMEOUT_MS = 60_000;
+
+/**
+ * The environment of a local, no-network git read in an untrusted folder: gitEnv without the
+ * program variables above, GIT_ALLOW_PROTOCOL set to "none" (no transport has that name, so every
+ * fetch is refused, including the lazy fetch a partial clone's promisor remote would start for a
+ * missing object), and GIT_NO_LAZY_FETCH=1 (git 2.44 and later refuse the lazy fetch outright).
+ * @param {Record<string, string | undefined>} [base]
+ * @returns {Record<string, string>}
+ */
+export function localGitEnv(base = process.env) {
+  const env = gitEnv({}, base);
+  for (const k of LOCAL_DROP) delete env[k];
+  env["GIT_ALLOW_PROTOCOL"] = "none";
+  env["GIT_NO_LAZY_FETCH"] = "1";
+  return env;
+}
+
+/** The same environment under the name the kit commands use for an untrusted folder. */
+export const untrustedEnv = localGitEnv;
+
+/**
  * The switches of every git run inside a folder that is not trusted (a kit checkout given as --from or
- * GAS_KIT, or a folder downloaded without its .git): none of them lets the folder's own configuration
- * start a program or a transfer.
+ * GAS_KIT, a folder downloaded without its .git, or the source app of a migration): none of them lets
+ * the folder's own configuration start a program or a transfer.
  * - core.fsmonitor=false: no file-system monitor command.
  * - core.hooksPath=/dev/null: no hook.
- * - core.sshCommand=false: never the folder's ssh command (one from the caller's own GIT_SSH_COMMAND
- *   still wins, as it is the caller's).
+ * - core.sshCommand=false: never the folder's ssh command.
+ * - protocol.allow=never: no transport at all.
  * - safe.bareRepository=explicit: a folder laid out like a bare repository (HEAD, config, objects and
  *   refs at its top) is never discovered as one, so its config is never read.
  * - --no-optional-locks: no index refresh is written.
  * Command-line -c settings outrank the folder's .git/config, and safe.bareRepository is honoured only
  * from protected configuration, which includes the command line.
  */
-export const UNTRUSTED_FLAGS = ["-c", "core.fsmonitor=false", "-c", "core.hooksPath=/dev/null", "-c", "core.sshCommand=false", "-c", "safe.bareRepository=explicit", "--no-optional-locks"];
-
-/**
- * The environment of a git run inside an untrusted folder: gitEnv with GIT_NO_LAZY_FETCH=1 (a partial
- * clone never fetches a missing object from the promisor remote its config names) and an empty
- * GIT_ALLOW_PROTOCOL (no transport at all, so nothing is fetched even by a git that predates
- * GIT_NO_LAZY_FETCH).
- * @param {Record<string, string | undefined>} [base]
- * @returns {Record<string, string>}
- */
-export function untrustedEnv(base = process.env) {
-  return { ...gitEnv({}, base), GIT_NO_LAZY_FETCH: "1", GIT_ALLOW_PROTOCOL: "" };
-}
+export const UNTRUSTED_FLAGS = ["-c", "core.fsmonitor=false", "-c", "core.hooksPath=/dev/null", "-c", "core.sshCommand=false", "-c", "protocol.allow=never", "-c", "safe.bareRepository=explicit", "--no-optional-locks"];
 
 /** git's warning when it wanted an object it would have fetched lazily. */
 const LAZY = /lazy fetching disabled/i;
 
 /**
- * An Error from a git run, with what git said on stderr.
- * @typedef {Error & { stderr?: string, gitUnsafe?: string, spawnCode?: string }} GitError
+ * An Error from a git run, with what git said on stderr and how the child ended.
+ * @typedef {Error & { stderr?: string, gitUnsafe?: string, code?: string, signal?: string | null, status?: number | null }} GitError
  */
-
-/**
- * git in a folder whose own .git/config is untrusted, with UNTRUSTED_FLAGS and untrustedEnv. Callers
- * use only plumbing that never runs a filter (ls-files, ls-tree, rev-parse, config --get): `git status`
- * re-hashes stat-dirty files through the checkout's own filter.<name>.clean commands, so it is never run
- * here. It throws when git fails, and also when git says it wanted an object it would have fetched
- * lazily (git still exits 0 then, with an answer computed without it): the error's gitUnsafe says why
- * the folder cannot be read safely.
- * @param {string} dir
- * @returns {(args: string[]) => string}
- */
-export function gitIn(dir) {
-  return (args) => {
-    const r = spawnSync("git", [...UNTRUSTED_FLAGS, "-C", dir, ...args], {
-      encoding: "utf8",
-      env: untrustedEnv(),
-      stdio: ["ignore", "pipe", "pipe"],
-      maxBuffer: 256 * 1024 * 1024,
-    });
-    const stderr = String(r.stderr ?? "");
-    if (r.error || r.status !== 0 || LAZY.test(stderr)) {
-      /** @type {GitError} */
-      const err = new Error("git " + (args[0] ?? "") + " failed in " + dir + (stderr.trim() ? ": " + stderr.trim().split("\n")[0] : ""));
-      err.stderr = stderr;
-      const why = unsafeReason(stderr);
-      if (why) err.gitUnsafe = why;
-      if (r.error) err.spawnCode = String(/** @type {NodeJS.ErrnoException} */ (r.error).code ?? "");
-      throw err;
-    }
-    return String(r.stdout);
-  };
-}
 
 /**
  * Why git's stderr shows a folder cannot be read safely, or "" when it does not.
@@ -123,31 +111,134 @@ function unsafeReason(stderr) {
   if (LAZY.test(stderr)) return "it is a partial clone with missing objects, which git would fetch from a remote its own configuration names";
   if (/cannot use bare repository/i.test(stderr)) return "it is laid out like a bare git repository (HEAD, config, objects and refs at its top), and git would read its config";
   if (/dubious ownership/i.test(stderr)) return "it belongs to another user, so git will not read it";
-  if (/unknown repository extension|repositoryformatversion|bad config|not a valid object name|bad object|unable to read|corrupt/i.test(stderr)) return "git cannot read it as it stands (" + stderr.trim().split("\n")[0] + ")";
   return "";
 }
 
 /**
- * A refusal of an untrusted folder, for a git error that says it cannot be read safely.
- * @param {string} dir
- * @param {unknown} e
- * @returns {Error | null}
+ * Run a local git read in an untrusted folder and return its raw stdout. Killed after timeoutMs (a FIFO
+ * named .gitignore or .git/info/exclude would block git forever). It throws when git fails or is killed,
+ * and also when git says it wanted an object it would have fetched lazily (git still exits 0 then, with
+ * an answer computed without it); the error's gitUnsafe says why the folder cannot be read safely.
+ * @param {string} dir @param {string[]} args @param {{ timeoutMs?: number }} [opts]
+ * @returns {Buffer}
  */
-function refusal(dir, e) {
-  const why = /** @type {GitError | undefined} */ (e)?.gitUnsafe;
-  if (!why) return null;
-  return new Error("refusing the kit folder " + printableText(dir) + ": " + printableText(why) + ". Use a fresh git clone of the kit, or a plain copy without git files");
+export function gitBytes(dir, args, opts = {}) {
+  const r = spawnSync("git", [...UNTRUSTED_FLAGS, "-C", dir, ...args], {
+    env: localGitEnv(),
+    stdio: ["ignore", "pipe", "pipe"],
+    maxBuffer: 256 * 1024 * 1024,
+    timeout: opts.timeoutMs ?? LOCAL_GIT_TIMEOUT_MS,
+    killSignal: "SIGKILL",
+  });
+  const stderr = String(r.stderr ?? "");
+  if (r.error || r.status !== 0 || LAZY.test(stderr)) {
+    /** @type {GitError} */
+    const err = new Error("git " + (args[0] ?? "") + " failed in " + dir + (stderr.trim() ? ": " + stderr.trim().split("\n")[0] : ""));
+    err.stderr = stderr;
+    err.status = r.status;
+    err.signal = r.signal;
+    if (r.error) err.code = String(/** @type {NodeJS.ErrnoException} */ (r.error).code ?? "");
+    const why = unsafeReason(stderr);
+    if (why) err.gitUnsafe = why;
+    throw err;
+  }
+  return /** @type {Buffer} */ (r.stdout);
+}
+
+/**
+ * git in a folder whose own .git/config is untrusted (UNTRUSTED_FLAGS, localGitEnv, a timeout). Callers
+ * use only plumbing that never runs a filter (ls-files, ls-tree, rev-parse, config --get): `git status`
+ * re-hashes stat-dirty files through the checkout's own filter.<name>.clean commands, so it is never run
+ * here.
+ * @param {string} dir
+ * @param {{ timeoutMs?: number }} [opts]
+ * @returns {(args: string[]) => string}
+ */
+export function gitIn(dir, opts = {}) {
+  return (args) => gitBytes(dir, args, opts).toString("utf8");
+}
+
+/**
+ * The git config file of the repository a directory sits in, or null when none is found. Found by
+ * walking up to the nearest .git (a directory, or a file that names the git directory, as a worktree
+ * or a submodule has). Read as text only: nothing here runs git.
+ * @param {string} dir
+ * @returns {string | null}
+ */
+function configFileOf(dir) {
+  let d = resolve(dir);
+  for (;;) {
+    const dotGit = join(d, ".git");
+    if (existsSync(dotGit)) {
+      try {
+        if (statSync(dotGit).isDirectory()) return join(dotGit, "config");
+        const m = /^gitdir:\s*(.+)$/m.exec(readFileSync(dotGit, "utf8"));
+        if (!m) return null;
+        const gd = m[1].trim();
+        return join(isAbsolute(gd) ? gd : join(d, gd), "config");
+      } catch {
+        return null;
+      }
+    }
+    const up = dirname(d);
+    if (up === d) return null;
+    d = up;
+  }
+}
+
+/**
+ * Why a folder's own git config makes it unsafe to read, decided from the text of that config and not
+ * from git's error messages, which change between git versions: a partial clone (its missing objects
+ * would be fetched from a remote the config names) or a config that pulls in other files. "" when the
+ * config is fine or there is none.
+ * @param {string} dir
+ */
+export function configUnsafeReason(dir) {
+  const file = configFileOf(dir);
+  if (!file || !existsSync(file)) return "";
+  let text = "";
+  try {
+    text = readFileSync(file, "utf8");
+  } catch {
+    return "";
+  }
+  if (/^\s*partialclone\s*=/im.test(text) || /^\s*promisor\s*=\s*(true|yes|on|1)\s*$/im.test(text)) {
+    return "it is a partial clone with missing objects, which git would fetch from a remote its own configuration names";
+  }
+  if (/^\s*\[\s*include(if)?\b/im.test(text)) return "its git configuration includes other files, which git would read";
+  return "";
+}
+
+/**
+ * Throws a refusal when a local kit folder (--from or GAS_KIT) cannot be read safely: its config text
+ * names a partial clone or includes other files, or git finds it laid out like a bare repository, a
+ * partial clone missing objects, or owned by another user. A kit folder is vendored into an app, so it
+ * is refused outright rather than read around the problem. A migration's source app is read with
+ * gitListing instead, whose fetches are already impossible.
+ * @param {string} dir
+ */
+export function assertSafeKitFolder(dir) {
+  const why = configUnsafeReason(dir);
+  if (why) throw refusal(dir, why);
+  try {
+    gitIn(dir)(["rev-parse", "--is-inside-work-tree"]);
+  } catch (e) {
+    const unsafe = /** @type {GitError} */ (e).gitUnsafe;
+    if (unsafe) throw refusal(dir, unsafe);
+  }
+}
+
+/**
+ * A refusal of an untrusted kit folder, for a reason it cannot be read safely.
+ * @param {string} dir @param {string} why
+ */
+function refusal(dir, why) {
+  return new FriendlyError({ title: "gas-kit will not read that kit folder", why: "Git says the folder is not safe to read: " + printableText(why) + ".", fix: "Use a fresh git clone of the kit, or a plain copy without git files.", more: "npm run kit -- help kit", detail: "refusing the kit folder " + printableText(dir) + ": " + printableText(why) + ". Use a fresh git clone of the kit, or a plain copy without git files" });
 }
 
 /** Text with every control character shown as ?. @param {string} s */
 function printableText(s) {
   return String(s).replace(/[\u0000-\u001f\u007f-\u009f]/g, "?");
-}
-
-/** True when a git error says the folder is not in any repository. @param {unknown} e */
-function notARepository(e) {
-  const err = /** @type {GitError} */ (e);
-  return /not a git repository/i.test(String(err?.stderr ?? "")) || err?.spawnCode === "ENOENT";
 }
 
 /**
@@ -161,31 +252,99 @@ function notARepository(e) {
 
 /**
  * The files of a directory that git would commit (relative to it): read from the index and the
- * ignore rules, never through a filter. Null when the directory is not inside any git repository (or
- * git is not installed). Any other failure throws a refusal of the folder rather than guessing its file
- * set: a partial clone that would fetch, a folder laid out like a bare repository, one git will not read.
+ * ignore rules, never through a filter. Null when the directory is not inside a git work tree, or
+ * when git fails or times out there.
  * @param {string} dir
+ * @param {{ timeoutMs?: number }} [opts]
  * @returns {GitView | null}
  */
-export function gitView(dir) {
-  const git = gitIn(dir);
-  try {
-    if (git(["rev-parse", "--is-inside-work-tree"]).trim() !== "true") return null;
-    const top = git(["rev-parse", "--show-toplevel"]).trim();
-    const files = git(["ls-files", "-z", "--cached", "--others", "--exclude-standard", "--"]).split("\0").filter(Boolean);
-    return { top: realpathSync(top) === realpathSync(dir), files: [...new Set(files)] };
-  } catch (e) {
-    if (notARepository(e)) return null;
-    const err = /** @type {GitError} */ (e);
-    if (!err.gitUnsafe) err.gitUnsafe = "git cannot list its files (" + (String(err.stderr ?? "").trim().split("\n")[0] || err.message) + ")";
-    throw refusal(dir, err);
+export function gitView(dir, opts = {}) {
+  const l = gitListing(dir, opts);
+  return l.state === "ok" ? { top: l.top, files: l.files } : null;
+}
+
+/**
+ * True when dir or one of its ancestors holds a .git entry (a folder or a gitdir file): git would
+ * treat dir as part of a work tree. Read with lstat only.
+ * @param {string} dir
+ */
+function underGit(dir) {
+  let cur = dir;
+  for (;;) {
+    try {
+      lstatSync(join(cur, ".git"));
+      return true;
+    } catch {
+      // keep climbing
+    }
+    const up = dirname(cur);
+    if (up === cur) return false;
+    cur = up;
   }
 }
 
 /**
+ * The git listing of a directory, telling "not a repository" from "a repository git would not
+ * list" (a failure, a timeout, a repository owned by someone else), so a caller can refuse to walk
+ * a checkout whose ignore rules it could not read.
+ * @typedef {{ state: "none" } | { state: "failed", reason: string } | { state: "ok", top: boolean, files: string[], undecodable: string[] }} GitListing
+ *   files are posix paths relative to dir; undecodable are paths that are not valid UTF-8 (shown
+ *   with replacement characters), never among files
+ */
+
+/**
+ * @param {string} dir
+ * @param {{ timeoutMs?: number }} [opts]
+ * @returns {GitListing}
+ */
+export function gitListing(dir, opts = {}) {
+  const git = gitIn(dir, opts);
+  let inside;
+  try {
+    inside = git(["rev-parse", "--is-inside-work-tree"]).trim() === "true";
+  } catch (e) {
+    return underGit(dir) ? { state: "failed", reason: failure(e) } : { state: "none" };
+  }
+  if (!inside) return { state: "none" };
+  try {
+    const top = git(["rev-parse", "--show-toplevel"]).trim();
+    const raw = gitBytes(dir, ["ls-files", "-z", "--cached", "--others", "--exclude-standard", "--"], opts);
+    /** @type {Set<string>} */
+    const files = new Set();
+    /** @type {Set<string>} */
+    const undecodable = new Set();
+    const utf8 = new TextDecoder("utf-8", { fatal: true });
+    let at = 0;
+    while (at < raw.length) {
+      let end = raw.indexOf(0, at);
+      if (end < 0) end = raw.length;
+      const part = raw.subarray(at, end);
+      at = end + 1;
+      if (!part.length) continue;
+      try {
+        files.add(utf8.decode(part));
+      } catch {
+        undecodable.add(part.toString("utf8"));
+      }
+    }
+    return { state: "ok", top: realpathSync(top) === realpathSync(dir), files: [...files], undecodable: [...undecodable] };
+  } catch (e) {
+    return { state: "failed", reason: failure(e) };
+  }
+}
+
+/** A short reason for a failed git child. @param {unknown} e */
+function failure(e) {
+  const err = /** @type {GitError} */ (e);
+  if (err && err.gitUnsafe) return err.gitUnsafe;
+  if (err && (err.code === "ETIMEDOUT" || err.signal === "SIGKILL")) return "git did not answer in time (a FIFO among its ignore files, or a very large tree)";
+  if (err && err.code === "ENOENT") return "git is not installed";
+  return "git refused to list it (exit " + (err && typeof err.status === "number" ? err.status : "?") + "; a repository owned by another user is refused unless it is a safe.directory)";
+}
+
+/**
  * The HEAD tree of the top of a checkout: commit, object format and path to blob id. Null when the
- * directory is not the top of a checkout with a commit; a refusal (thrown) when git shows the folder
- * cannot be read safely (see gitIn).
+ * directory is not the top of a checkout with a commit, or when git fails there.
  * @param {string} dir
  * @returns {{ head: string, format: "sha1" | "sha256", blobs: Map<string, string> } | null}
  */
@@ -203,10 +362,7 @@ export function headTree(dir) {
       if (m && m[2] === "blob") blobs.set(/** @type {string} */ (m[4]), (m[1] === "120000" ? "link:" : "") + m[3]);
     }
     return { head, format: head.length === 64 ? "sha256" : "sha1", blobs };
-  } catch (e) {
-    // No commit, or not a checkout: the commit is unknown. A folder that cannot be read safely is refused.
-    const refused = refusal(dir, e);
-    if (refused) throw refused;
+  } catch {
     return null;
   }
 }

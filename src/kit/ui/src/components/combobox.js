@@ -164,6 +164,9 @@ export function combobox(p) {
  */
 const reopen = new Map();
 
+/** Whether a popover panel is showing; false where :popover-open is not known. @param {any} pn */
+const shownNow = (pn) => { try { return !!(pn.matches && pn.matches(":popover-open")); } catch (e) { return false; } };
+
 /** @param {Element} el @returns {any} */
 function propsOf(el) {
   try { const v = JSON.parse(el.getAttribute("data-props") || "{}"); return v == null ? {} : v; } catch (e) { return {}; }
@@ -260,6 +263,8 @@ export const comboboxIsland = {
     };
     /** @param {any} ev */
     const onToggle = (ev) => {
+      // A panel a redraw removed reports its close a task later; the trigger is the new one then.
+      if (!el.isConnected) return;
       open = ev && ev.newState ? ev.newState === "open" : isOpen();
       const t = trigger();
       if (t) t.setAttribute("aria-expanded", open ? "true" : "false");
@@ -316,6 +321,13 @@ export const comboboxIsland = {
       if (typeof pn.showPopover === "function") {
         try { pn.showPopover(); open = true; } catch (e) { open = isOpen(); }
       }
+    }
+    if (shownNow(pn)) {
+      // renderRegion showed the redrawn panel again: the trigger says so at once.
+      open = true;
+      const t = trigger();
+      if (t) t.setAttribute("aria-expanded", "true");
+      place();
     }
     return () => {
       el.removeEventListener("toggle", onToggle);

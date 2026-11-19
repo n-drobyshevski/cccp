@@ -54,25 +54,54 @@ export function installTips(root) {
     return card;
   }
 
+  /**
+   * The element the card lives in for a trigger: the nearest open dialog or open popover around
+   * it, else the body. A selector the browser does not know (:popover-open) falls back to dialogs.
+   * @param {any} target
+   */
+  function layerOf(target) {
+    for (const sel of ["dialog[open], :popover-open", "dialog[open]"]) {
+      try {
+        const h = target.closest ? target.closest(sel) : null;
+        if (h) return h;
+        break;
+      } catch {
+        /* try the plainer selector */
+      }
+    }
+    return doc.body;
+  }
+
   /** @param {any} target */
   function show(target) {
     const text = target.getAttribute("data-tip");
     if (!text) return;
     const el = ensureCard();
     current = target;
+    // An open modal dialog (a sheet, a dialog) or a popover sits in the top layer, above the whole
+    // page, and a modal dialog makes the rest of the page inert: a card in the body would be drawn
+    // under it and could not be hovered. So the card goes inside the dialog or popover that holds
+    // the trigger, and back into the body for any other trigger.
+    const host = layerOf(target);
+    if (el.parentNode !== host) host.appendChild(el);
     el.textContent = text;
     el.hidden = false;
     el.style.visibility = "hidden";
     el.style.left = "0px";
     el.style.top = "0px";
+    // Where left 0, top 0 lands: the viewport, or the box of a host that makes its own containing
+    // block for fixed children (a sheet that is translated in), so the card is placed against it.
+    const origin = typeof el.getBoundingClientRect === "function" ? el.getBoundingClientRect() : null;
+    const ox = origin && Number.isFinite(origin.left) ? origin.left : 0;
+    const oy = origin && Number.isFinite(origin.top) ? origin.top : 0;
     const r = target.getBoundingClientRect();
     const p = tipPlacement(
       { left: r.left, right: r.right, top: r.top, bottom: r.bottom, width: r.width },
       { width: el.offsetWidth, height: el.offsetHeight },
       { width: doc.documentElement.clientWidth, height: doc.documentElement.clientHeight },
     );
-    el.style.left = Math.round(p.left) + "px";
-    el.style.top = Math.round(p.top) + "px";
+    el.style.left = Math.round(p.left - ox) + "px";
+    el.style.top = Math.round(p.top - oy) + "px";
     el.style.setProperty("--tip-arrow", Math.round(p.arrow) + "px");
     el.setAttribute("data-side", p.side);
     el.style.visibility = "";

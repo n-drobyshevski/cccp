@@ -23,3 +23,4 @@ export * from "./policy";
 export * from "./rowPolicy";
 export * from "./secrets";
 export * from "./fetch";
+export * from "./sharedViews";

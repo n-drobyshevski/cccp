@@ -4,10 +4,13 @@
 // false, so a control that depends on storage can hide itself. A single failed write (a quota
 // error on a large cached payload) returns false but does NOT flip `available`: that flag
 // answers only "is storage reachable at all", so personal controls survive a big swr payload.
-// Values are JSON.
+// Values are JSON, except under the keys named in `raw`: those hold a plain string as written,
+// for an app moved onto the kit whose existing keys (a theme "dark", say) were never JSON. A raw
+// key's get returns the stored text, and its set takes only a string.
 
 /**
  * @param {string} prefix the app's key prefix, for example "acme."
+ * @param {{ raw?: string[] | true }} [opts] raw: keys (or every key, with true) whose values are plain strings, not JSON
  * @returns {{
  *   get: (key: string) => any,
  *   set: (key: string, value: unknown) => boolean,
@@ -15,8 +18,12 @@
  *   readonly available: boolean,
  * }}
  */
-export function createStorage(prefix) {
+export function createStorage(prefix, opts = {}) {
   const p = String(prefix || "");
+  const rawOpt = opts.raw;
+  const rawKeys = Array.isArray(rawOpt) ? new Set(rawOpt.map(String)) : null;
+  /** @param {string} key */
+  const isRaw = (key) => rawOpt === true || (rawKeys !== null && rawKeys.has(key));
   let ok = true;
 
   /** @returns {Storage | null} */
@@ -49,7 +56,8 @@ export function createStorage(prefix) {
       if (!s) return null;
       try {
         const text = s.getItem(p + key);
-        return text == null ? null : JSON.parse(text);
+        if (text == null) return null;
+        return isRaw(key) ? text : JSON.parse(text);
       } catch (e) {
         refused(e);
         return null;
@@ -59,7 +67,8 @@ export function createStorage(prefix) {
       const s = ls();
       if (!s) return false;
       try {
-        const text = JSON.stringify(value);
+        if (isRaw(key) && typeof value !== "string") return false;
+        const text = isRaw(key) ? /** @type {string} */ (value) : JSON.stringify(value);
         if (text === undefined) return false;
         s.setItem(p + key, text);
         return true;

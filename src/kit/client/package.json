@@ -1,6 +1,6 @@
 {
   "name": "@gas-kit/client",
-  "version": "0.1.0",
+  "version": "0.2.1",
   "private": true,
   "description": "Client kernel: safe html, the one render sink, delegation, rpc, router, store",
   "license": "MIT",

@@ -72,19 +72,62 @@ function restoreFocus(el, f) {
 }
 
 /**
- * Replace the contents of `el` with `safe`. Focus returns to the element with the same data-k
- * (caret and selection included) and the scroll position of every [data-keep-scroll] element
- * is kept. Both default on. Throws a TypeError on anything that is not SafeHtml.
+ * Whether `n` is a native popover that is showing. A browser without :popover-open (or a test
+ * DOM) answers false.
+ * @param {any} n
+ */
+function isOpenPopover(n) {
+  try { return !!(n && typeof n.matches === "function" && n.matches(":popover-open")); } catch (e) { return false; }
+}
+
+/**
+ * The open native popovers inside `el` (not `el` itself), by id, in document order, with the
+ * inline style an island placed them with.
+ * @param {Element} el
+ * @returns {Array<{ id: string, style: string | null }>}
+ */
+function captureOpen(el) {
+  /** @type {any[]} */
+  const list = Array.prototype.slice.call(el.querySelectorAll("[popover]"));
+  return list.filter((p) => p.getAttribute("id") && isOpenPopover(p)).map((p) => ({ id: p.getAttribute("id"), style: p.getAttribute("style") }));
+}
+
+/**
+ * Show again each popover of the new markup whose id was open before, parents first. One whose
+ * id is gone, or that is not a popover any more, stays closed. The old inline style goes over
+ * only when the new element has none, so the panel opens where it was until its island places it.
+ * @param {Element} el
+ * @param {Array<{ id: string, style: string | null }>} saved
+ */
+function restoreOpen(el, saved) {
+  for (const s of saved) {
+    const n = /** @type {any} */ (el.querySelector('[id="' + quote(s.id) + '"]'));
+    if (!n || !n.hasAttribute("popover") || typeof n.showPopover !== "function" || isOpenPopover(n)) continue;
+    if (s.style != null && !n.hasAttribute("style")) n.setAttribute("style", s.style);
+    try { n.showPopover(); } catch (e) { /* a region outside the document: the popover stays closed */ }
+  }
+}
+
+/**
+ * Replace the contents of `el` with `safe`. An open native popover ([popover], such as a
+ * dropdown menu's panel) whose id is in the new markup is shown again; focus returns to the
+ * element with the same data-k (caret and selection included), also inside that popover; and
+ * the scroll position of every [data-keep-scroll] element is kept. All three default on.
+ * Throws a TypeError on anything that is not SafeHtml.
  * @param {Element} el
  * @param {unknown} safe
- * @param {{ keepFocus?: boolean, keepScroll?: boolean }} [opts]
+ * @param {{ keepFocus?: boolean, keepScroll?: boolean, keepOpen?: boolean }} [opts]
  */
 export function renderRegion(el, safe, opts) {
   if (!isSafe(safe)) throw new TypeError("renderRegion needs SafeHtml from the html template, not " + typeof safe);
   const o = opts || {};
   const focus = o.keepFocus === false ? null : captureFocus(el);
   const scroll = o.keepScroll === false ? [] : captureScroll(el);
+  const open = o.keepOpen === false ? [] : captureOpen(el);
   el.innerHTML = String(safe);
+  // Shown before scroll and focus are restored: a closed popover is display none, so neither
+  // its scrollTop nor a focus inside it would hold.
+  restoreOpen(el, open);
   restoreScroll(el, scroll);
   restoreFocus(el, focus);
 }

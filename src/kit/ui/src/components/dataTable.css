@@ -53,7 +53,8 @@
 .gk-dataTable__ell { display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .gk-dataTable__row:last-child .gk-dataTable__td { border-bottom: 0; }
 .gk-dataTable__row:hover .gk-dataTable__td { background: var(--surface-2); }
-.gk-dataTable__link { color: var(--accent); font-weight: var(--fw-medium); text-decoration: underline; text-underline-offset: 2px; }
+/* A link cell holds an id or a short name: it never breaks at a hyphen (the scroller takes the overflow). */
+.gk-dataTable__link { white-space: nowrap; color: var(--accent); font-weight: var(--fw-medium); text-decoration: underline; text-underline-offset: 2px; }
 .gk-dataTable__link:focus-visible,
 .gk-dataTable__sort:focus-visible,
 .gk-dataTable__hint:focus-visible,
@@ -70,6 +71,9 @@
   border-radius: var(--radius-md);
   background: var(--surface);
 }
+/* An empty table keeps its heading row; the empty text fills the one body cell, inside the frame. */
+.gk-dataTable__td.is-empty { border-bottom: 0; }
+.gk-dataTable__td.is-empty .gk-dataTable__state { border: 0; padding: var(--space-4) var(--space-2); background: transparent; }
 .gk-dataTable.is-error .gk-dataTable__state { border-style: solid; color: var(--bad-fg); background: var(--bad-bg); }
 .gk-dataTable__hint-text { color: var(--text-muted); }
 .gk-dataTable__bar { display: block; height: 12px; width: 70%; border-radius: var(--radius-sm); background: var(--surface-2); animation: gk-dataTable-pulse calc(var(--dur-5) * 3) var(--ease-standard) infinite; }
@@ -82,3 +86,67 @@
 @starting-style {
   .gk-dataTable__row[data-enter] { opacity: 0; }
 }
+/* Selection: a narrow first column of kit checkboxes (checkbox.css draws the box). The mixed
+   header state draws a dash (from data-indeterminate before the island runs, then the native
+   :indeterminate), so it is a shape, not a colour. */
+.gk-dataTable__th.is-select,
+.gk-dataTable__td.is-select { width: 1%; padding-right: var(--space-1); }
+.gk-dataTable__th.is-select { padding-top: var(--space-2); padding-bottom: var(--space-2); }
+.gk-dataTable__th.is-select .gk-checkbox,
+.gk-dataTable__td.is-select .gk-checkbox { gap: 0; }
+.gk-dataTable__th.is-select .gk-checkbox__box { margin: 0; vertical-align: middle; }
+.gk-dataTable__td.is-select .gk-checkbox__box { margin: 2px 0 0; }
+.gk-dataTable__th[data-indeterminate] .gk-checkbox__box,
+.gk-dataTable__th.is-select .gk-checkbox__box:indeterminate { background: var(--accent); border-color: var(--accent); }
+.gk-dataTable__th[data-indeterminate] .gk-checkbox__box::after,
+.gk-dataTable__th.is-select .gk-checkbox__box:indeterminate::after { clip-path: inset(43% 22% 43% 22%); transform: scale(1); }
+.gk-dataTable__td.is-select .gk-checkbox__box:focus-visible,
+.gk-dataTable__th.is-select .gk-checkbox__box:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.gk-dataTable__bar.is-box { width: 16px; height: 16px; }
+.gk-dataTable__row[data-state="selected"] .gk-dataTable__td { background: var(--surface-2); }
+/* Header menus: the dropdownMenu trigger takes the sort button's place and look. Its caret is
+   hidden: the direction glyph is the cue, and aria-haspopup names the menu. */
+.gk-dataTable__th.is-menu .gk-menu { display: flex; }
+.gk-dataTable__th.is-menu .gk-menu__trigger {
+  flex: 1;
+  justify-content: flex-start;
+  gap: var(--space-1);
+  min-height: 40px;
+  height: auto;
+  padding: var(--space-2) var(--space-3);
+  border-radius: 0;
+  color: inherit;
+  font-weight: inherit;
+}
+.gk-dataTable__th.is-menu.is-end .gk-menu__trigger { justify-content: flex-end; }
+.gk-dataTable__th.is-menu .gk-menu__trigger > svg:last-child,
+.gk-dataTable__td.is-actions .gk-menu__trigger > svg:last-child { display: none; }
+.gk-dataTable__th.is-menu .gk-menu__panel { font-weight: var(--fw-normal); }
+/* Row actions: a narrow last column with a ghost icon trigger. The panel is a native popover in
+   the top layer, so the scroller's overflow does not clip it. */
+.gk-dataTable__th.is-actions,
+.gk-dataTable__td.is-actions { width: 1%; text-align: right; }
+.gk-dataTable__td.is-actions { padding-top: var(--space-1); padding-bottom: var(--space-1); vertical-align: middle; }
+.gk-dataTable__td.is-actions .gk-menu__trigger { width: 32px; height: 32px; min-height: 0; padding: 0; justify-content: center; }
+/* The ghost trigger reads at full text colour with a heavier dot stroke; hover and open fill it, focus keeps the accent ring. */
+.gk-dataTable__td.is-actions .gk-menu__trigger { color: var(--text); border-color: var(--border-strong); }
+.gk-dataTable__td.is-actions .gk-menu__trigger > svg { stroke-width: 2.5; }
+.gk-dataTable__td.is-actions .gk-menu__trigger:hover,
+.gk-dataTable__td.is-actions .gk-menu__trigger[aria-expanded="true"] { background: var(--surface-2); border-color: var(--text); }
+.gk-dataTable__td.is-actions .gk-menu__trigger:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+/* Header menu icons: the sort state in the trigger and a muted icon before each item. */
+.gk-dataTable__glyph.is-icon { display: inline-flex; }
+.gk-dataTable__glyph.is-icon svg { width: 14px; height: 14px; }
+.gk-dataTable__mi { display: inline-flex; margin-right: var(--space-2); color: var(--text-muted); vertical-align: -3px; }
+.gk-dataTable__mi svg { width: 16px; height: 16px; }
+/* Compact density: tighter cells and header controls. */
+.gk-dataTable.is-compact .gk-dataTable__td { padding-top: var(--space-1); padding-bottom: var(--space-1); }
+.gk-dataTable.is-compact .gk-dataTable__th.is-plain { padding-top: var(--space-2); padding-bottom: var(--space-2); }
+.gk-dataTable.is-compact .gk-dataTable__sort,
+.gk-dataTable.is-compact .gk-dataTable__th.is-menu .gk-menu__trigger { min-height: 32px; padding-top: var(--space-1); padding-bottom: var(--space-1); }
+.gk-dataTable.is-compact .gk-dataTable__td.is-actions { padding-top: 0; padding-bottom: 0; }
+.gk-dataTable.is-compact .gk-dataTable__td.is-actions .gk-menu__trigger { width: 28px; height: 28px; }
+/* A footer slot (a tablePagination) takes the whole width under the table. */
+.gk-dataTable__foot.is-slot { display: block; }
+/* createDataTable view(): the toolbar above the table, as one grid that can shrink. */
+.gk-dataTableView { display: grid; gap: var(--space-4); min-width: 0; }

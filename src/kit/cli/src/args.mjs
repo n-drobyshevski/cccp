@@ -1,11 +1,22 @@
-// Flag parsing for the gas-kit CLI. No dependencies: each command declares the flags it takes.
+// Flag parsing for the gas-kit CLI. No dependencies: each command's flags come from its row in commands.mjs.
+import { FriendlyError } from "./errors.mjs";
+import { COMMANDS, flagsOf } from "./commands.mjs";
 
-export class UsageError extends Error {
-  /** @param {string} message */
-  constructor(message) {
-    super(message);
+export class UsageError extends FriendlyError {
+  /**
+   * @param {string} message the technical text (also the Error message)
+   * @param {{ title: string, why?: string | string[], fix?: string | string[], more?: string | string[] }} [friendly] plain-words form; without it the error prints as "error: <message>"
+   */
+  constructor(message, friendly) {
+    super({ title: friendly?.title ?? "", ...(friendly ?? {}), detail: message });
     this.name = "UsageError";
+    this.exitCode = 2;
   }
+}
+
+/** One line safe to print: control characters shown as "?". @param {unknown} s */
+function plain(s) {
+  return String(s).replace(/[\u0000-\u001f\u007f-\u009f]/g, "?");
 }
 
 /**
@@ -43,33 +54,43 @@ export function parseFlags(argv, spec) {
       let value = inline;
       if (value === null) {
         value = argv[++i] ?? null;
-        if (value === null || value.startsWith("--")) throw new UsageError("--" + raw + " needs a value");
+        if (value === null || value.startsWith("--")) throw new UsageError("--" + raw + " needs a value", { title: "--" + raw + " needs a value", why: "The flag was given with nothing after it.", fix: "Write it as --" + raw + " <value>.", more: "npm run kit -- help" });
       }
       flags[raw] = value;
     } else if (booleans.has(raw) || negatable.has(raw)) {
-      if (inline !== null) throw new UsageError("--" + raw + " takes no value");
+      if (inline !== null) throw new UsageError("--" + raw + " takes no value", { title: "--" + raw + " takes no value", why: "It is an on or off switch, not a setting.", fix: "Write just --" + raw + ".", more: "npm run kit -- help" });
       flags[raw] = true;
     } else if (raw.startsWith("no-") && negatable.has(raw.slice(3))) {
-      if (inline !== null) throw new UsageError("--" + raw + " takes no value");
+      if (inline !== null) throw new UsageError("--" + raw + " takes no value", { title: "--" + raw + " takes no value", why: "It is an on or off switch, not a setting.", fix: "Write just --" + raw + ".", more: "npm run kit -- help" });
       flags[raw.slice(3)] = false;
     } else {
-      throw new UsageError("unknown flag --" + raw);
+      throw new UsageError("unknown flag --" + raw, { title: "gas-kit does not know the flag --" + raw, why: "It is not one of this command's flags.", fix: "Check the spelling, or see the flags of each command.", more: "npm run kit -- help" });
     }
   }
   const want = spec.positional ?? 0;
-  if (positional.length > want) throw new UsageError("unexpected argument " + JSON.stringify(positional[want]));
+  if (positional.length > want) throw new UsageError("unexpected argument " + JSON.stringify(positional[want]), { title: "gas-kit does not understand the extra word " + JSON.stringify(plain(positional[want])), why: "This command takes " + (want === 0 ? "no words after its name, only flags" : "only " + want + " word after its name") + ".", fix: "Remove it, or check the spelling of the command.", more: "npm run kit -- help" });
   return { positional, flags };
 }
 
-/** @type {Record<string, FlagSpec>} */
-export const COMMAND_SPECS = {
-  create: {
-    positional: 1,
-    string: ["name", "product", "prefix", "accent", "access", "source", "tz", "kit-remote"],
-    boolean: ["yes", "git", "force", "confidential"],
-    negatable: ["e2e"],
-  },
-  "kit:verify": { string: ["root"], boolean: ["upstream"] },
-  "kit:sync": { string: ["from", "ref", "remote", "root"], boolean: ["force"] },
-  "kit:diff": { string: ["from", "ref", "root"], boolean: ["exit-code"] },
-};
+/**
+ * The parser's spec of a command, from its row in commands.mjs: a flag with a value hint takes a value,
+ * a negatable one also takes --no-<name>, any other is an on or off switch.
+ * @param {import("./commands.mjs").Command} cmd
+ * @returns {FlagSpec}
+ */
+export function specOf(cmd) {
+  const flags = flagsOf(cmd);
+  /** @type {FlagSpec} */
+  const spec = {};
+  if (cmd.positionals.length) spec.positional = cmd.positionals.length;
+  const string = flags.filter((f) => f.hint !== undefined).map((f) => f.name);
+  const boolean = flags.filter((f) => f.hint === undefined && !f.negatable).map((f) => f.name);
+  const negatable = flags.filter((f) => f.negatable).map((f) => f.name);
+  if (string.length) spec.string = string;
+  if (boolean.length) spec.boolean = boolean;
+  if (negatable.length) spec.negatable = negatable;
+  return spec;
+}
+
+/** Every command's spec, built from the table in commands.mjs. @type {Record<string, FlagSpec>} */
+export const COMMAND_SPECS = Object.fromEntries(COMMANDS.map((c) => [c.name, specOf(c)]));

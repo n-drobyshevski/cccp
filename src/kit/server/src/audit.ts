@@ -2,7 +2,7 @@
 // a read of a confidential register), naming who did it and when.
 //
 //   const audit = createAudit({
-//     actor: () => Session.getActiveUser().getEmail(),
+//     actor: () => access.decide().email,
 //     role: () => access.role(),
 //     sinks: [consoleAuditSink(), createSheetAuditSink({ sheetId: () => getProp("AUDIT_SHEET_ID"), forbidIds: () => [sourceId()] })],
 //   });

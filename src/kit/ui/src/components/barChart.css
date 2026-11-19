@@ -8,3 +8,10 @@
   .gk-chart[data-enter] .gk-chart__bar { transform: scaleY(calc(1 - var(--motion-scale))); opacity: 0; }
   .gk-chart[data-enter] .gk-chart__bar.is-h { transform: scaleX(calc(1 - var(--motion-scale))); }
 }
+/* category labels above a group or beside it, and the text on the zero rule */
+.gk-chart__catLabel { fill: var(--text); font-size: var(--fs-sm); font-weight: var(--fw-medium); font-variant-numeric: tabular-nums; }
+.gk-chart__zeroRule .gk-chart__zero { stroke: var(--text-muted); }
+.gk-chart__zeroLabel { fill: var(--text); font-size: var(--fs-sm); font-weight: var(--fw-semibold); font-variant-numeric: tabular-nums; paint-order: stroke; stroke: var(--surface); stroke-width: 3px; }
+/* zeroLabelStyle "pill": the zero text in a dark pill, text-token ground and bg-token ink in both themes */
+.gk-chart__zeroPill { fill: var(--text); }
+.gk-chart__zeroLabel.is-pill { fill: var(--bg); stroke: none; }

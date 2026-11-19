@@ -102,13 +102,25 @@ export function guardInlineJs(label, code) {
 }
 
 /**
- * Throws when the stylesheet has a double slash outside a block comment. CSS has no line
- * comments, so a double slash is always a url() or string, and the middlebox would either keep
- * it (quoted) or silently eat the rest of the line (unquoted url). Both are corruption.
+ * Throws when the stylesheet has a double slash outside a block comment, or a "</style" anywhere.
+ * CSS has no line comments, so a double slash is always a url() or string, and the middlebox
+ * would either keep it (quoted) or silently eat the rest of the line (unquoted url). Both are
+ * corruption. The build inlines the stylesheet in a <style> element, and the HTML parser ends
+ * that element at the first "</style" in any case, wherever it sits (a comment, a string, a
+ * selector or a custom property value, which esbuild keeps as written): the rest would be
+ * parsed as markup. No stylesheet needs one, so it is refused outright.
  * @param {string} label
  * @param {string} css
  */
 export function guardCss(label, css) {
+  const close = /<\/style/i.exec(css);
+  if (close) {
+    const line = css.slice(0, close.index).split("\n").length;
+    throw new Error(
+      "style guard: " + label + " holds \"</style\" near line " + line +
+      ", which would close the inlined <style> element and turn the rest into markup",
+    );
+  }
   const noBlocks = css.replace(/\/\*[\s\S]*?\*\//g, "");
   const stripped = stripCommentsLikeMiddlebox(css);
   const bad = noBlocks.includes("//") ? noBlocks : stripped.includes("//") ? stripped : null;

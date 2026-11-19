@@ -4,7 +4,7 @@
 // data-tip definition, and the same definition as text for screen readers. The ?term= deep link
 // lives in the URL hash (the query string is empty inside an Apps Script frame): read it with
 // helpTermFromParams(hashParams()).
-import { attrs, html } from "@gas-kit/client/html.js";
+import { attrs, html, isSafeUrl, linkAttrs } from "@gas-kit/client/html.js";
 import { pluralize } from "@gas-kit/client/format.js";
 
 /** @param {string} s */
@@ -51,16 +51,21 @@ export function searchGlossary(entries, q) {
  * @title Glossary Tip
  * @category Domain
  * @summary An inline glossary term: a focusable word that shows its definition on hover and focus.
- * @param {{term: string, tip: string, label?: string, k?: string}} p
- * `label` is the visible text when it differs from the term (for example a plural). `k` is a unique focus key when the same term appears more than once on a page (for example its index); it defaults to a slug of the term, so two tips for one term would share a data-k.
+ * @param {{term: string, tip: string, label?: string, k?: string, href?: string}} p
+ * `label` is the visible text when it differs from the term (for example a plural). `k` is a unique focus key when the same term appears more than once on a page (for example its index); it defaults to a slug of the term, so two tips for one term would share a data-k. `href` links the term to its glossary entry (for example "#/help?term=Owner", which helpTermFromParams reads): the term is then an anchor built with linkAttrs, still carrying the tip; a link that fails isSafeUrl is dropped and the term stays a plain note.
  * @emits none
- * @states default
- * @a11y The word is focusable (tabindex 0) with role=note, so a screen reader announces it as a note rather than nothing, and the tip shows on keyboard focus too. The definition is also in the text for screen readers, so nothing depends on hover.
+ * @states default, linked
+ * @a11y The word is focusable (tabindex 0) with role=note, so a screen reader announces it as a note rather than nothing, and the tip shows on keyboard focus too. With `href` it is a link instead (natively focusable, Enter opens the entry), underlined so it reads as one. The definition is also in the text for screen readers, so nothing depends on hover.
  * @example glossaryTip({ term: "Owner", tip: "The account that deployed the app and always has full access." })
+ * @example linked: glossaryTip({ term: "Owner", tip: "The account that deployed the app and always has full access.", href: "#/help?term=Owner" })
  */
 export function glossaryTip(p) {
   const text = p.label == null ? p.term : p.label;
-  return html`<span class="gk-glossaryTip" tabindex="0" ${attrs({ role: "note", "data-tip": p.tip, "data-k": "tip-" + (p.k == null ? slug(p.term) : slug(String(p.k))) })}>${text}<span class="sr-only">, ${p.tip}</span></span>`;
+  const k = "tip-" + (p.k == null ? slug(p.term) : slug(String(p.k)));
+  if (typeof p.href === "string" && p.href !== "" && isSafeUrl(p.href)) {
+    return html`<a ${attrs({ ...linkAttrs(p.href), class: "gk-glossaryTip is-link", "data-tip": p.tip, "data-k": k })}>${text}<span class="sr-only">, ${p.tip}</span></a>`;
+  }
+  return html`<span class="gk-glossaryTip" tabindex="0" ${attrs({ role: "note", "data-tip": p.tip, "data-k": k })}>${text}<span class="sr-only">, ${p.tip}</span></span>`;
 }
 
 /**

@@ -1,0 +1,12 @@
+/* Tokens only. The button itself is gk-btn (button.css); this sheet swaps the three icons by state. */
+.gk-copyButton { display: inline-flex; align-items: center; }
+.gk-copyButton__icon { display: inline-flex; }
+.gk-copyButton__icon--check,
+.gk-copyButton__icon--fail { display: none; }
+.gk-copyButton.is-done .gk-copyButton__icon--copy,
+.gk-copyButton.is-failed .gk-copyButton__icon--copy { display: none; }
+.gk-copyButton.is-done .gk-copyButton__icon--check,
+.gk-copyButton.is-failed .gk-copyButton__icon--fail { display: inline-flex; }
+.gk-copyButton__icon svg { width: 16px; height: 16px; }
+.gk-copyButton.is-done .gk-copyButton__btn { color: var(--accent); }
+.gk-copyButton.is-failed .gk-copyButton__btn { border-style: dashed; }

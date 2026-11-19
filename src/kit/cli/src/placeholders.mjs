@@ -1,6 +1,7 @@
 // The placeholder rewrite: pure functions from a template file's text to the scaffolded text.
 // A marker that is not found is an error, so a drifting template fails loudly in the CLI tests.
 import { deriveBrand } from "./color.mjs";
+import { applyScripts } from "./scripts.mjs";
 import { TEMPLATE } from "./values.mjs";
 
 /**
@@ -111,11 +112,8 @@ export function rewritePackageJson(text, v) {
   const pkg = JSON.parse(text);
   pkg.name = v.name;
   pkg.scripts = { ...pkg.scripts };
-  pkg.scripts["kit:verify"] = "node src/kit/cli/src/bin.mjs kit:verify";
-  pkg.scripts["kit:sync"] = "node src/kit/cli/src/bin.mjs kit:sync";
-  pkg.scripts["kit:diff"] = "node src/kit/cli/src/bin.mjs kit:diff";
   // A scaffolded app's check also proves the vendored kit is untouched.
-  if (typeof pkg.scripts.check === "string" && !/kit:verify/.test(pkg.scripts.check)) pkg.scripts.check += " && npm run kit:verify";
+  applyScripts(pkg);
   if (!v.e2e) {
     // @playwright/test stays: the verify-ui skill's screenshot script imports it.
     delete pkg.scripts.e2e;

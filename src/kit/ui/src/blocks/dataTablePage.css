@@ -1,0 +1,6 @@
+/* Layout only for the dataTablePage block; the header, toolbar, table and pagination keep their own look.
+   Tokens only. */
+.gk-dataTablePage { display: flex; flex-direction: column; gap: var(--space-4); min-width: 0; }
+.gk-dataTablePage__region { min-width: 0; }
+.gk-dataTablePage__nowrap { white-space: nowrap; }
+.gk-dataTablePage__priority { white-space: nowrap; display: inline-flex; align-items: center; gap: var(--space-2); }

@@ -3,3 +3,19 @@
 .gk-field__desc { margin: 0; color: var(--text-muted); font-size: var(--fs-md); line-height: var(--lh); }
 .gk-field__error { margin: 0; color: var(--destructive); font-size: var(--fs-md); font-weight: var(--fw-medium); line-height: var(--lh); }
 .gk-field.is-invalid .gk-label { color: var(--destructive); }
+
+/* Horizontal: label and description in the first column, the control beside them. */
+.gk-field.is-horizontal { display: grid; grid-template-columns: 1fr auto; column-gap: var(--space-4); row-gap: var(--space-1); align-items: start; }
+.gk-field.is-horizontal > .gk-label { grid-column: 1; grid-row: 1; }
+.gk-field.is-horizontal > .gk-field__desc { grid-column: 1; grid-row: 2; }
+.gk-field.is-horizontal > :not(.gk-label):not(.gk-field__desc):not(.gk-field__error) { grid-column: 2; grid-row: 1 / span 2; align-self: center; width: auto; }
+.gk-field.is-horizontal > .gk-field__error { grid-column: 1 / -1; }
+
+/* fieldSet: a native fieldset reset to a plain block. */
+.gk-fieldset { display: flex; flex-direction: column; gap: var(--space-3); min-width: 0; margin: 0; padding: 0; border: 0; }
+.gk-fieldset__legend { padding: 0; margin: 0 0 var(--space-3); color: var(--text); font-size: var(--fs-lg); font-weight: var(--fw-medium); line-height: var(--lh); }
+.gk-fieldset__legend.is-label { font-size: var(--fs-md); line-height: 1; }
+.gk-fieldset > .gk-field__desc { margin-top: calc(-1 * var(--space-2)); } /* the legend is outside the flex gap and carries its own margin */
+.gk-fieldset__content { display: flex; flex-direction: column; gap: var(--space-4); }
+.gk-fieldset.is-horizontal > .gk-fieldset__content { flex-direction: row; flex-wrap: wrap; align-items: center; gap: var(--space-3) var(--space-4); }
+.gk-fieldset.is-invalid > .gk-fieldset__legend { color: var(--destructive); }

@@ -9,8 +9,8 @@ import { toggleAttrs } from "./toggle.js";
  * @title Toggle Group
  * @category Forms
  * @summary A joined set of toggle buttons: pick one (a radiogroup) or any number.
- * @param {{label: string, items: Array<{value: string, text?: string, content?: unknown, ariaLabel?: string, tip?: string, disabled?: boolean}>, type?: "single"|"multiple", value?: string|string[]|null, variant?: "default"|"outline", size?: "sm"|"default"|"lg", k?: string, act?: string}} p
- * `type` is "single" (default) or "multiple". `value` is the selected value (single) or the array of selected values (multiple). `k` prefixes each button's data-k ("<k>-<value>", default "tg"; give every group on a page its own); `act` defaults to "toggleGroup:toggle" and each button carries data-v. In single mode the app sets the value; clicking the selected item again is for the app to ignore or clear. Mount toggleGroupIsland after every render of a single group, or only the arrow keys stop working.
+ * @param {{label: string, items: Array<{value: string, text?: string, content?: unknown, ariaLabel?: string, tip?: string, disabled?: boolean}>, type?: "single"|"multiple", value?: string|string[]|null, variant?: "default"|"outline", size?: "sm"|"default"|"lg", k?: string, act?: string, controls?: string}} p
+ * `type` is "single" (default) or "multiple". `value` is the selected value (single) or the array of selected values (multiple). `k` prefixes each button's data-k ("<k>-<value>", default "tg"; give every group on a page its own); `act` defaults to "toggleGroup:toggle" and each button carries data-v. In single mode the app sets the value; clicking the selected item again is for the app to ignore or clear. Mount toggleGroupIsland after every render of a single group, or only the arrow keys stop working. `controls` (single mode) names a set: the island then moves the selection on click itself and shows, inside the closest card (or the document), only the elements carrying data-set="<controls>" and the clicked data-v, hiding the others; chartCard uses it for `datasets`. The act is still sent.
  * @emits toggleGroup:toggle (data-v, data-k; or the act you pass)
  * @states single, multiple, outline, empty
  * @a11y Single: role="radiogroup" with a label; each button is role="radio" with aria-checked, and only the selected enabled one (or the first enabled one when none is selected) is in the tab order; the island moves with Arrow keys, Home and End and picks as it goes. Multiple: role="group" with a label and aria-pressed on each button, all in the tab order. Selected buttons use a fill, a heavier weight and an inset outline, never colour alone.
@@ -28,7 +28,7 @@ export function toggleGroup(p) {
   const isOn = (/** @type {any} */ it) => picked.indexOf(String(it.value)) >= 0;
   const selIdx = items.findIndex((it) => isOn(it) && !it.disabled);
   const stopIdx = selIdx >= 0 ? selIdx : items.findIndex((it) => !it.disabled);
-  return html`<div ${attrs({ class: "gk-toggleGroup", role: multi ? "group" : "radiogroup", "aria-label": q.label, "data-variant": q.variant === "outline" ? "outline" : "default", "data-mount": multi ? null : "toggleGroup" })}>${items.map((it, i) => {
+  return html`<div ${attrs({ class: "gk-toggleGroup", role: multi ? "group" : "radiogroup", "aria-label": q.label, "data-variant": q.variant === "outline" ? "outline" : "default", "data-mount": multi ? null : "toggleGroup", "data-controls": multi || !q.controls ? null : String(q.controls) })}>${items.map((it, i) => {
     const on = isOn(it);
     return html`<button ${attrs({
       ...toggleAttrs({ ...q, ariaLabel: it.ariaLabel, tip: it.tip, disabled: it.disabled }),
@@ -68,7 +68,28 @@ export const toggleGroupIsland = {
       radios[next].focus();
       radios[next].click();
     };
+    /** @param {any} ev */
+    const onClick = (ev) => {
+      const set = el.getAttribute("data-controls");
+      const btn = ev.target && ev.target.closest ? ev.target.closest('[role="radio"]') : null;
+      if (!set || !btn || btn.hasAttribute("disabled")) return;
+      const v = btn.getAttribute("data-v");
+      for (const r of Array.prototype.slice.call(el.querySelectorAll('[role="radio"]'))) {
+        const on = r === btn;
+        r.setAttribute("aria-checked", on ? "true" : "false");
+        r.setAttribute("tabindex", on ? "0" : "-1");
+        if (on) r.setAttribute("data-pressed", "1");
+        else r.removeAttribute("data-pressed");
+      }
+      const root = el.closest(".gk-card") || el.ownerDocument;
+      for (const t of Array.prototype.slice.call(root.querySelectorAll("[data-set]"))) {
+        if (t.getAttribute("data-set") !== set) continue;
+        if (t.getAttribute("data-v") === v) t.removeAttribute("hidden");
+        else t.setAttribute("hidden", "");
+      }
+    };
     el.addEventListener("keydown", onKey);
-    return () => el.removeEventListener("keydown", onKey);
+    el.addEventListener("click", onClick);
+    return () => { el.removeEventListener("keydown", onKey); el.removeEventListener("click", onClick); };
   },
 };

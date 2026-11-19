@@ -239,17 +239,18 @@ const WORDS = { idle: "Not started", starting: "Starting", running: "Running", d
  * @title Job Progress
  * @category Feedback
  * @summary A progress bar for a long job with a status word, a message and a cancel button.
- * @param {{id?: string, status?: "idle"|"starting"|"running"|"done"|"error"|"cancelled", progress?: number|null, label?: string, message?: string, error?: string, cancelable?: boolean}} p
- * `progress` is 0 to 1; null or missing while running is indeterminate. `id` namespaces data-k (default "job"). The cancel button shows only while starting or running and only if `cancelable`; an error shows `error` and a retry button.
+ * @param {{id?: string, status?: "idle"|"starting"|"running"|"done"|"error"|"cancelled", progress?: number|null, label?: string, message?: string, error?: string, cancelable?: boolean, cancelLabel?: string}} p
+ * `progress` is 0 to 1; null or missing while running is indeterminate. `id` namespaces data-k (default "job"). The cancel button shows only while starting or running and only if `cancelable`, and reads `cancelLabel` (default "Cancel", for example "Stop"); an error shows `error` and a retry button.
  * @emits jobProgress:cancel (data-id; the cancel button)
  * @emits jobProgress:retry (data-id; the retry button after an error)
- * @states running, indeterminate, done, error, cancelled
+ * @states running, indeterminate, done, error, cancelled, stoppable
  * @a11y Motion: the determinate fill eases its width over --dur-4 and the indeterminate slide is a slow loop; under reduced motion both stop (the indeterminate bar becomes a static half-opacity bar). The bar is role=progressbar with aria-valuemin, aria-valuemax and an aria-valuenow only when the value is known (indeterminate omits it); it is named by `label`. Only the status word ("Running", "Done", "Failed") is a polite live region, so the percentage and message do not chatter on every poll and a change of state is announced once; an error message is role=alert. The app keeps the view's container stable (a re-render replaces nodes, which announces less reliably) and a failure is a word, not just a colour. Cancel and Retry disappear on the next render, so the app should move focus to the status word (tabindex=-1, data-k jobProgress-<id>-word) after handling either act; it is recreated on every render, so live announcements are best effort. The buttons have a data-k so focus survives a re-render. A failed or cancelled job with no progress figure keeps a progressbar without aria-valuenow, which reads as indeterminate.
  * @example running: jobProgress({ status: "running", progress: 0.4, label: "Syncing data", message: "400 of 1,000 rows", cancelable: true })
  * @example indeterminate: jobProgress({ status: "starting", label: "Syncing data", cancelable: true })
  * @example done: jobProgress({ status: "done", progress: 1, label: "Syncing data", message: "1,000 rows" })
  * @example error: jobProgress({ status: "error", label: "Syncing data", error: "The server timed out" })
  * @example cancelled: jobProgress({ status: "cancelled", progress: 0.4, label: "Syncing data" })
+ * @example stoppable: jobProgress({ id: "sync", status: "running", progress: 0.7, label: "Syncing data", message: "700 of 1,000 rows", cancelable: true, cancelLabel: "Stop" })
  */
 export function jobProgress(p) {
   const q = p || {};
@@ -263,6 +264,6 @@ export function jobProgress(p) {
   const text = status === "error" ? q.error || q.message || "" : q.message || "";
   return html`<div class="gk-jobProgress is-${status}${frac == null && busy ? " is-indeterminate" : ""}">
 <div class="gk-jobProgress__bar" role="progressbar" aria-label="${q.label || "Job progress"}" aria-valuemin="0" aria-valuemax="100"${pct != null ? html` aria-valuenow="${pct}" aria-valuetext="${pct}%"` : ""}><i class="gk-jobProgress__fill" style="--gk-pct:${pct == null ? 0 : pct}"></i></div>
-<div class="gk-jobProgress__row"><span class="gk-jobProgress__status"><span class="gk-jobProgress__word" role="status" aria-live="polite" tabindex="-1" data-k="jobProgress-${id}-word">${word}</span>${pct != null && busy ? html`<span class="gk-jobProgress__pct num">${pct}%</span>` : ""}${text ? html`<span class="gk-jobProgress__msg"${status === "error" ? html` role="alert"` : ""}>${text}</span>` : ""}</span>${busy && q.cancelable ? html`<button type="button" class="gk-jobProgress__btn gk-btn" data-variant="outline" data-size="sm" data-act="jobProgress:cancel" data-id="${id}" data-k="jobProgress-${id}-cancel">Cancel</button>` : ""}${status === "error" ? html`<button type="button" class="gk-jobProgress__btn gk-btn" data-variant="outline" data-size="sm" data-act="jobProgress:retry" data-id="${id}" data-k="jobProgress-${id}-retry">Retry</button>` : ""}</div>
+<div class="gk-jobProgress__row"><span class="gk-jobProgress__status"><span class="gk-jobProgress__word" role="status" aria-live="polite" tabindex="-1" data-k="jobProgress-${id}-word">${word}</span>${pct != null && busy ? html`<span class="gk-jobProgress__pct num">${pct}%</span>` : ""}${text ? html`<span class="gk-jobProgress__msg"${status === "error" ? html` role="alert"` : ""}>${text}</span>` : ""}</span>${busy && q.cancelable ? html`<button type="button" class="gk-jobProgress__btn gk-btn" data-variant="outline" data-size="sm" data-act="jobProgress:cancel" data-id="${id}" data-k="jobProgress-${id}-cancel">${q.cancelLabel != null && q.cancelLabel !== "" ? String(q.cancelLabel) : "Cancel"}</button>` : ""}${status === "error" ? html`<button type="button" class="gk-jobProgress__btn gk-btn" data-variant="outline" data-size="sm" data-act="jobProgress:retry" data-id="${id}" data-k="jobProgress-${id}-retry">Retry</button>` : ""}</div>
 </div>`;
 }

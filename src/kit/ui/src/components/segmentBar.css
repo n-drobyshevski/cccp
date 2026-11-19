@@ -1,0 +1,70 @@
+/* Extracted from the author's production Apps Script apps; adapted. */
+.gk-segmentBar { display: grid; gap: var(--space-2); min-width: 0; }
+/* min-width 0: the list is a grid item, and long names (nowrap) must not set its minimum width. */
+.gk-segmentBar__list { display: flex; gap: 4px; min-width: 0; margin: 0; padding: 0; list-style: none; }
+.gk-segmentBar__seg {
+  display: flex;
+  flex: var(--gk-n, 1) 1 0;
+  flex-direction: column;
+  gap: var(--space-1);
+  min-width: var(--gk-segmentBar-min, 3rem);
+}
+.gk-segmentBar__fill {
+  display: block;
+  height: var(--gk-segmentBar-height, 28px);
+  border-radius: var(--radius-sm);
+  background: var(--gk-fill, var(--chart-1));
+}
+.gk-segmentBar__figure { margin-top: var(--space-1); white-space: nowrap; }
+.gk-segmentBar__value { color: var(--text); font-weight: var(--fw-semibold); font-variant-numeric: tabular-nums; }
+.gk-segmentBar__note { color: var(--text-muted); font-size: var(--fs-sm); font-variant-numeric: tabular-nums; }
+.gk-segmentBar__name {
+  overflow: hidden;
+  color: var(--text-muted);
+  font-size: var(--fs-sm);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.gk-segmentBar__caption { margin: 0; color: var(--text-muted); font-size: var(--fs-sm); }
+.gk-segmentBar.is-empty .gk-segmentBar__track {
+  display: block;
+  height: var(--gk-segmentBar-height, 28px);
+  border: 1px dashed var(--none-fg);
+  border-radius: var(--radius-sm);
+}
+.gk-segmentBar__empty { color: var(--text-muted); font-size: var(--fs-sm); }
+/* Patterns: a texture over the fill, in tokens only (the surface colour over the segment's own), so
+   neighbouring categories differ in shape as well as colour. The vocabulary is barChart's. */
+.gk-segmentBar__seg.is-stripes .gk-segmentBar__fill,
+.gk-segmentBar__seg.is-dots .gk-segmentBar__fill { position: relative; overflow: hidden; }
+.gk-segmentBar__seg.is-stripes .gk-segmentBar__fill::after,
+.gk-segmentBar__seg.is-dots .gk-segmentBar__fill::after { content: ""; position: absolute; inset: 0; opacity: 0.55; }
+.gk-segmentBar__seg.is-stripes .gk-segmentBar__fill::after { background: repeating-linear-gradient(45deg, var(--surface) 0 2px, transparent 2px 7px); }
+.gk-segmentBar__seg.is-dots .gk-segmentBar__fill::after { background: radial-gradient(circle, var(--surface) 0 1.5px, transparent 1.6px) 0 0 / 6px 6px; }
+/* A category at zero in a pressable legend: an outlined, empty fill. */
+.gk-segmentBar__seg.is-zero { flex-grow: 0; }
+.gk-segmentBar__seg.is-zero .gk-segmentBar__fill { background: transparent; border: 1px dashed var(--border-strong); }
+/* The pressable legend: each entry is a native toggle button. */
+.gk-segmentBar__entry {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  min-width: 0;
+  margin: 0;
+  padding: var(--space-1) var(--space-2) var(--space-1);
+  border: 1px solid transparent;
+  border-radius: var(--radius-sm);
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+.gk-segmentBar__entry .gk-segmentBar__figure { margin-top: 0; }
+.gk-segmentBar__entry:hover { background: var(--surface-2); }
+.gk-segmentBar__entry:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.gk-segmentBar__entry[aria-pressed="true"] { border-color: var(--border-strong); background: var(--surface-2); }
+.gk-segmentBar__entry[aria-pressed="true"] .gk-segmentBar__name { color: var(--text); font-weight: var(--fw-semibold); }
+.gk-segmentBar.is-pressable .gk-segmentBar__seg { gap: var(--space-1); }
+.gk-segmentBar__entry { transition: background var(--dur-2) var(--ease-standard), border-color var(--dur-2) var(--ease-standard); }
+@media (prefers-reduced-motion: reduce) { .gk-segmentBar__entry { transition: none; } }

@@ -1,0 +1,37 @@
+/* Anatomy and styling ported from shadcn/ui new-york v4 (MIT; see THIRD_PARTY_NOTICES.md). Tokens only.
+   One row that wraps: on the left the search box (a gk-inputGroup at the sm button height), the
+   facetFilter buttons and Reset; on the right the view options and the actions. The toolbar is an
+   inline-size container, so below 30rem of its own width the search box takes the full row. The
+   parts (inputGroup, facetFilter, columnChooser, button) are styled by their own sheets. */
+.gk-dataTableToolbar { container-type: inline-size; min-width: 0; }
+.gk-dataTableToolbar__bar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-2);
+}
+.gk-dataTableToolbar__filters {
+  display: flex;
+  flex: 1 1 auto;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2);
+  min-width: 0;
+}
+.gk-dataTableToolbar__search.gk-inputGroup {
+  flex: 0 1 15.5rem;
+  width: auto;
+  min-width: 9.5rem;
+  height: 32px;
+}
+.gk-dataTableToolbar__end {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2);
+  margin-left: auto;
+}
+@container (max-width: 30rem) {
+  .gk-dataTableToolbar__search.gk-inputGroup { flex-basis: 100%; }
+}

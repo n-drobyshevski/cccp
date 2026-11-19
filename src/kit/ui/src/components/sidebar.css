@@ -2,8 +2,8 @@
    data-side left or right, data-variant sidebar, floating or inset, data-collapsible offcanvas,
    icon or none, data-state expanded or collapsed. Below 1024px the sidebar is the sheet. */
 /* The layout is a size container, so the blocks inside it (appShell body) lay out by its width, not the viewport's. The sheet
-   breakpoint below stays on the viewport: the sheet is a JS-driven dialog that follows matchMedia. */
-.gk-sidebar-layout { container-type: inline-size; display: flex; width: 100%; min-height: 100dvh; }
+   breakpoint below follows the layout width (container query) and, outside a layout, the viewport (media query). */
+.gk-sidebar-layout { container-type: inline-size; container-name: gk-sidebar-layout; display: flex; width: 100%; min-height: 100dvh; }
 .gk-sidebar-layout[data-variant="inset"] { background: var(--sidebar); }
 
 .gk-sidebar {
@@ -100,6 +100,9 @@
 .gk-sidebar[data-state="collapsed"][data-collapsible="icon"] .gk-sidebar__group-label { display: none; }
 .gk-sidebar[data-state="collapsed"][data-collapsible="icon"] .gk-sidebar__header,
 .gk-sidebar[data-state="collapsed"][data-collapsible="icon"] .gk-sidebar__footer { overflow: hidden; }
+/* In the rail, a header or footer keeps only its media (an item's avatar or icon); text goes. */
+.gk-sidebar[data-state="collapsed"][data-collapsible="icon"] :is(.gk-sidebar__header, .gk-sidebar__footer) :is(.gk-sidebar__text, .gk-item__content, .gk-item__actions) { display: none; }
+.gk-sidebar[data-state="collapsed"][data-collapsible="icon"] :is(.gk-sidebar__header, .gk-sidebar__footer) .gk-item { justify-content: center; padding: 0; gap: 0; }
 
 /* The main area */
 .gk-sidebar-inset { display: flex; flex: 1 1 auto; flex-direction: column; min-width: 0; min-height: 100dvh; background: var(--bg); color: var(--text); }
@@ -116,6 +119,11 @@
 .gk-sidebar__sheet-close.gk-btn { position: absolute; top: var(--space-2); right: var(--space-2); width: 28px; height: 28px; }
 
 @media (max-width: 1023.98px) {
+  .gk-sidebar:not([data-collapsible="none"]) { display: contents; }
+  .gk-sidebar:not([data-collapsible="none"]) > .gk-sidebar__container { display: none; }
+  .gk-sidebar-layout[data-variant="inset"] .gk-sidebar-inset { margin: 0; min-height: 100dvh; border-radius: 0; box-shadow: none; }
+}
+@container gk-sidebar-layout (max-width: 63.99rem) {
   .gk-sidebar:not([data-collapsible="none"]) { display: contents; }
   .gk-sidebar:not([data-collapsible="none"]) > .gk-sidebar__container { display: none; }
   .gk-sidebar-layout[data-variant="inset"] .gk-sidebar-inset { margin: 0; min-height: 100dvh; border-radius: 0; box-shadow: none; }

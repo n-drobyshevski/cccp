@@ -8,8 +8,10 @@ import { kitAliases } from "./tools/kitPaths.mjs";
 // '@gas-kit/*' resolves to the vendored kit (src/kit), as in the build.
 const root = fileURLToPath(new URL(".", import.meta.url));
 const kit = kitAliases(root);
-const common = { testTimeout: 30_000, hookTimeout: 30_000, passWithNoTests: true, environment: "node" as const };
 const ext = "?([cm])[jt]s";
+// include and exclude also sit in the shared block, so a run where the projects do not apply never
+// falls back to vitest's default include, which would load the Playwright specs in e2e/.
+const common = { testTimeout: 30_000, hookTimeout: 30_000, passWithNoTests: true, environment: "node" as const, include: ["test/**/*.test." + ext], exclude: ["**/node_modules/**", "e2e/**"] };
 
 export default defineConfig({
   resolve: { alias: kit },

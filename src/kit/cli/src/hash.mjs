@@ -2,7 +2,8 @@
 import { createHash } from "node:crypto";
 import { existsSync, lstatSync, readdirSync, readFileSync, realpathSync } from "node:fs";
 import { join, sep } from "node:path";
-import { gitView } from "./git.mjs";
+import { FriendlyError } from "./errors.mjs";
+import { gitListing } from "./git.mjs";
 
 /** The kit packages an app vendors, under src/kit/<pkg>/. */
 export const VENDOR_PACKAGES = ["server", "client", "ui", "tooling", "cli"];
@@ -64,7 +65,7 @@ export function walkFiles(dir, opts = {}) {
       const rel = sub ? sub + "/" + name : name;
       const st = lstatSync(join(dir, rel));
       if (st.isSymbolicLink()) {
-        if (!opts.links) throw new Error("refusing a symlink in " + dir + ": " + rel + " (kit and template sources must be plain files)");
+        if (!opts.links) throw new FriendlyError({ title: "The kit copy holds a link, so gas-kit stopped", why: "A symbolic link (a shortcut) in the kit files could lead outside the kit: " + rel.replace(/[\u0000-\u001f\u007f-\u009f]/g, "?") + ".", fix: "Use a fresh clone of the kit, or remove the link from your copy.", more: "npm run kit -- help kit", detail: "refusing a symlink in " + dir + ": " + rel + " (kit and template sources must be plain files)" });
         opts.links.push(rel);
       } else if (st.isDirectory()) go(rel);
       else out.push(rel);
@@ -72,6 +73,11 @@ export function walkFiles(dir, opts = {}) {
   };
   if (existsSync(dir)) go("");
   return out;
+}
+
+/** A refusal of a kit copy that holds a link or something odd. @param {string} why @param {string} detail */
+function refuseVendor(why, detail) {
+  return new FriendlyError({ title: "The kit copy is not safe to use, so gas-kit stopped", why: "In the kit copy, " + why + ".", fix: "Use a fresh clone of the kit, or a plain copy without links.", more: "npm run kit -- help kit", detail });
 }
 
 /**
@@ -82,9 +88,9 @@ export function walkFiles(dir, opts = {}) {
 function assertRealDir(kitRoot, rel) {
   const at = join(kitRoot, rel);
   const st = lstatSync(at);
-  if (st.isSymbolicLink() || !st.isDirectory()) throw new Error("refusing to vendor " + rel + ": it is not a directory (a symlink could point anywhere on this machine)");
+  if (st.isSymbolicLink() || !st.isDirectory()) throw refuseVendor("a link or a file stands where a kit folder should be", "refusing to vendor " + rel + ": it is not a directory (a symlink could point anywhere on this machine)");
   const root = realpathSync(kitRoot);
-  if (!realpathSync(at).startsWith(root + sep)) throw new Error("refusing to vendor " + rel + ": it resolves outside the kit checkout " + root);
+  if (!realpathSync(at).startsWith(root + sep)) throw refuseVendor("a kit folder leads outside the kit copy", "refusing to vendor " + rel + ": it resolves outside the kit checkout " + root);
 }
 
 /**
@@ -92,21 +98,25 @@ function assertRealDir(kitRoot, rel) {
  * files git would commit are taken (tracked, or untracked and not ignored): an ignored .env or token
  * file never travels. In a plain directory the skippedAnywhere names are left out at any depth. The packages directory and each package
  * directory must be real directories inside the kit root, and nothing below them may be a symlink.
+ * A checkout git is in but would not list (a failure, a timeout, a repository owned by someone else)
+ * is refused, never walked: a walk would not know which files are ignored.
  * @param {string} kitRoot a gas-kit checkout
+ * @param {{ timeoutMs?: number }} [opts] the git listing timeout (tests shorten it)
  * @returns {Record<string, string>} path under src/kit to absolute source path
  */
-export function vendorFiles(kitRoot) {
+export function vendorFiles(kitRoot, opts = {}) {
   /** @type {Record<string, string>} */
   const out = {};
-  if (!existsSync(join(kitRoot, "packages", "server", "src"))) throw new Error("not a gas-kit checkout: packages/server/src is missing in " + kitRoot);
+  if (!existsSync(join(kitRoot, "packages", "server", "src"))) throw new FriendlyError({ title: "That folder is not a gas-kit checkout", why: "The kit's packages are missing in it.", fix: "Point the command at a clone of the kit repository.", more: "npm run kit -- help kit", detail: "not a gas-kit checkout: packages/server/src is missing in " + kitRoot });
   assertRealDir(kitRoot, "packages");
-  const view = gitView(kitRoot);
-  const listed = view ? new Set(view.files.filter((p) => p.startsWith("packages/"))) : null;
+  const view = gitListing(kitRoot, opts);
+  if (view.state === "failed") throw new Error("refusing to vendor " + kitRoot + ": it is a git checkout that git would not list (" + view.reason + "), so its ignored files cannot be told apart");
+  const listed = view.state === "ok" ? new Set(view.files.filter((p) => p.startsWith("packages/"))) : null;
   // A kit folder that some other repository ignores whole (a home directory under git) is a plain folder.
   const only = listed && listed.size ? listed : null;
   for (const pkg of VENDOR_PACKAGES) {
     const pdir = join(kitRoot, "packages", pkg);
-    if (!existsSync(join(pdir, "src"))) throw new Error("not a gas-kit checkout: packages/" + pkg + "/src is missing in " + kitRoot);
+    if (!existsSync(join(pdir, "src"))) throw new FriendlyError({ title: "That folder is not a gas-kit checkout", why: "The kit package " + pkg + " is missing in it.", fix: "Point the command at a clone of the kit repository.", more: "npm run kit -- help kit", detail: "not a gas-kit checkout: packages/" + pkg + "/src is missing in " + kitRoot });
     assertRealDir(kitRoot, "packages/" + pkg);
     assertRealDir(kitRoot, "packages/" + pkg + "/src");
     for (const f of walkFiles(join(pdir, "src"), { skipTop: SKIP_TOP })) {
@@ -118,7 +128,7 @@ export function vendorFiles(kitRoot) {
       const at = join(pdir, f);
       if (!existsSync(at) && !isLink(at)) continue;
       // A link could point anywhere on the machine (a hostile kit source): vendor regular files only.
-      if (!lstatSync(at).isFile()) throw new Error("refusing to vendor packages/" + pkg + "/" + f + ": it is not a regular file");
+      if (!lstatSync(at).isFile()) throw refuseVendor("a kit file is a link or a folder, not a plain file", "refusing to vendor packages/" + pkg + "/" + f + ": it is not a regular file");
       if (only && !only.has("packages/" + pkg + "/" + f)) continue;
       out[pkg + "/" + f] = at;
     }
@@ -140,8 +150,10 @@ function isLink(p) {
  * @property {string} version
  * @property {string | null} commit the kit commit the files came from, null for a dirty or non-git checkout
  * @property {string} source where this vendoring was taken from: "local checkout", or the git URL#ref (no credentials)
- * @property {string | null} [remote] the shareable git URL of the kit repository (no credentials, no #ref), the
- *   default source of kit:sync and kit:diff; null or absent (a lock written before it existed) when none is known
+ * @property {string | null | false} [remote] the shareable git URL of the kit repository (no credentials, no #ref),
+ *   the default source of kit:sync and kit:diff; null or absent (a lock written before it existed) when none is
+ *   known (kit:sync may adopt the origin of a checkout it syncs from); false when none was chosen on purpose
+ *   (--remote none, --kit-remote none), which kit:sync never fills in
  */
 
 /**

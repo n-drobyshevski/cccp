@@ -81,14 +81,21 @@ function menuItem(it, key, tipOn) {
 }
 
 /**
+ * A header or footer slot. Plain text is wrapped so the icon rail can hide it; SafeHtml is kept
+ * as given (the rail hides an item's content and actions, keeping its media).
+ * @param {unknown} v
+ */
+const slot = (v) => (typeof v === "string" || typeof v === "number" ? html`<span class="gk-sidebar__text">${String(v)}</span>` : v);
+
+/**
  * The header, groups and footer, built twice (sidebar and sheet) with different key suffixes.
  * @param {any} q @param {string} id @param {string} kk @param {boolean} tipOn
  */
 function body(q, id, kk, tipOn) {
   const groups = Array.isArray(q.groups) ? q.groups : [];
   return {
-    header: q.header != null && q.header !== "" ? html`<div class="gk-sidebar__header">${q.header}</div>` : "",
-    footer: q.footer != null && q.footer !== "" ? html`<div class="gk-sidebar__footer">${q.footer}</div>` : "",
+    header: q.header != null && q.header !== "" ? html`<div class="gk-sidebar__header">${slot(q.header)}</div>` : "",
+    footer: q.footer != null && q.footer !== "" ? html`<div class="gk-sidebar__footer">${slot(q.footer)}</div>` : "",
     nav: html`<nav class="gk-sidebar__content" aria-label="${text(q.label, "Sidebar")}" data-keep-scroll>${groups.map((/** @type {any} */ g, /** @type {number} */ gi) => {
       if (!g || typeof g !== "object") return "";
       if (g.separator === true) return html`<div class="gk-sidebar__separator" role="none"></div>`;
@@ -231,8 +238,18 @@ export const sidebarIsland = {
     let opener = null;
 
     const triggers = () => /** @type {any[]} */ (Array.prototype.slice.call(doc.querySelectorAll('[data-sidebar-trigger="' + quote(id) + '"]')));
+    const layout = /** @type {any} */ (el.closest ? el.closest(".gk-sidebar-layout") : null);
+    const narrowLayout = () => {
+      if (!layout || typeof layout.getBoundingClientRect !== "function") return false;
+      let rem = 16;
+      try { rem = parseFloat(globalThis.getComputedStyle(doc.documentElement).fontSize) || 16; } catch (e) { rem = 16; }
+      const w = layout.getBoundingClientRect().width;
+      return w > 0 && w < rem * 64;
+    };
     const isMobile = () => {
-      try { return typeof globalThis.matchMedia === "function" && globalThis.matchMedia(BREAKPOINT).matches === true; } catch (e) { return false; }
+      let wide = false;
+      try { wide = typeof globalThis.matchMedia === "function" && globalThis.matchMedia(BREAKPOINT).matches === true; } catch (e) { wide = false; }
+      return wide || narrowLayout();
     };
     const sheetOpen = () => !!sheet && sheet.open === true;
     const paint = () => {
@@ -305,6 +322,12 @@ export const sidebarIsland = {
       if (mq && typeof mq.addEventListener === "function") mq.addEventListener("change", onMq);
     } catch (e) { mq = null; }
 
+    /** @type {any} */
+    let ro = null;
+    try {
+      if (layout && typeof globalThis.ResizeObserver === "function") { ro = new globalThis.ResizeObserver(onMq); ro.observe(layout); }
+    } catch (e) { ro = null; }
+
     doc.addEventListener("click", onDocClick);
     doc.addEventListener("keydown", onKey);
     el.addEventListener("click", onClick);
@@ -316,6 +339,7 @@ export const sidebarIsland = {
       el.removeEventListener("click", onClick);
       if (sheet) sheet.removeEventListener("close", onSheetClose);
       if (mq && typeof mq.removeEventListener === "function") mq.removeEventListener("change", onMq);
+      if (ro) ro.disconnect();
       if (sheetOpen() && typeof sheet.close === "function") { sheet.removeEventListener("close", onSheetClose); sheet.close(); }
     };
   },

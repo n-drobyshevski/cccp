@@ -1,6 +1,6 @@
 // Extracted from the author's production Apps Script apps; adapted.
 // Note: under HtmlService the app runs in a nested iframe, so the hash does not reach the top URL
-// and deep links do not survive a reload; the google.script.history/url bridge is a planned option.
+// and deep links do not survive a reload; scriptUrl.js is the opt-in google.script.history/url bridge.
 // URL helpers. A literal double slash is banned in served strings, so addresses are joined
 // from parts, and hash state is read and written through these functions.
 import { attrs, html, isSafeUrl, linkAttrs } from "./html.js";

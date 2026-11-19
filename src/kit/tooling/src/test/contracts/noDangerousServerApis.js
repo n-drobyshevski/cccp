@@ -17,8 +17,9 @@
 //   htmlTemplate    createTemplate( with any argument: a template built from text evaluates
 //                   every scriptlet in it on the server, as the deploying account
 //   session         Session.getEffectiveUser / getActiveUser (also through Session?. or
-//                   Session!.): identity is the access module's job, allowed by default only in
-//                   the kit's access, setup and triggers modules and the app's server/setup.ts
+//                   Session!.): identity is read once per execution by the kit's identity module
+//                   (not exported; access, setup and triggers import it), allowed by default only
+//                   there and in the app's server/setup.ts
 //   urlFetch        UrlFetchApp: allowed by default only in the kit's own fetch module (its path in
 //                   the kit repository, packages/server/src/fetch.ts, or in an app,
 //                   kit/server/src/fetch.ts), the one place that applies the host allow-list. An
@@ -48,7 +49,7 @@ export const RULES = [
   { id: "htmlSetContent", re: new RegExp("\\.\\s*setContent\\s*\\(\\s*(?!" + LITERAL_ARG + ")", "g"), what: "HtmlOutput.setContent with a non-literal value is an injection sink" },
   { id: "htmlFromFile", re: new RegExp("\\bcreate(?:HtmlOutput|Template)FromFile\\s*\\(\\s*(?!" + LITERAL_ARG + ")", "g"), what: "an HtmlService file named by a non-literal value serves whatever file the value names" },
   { id: "htmlTemplate", re: /\bcreateTemplate\s*\(/g, what: "createTemplate evaluates the scriptlets of its text on the server, as the deploying account" },
-  { id: "session", re: /\bSession\s*[!?]*\s*\.\s*get(?:Effective|Active)User\b/g, what: "Session user identity is read outside the access module" },
+  { id: "session", re: /\bSession\s*[!?]*\s*\.\s*get(?:Effective|Active)User\b/g, what: "Session user identity is read outside the identity module" },
   { id: "urlFetch", re: /\bUrlFetchApp\b/g, what: "UrlFetchApp is called outside the fetch module" },
 ];
 
@@ -58,7 +59,7 @@ export const DEFAULT_ALLOW = {
   htmlSetContent: ["server/src/page.ts"],
   htmlFromFile: ["server/src/page.ts"],
   htmlTemplate: ["server/src/page.ts"],
-  session: ["server/src/access.ts", "server/src/setup.ts", "server/src/triggers.ts", "server/setup.ts"],
+  session: ["server/src/identity.ts", "server/setup.ts"],
   urlFetch: ["packages/server/src/fetch.ts", "kit/server/src/fetch.ts"],
 };
 

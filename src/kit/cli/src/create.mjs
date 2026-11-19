@@ -1,15 +1,17 @@
 // `create <dir>`: scaffold an app from templates/register with the kit vendored into src/kit.
 import { execFileSync } from "node:child_process";
 import { gitEnv } from "./git.mjs";
-import { copyFileSync, existsSync, lstatSync, mkdirSync, readFileSync, readdirSync, realpathSync, rmSync, writeFileSync } from "node:fs";
+import { copyFileSync, existsSync, lstatSync, mkdirSync, readFileSync, readdirSync, realpathSync, rmSync, statSync, writeFileSync } from "node:fs";
 import { basename, dirname, join, resolve, sep } from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
 import { UsageError } from "./args.mjs";
+import { FriendlyError } from "./errors.mjs";
 import { SKIP_TOP, walkFiles } from "./hash.mjs";
 import * as ph from "./placeholders.mjs";
-import { askAll, isInteractive } from "./prompt.mjs";
-import { commitOf, kitVersion, originOf, remoteFromFlag, shareableRemote } from "./source.mjs";
-import { CHECKS, checkYesNo, resolveValues, validateValues } from "./values.mjs";
+import * as ui from "./ui.mjs";
+import { runWizard } from "./wizard.mjs";
+import { commitOf, kitVersion, originOf, printable, remoteFromFlag, shareableRemote } from "./source.mjs";
+import { resolveValues, validateValues } from "./values.mjs";
 import { assertNoLink, writeVendored } from "./vendor.mjs";
 
 /** The kit checkout this CLI runs from: packages/cli/src/../../.. */
@@ -30,7 +32,11 @@ export function skipped(rel) {
  * @returns {boolean}
  */
 function nonEmpty(dir) {
-  return existsSync(dir) && readdirSync(dir).length > 0;
+  try {
+    return existsSync(dir) && readdirSync(dir).length > 0;
+  } catch {
+    return true; // a file or an unreadable folder: never scaffold into it (targetProblem says which)
+  }
 }
 
 /**
@@ -138,7 +144,7 @@ function gitIdentity(cwd) {
 /**
  * The closing lines of create.
  * @param {string} target the directory as the user typed it
- * @param {string | null} kitRemote the kit remote written to the lock, if any
+ * @param {string | null | false} kitRemote the kit remote written to the lock, if any
  * @param {boolean} [confidential] the app was scaffolded with --confidential
  * @returns {string[]}
  */
@@ -151,9 +157,11 @@ export function nextSteps(target, kitRemote, confidential = false) {
     "  git add package-lock.json    commit the lockfile npm install wrote: CI installs exactly it with npm ci",
     "  npm run check          typecheck, lint and tests",
     "  npm run dev            dev server with fakes of the Apps Script services",
-    "  npx clasp login        sign in to Apps Script",
-    "                         (no browser on this machine, e.g. Cloud Shell: npx clasp login --no-localhost)",
-    "  cp .clasp.json.example .clasp.json    then put your script id in it",
+    "  npm run kit            a menu of what to do next (preview, connect, put online)",
+    "  npm run kit -- link    sign in to Apps Script and save your script id in .clasp.json",
+    "                         by hand: npx clasp login (no browser here, e.g. Cloud Shell:",
+    "                         npx clasp login --no-localhost), then put your script id in",
+    "                         .clasp.json (start from .clasp.json.example)",
     "  npm run push           build, check, clasp push",
     ...(confidential
       ? [
@@ -175,57 +183,47 @@ export function nextSteps(target, kitRemote, confidential = false) {
 }
 
 /**
- * Scaffold. Returns the lines to print.
- * @param {{ positional: string[], flags: Record<string, string | boolean> }} parsed
- * @param {{ kitRoot?: string }} [opts]
- * @returns {Promise<string[]>}
+ * Why a target directory cannot be scaffolded into, or null. Never into the kit checkout itself (or a folder
+ * holding it): --force would rewrite it. Real paths, so a symlink into the kit (or a case variant on a
+ * case-insensitive disk) cannot dodge it.
+ * @param {string} root the absolute target
+ * @param {string} kitRoot @param {boolean} force
+ * @returns {string | null}
  */
-export async function runCreate(parsed, opts = {}) {
-  const kitRoot = opts.kitRoot ?? defaultKitRoot();
-  const target = parsed.positional[0];
-  if (!target) throw new UsageError("create needs a directory: gas-kit create <dir>");
+export function targetProblem(root, kitRoot, force) {
+  const kitAbs = realpathSync(resolve(kitRoot));
+  if (isLink(root)) return root + " is a symbolic link; scaffold into a real directory";
+  if (overlaps(realTarget(root), kitAbs)) return root + " is inside, or contains, the kit checkout " + kitAbs + "; scaffold somewhere else";
+  try {
+    if (existsSync(root) && !statSync(root).isDirectory()) return root + " is a file, not a folder; pick a folder";
+  } catch {
+    return root + " cannot be read; pick another folder";
+  }
+  try {
+    if (existsSync(root)) readdirSync(root);
+  } catch {
+    return root + " cannot be read; pick another folder";
+  }
+  if (nonEmpty(root) && !force) return root + " is not empty; pass --force to scaffold into it anyway";
+  return null;
+}
+
+/** @param {string} kitRoot */
+function templateDir(kitRoot) {
   const template = join(kitRoot, "templates", "register");
   if (!existsSync(join(template, "app.config.mjs"))) {
-    throw new Error("templates/register was not found next to this CLI (" + kitRoot + "); run create from a gas-kit checkout");
+    throw new FriendlyError({ detail: "templates/register was not found next to this CLI (" + kitRoot + "); run create from a gas-kit checkout", title: "gas-kit cannot find its app template", why: "templates/register is missing next to this program, so it is not a whole gas-kit copy.", fix: "Run create from a full gas-kit checkout (git clone it again).", more: "npm run kit -- help kit" });
   }
-  const root = resolve(target);
-  // Never scaffold into the kit checkout itself (or a folder holding it): --force would rewrite it.
-  // Real paths, so a symlink into the kit (or a case variant on a case-insensitive disk) cannot dodge it.
-  const kitAbs = realpathSync(resolve(kitRoot));
-  if (isLink(root)) throw new UsageError(root + " is a symbolic link; scaffold into a real directory");
-  const rootReal = realTarget(root);
-  if (overlaps(rootReal, kitAbs)) {
-    throw new UsageError(root + " is inside, or contains, the kit checkout " + kitAbs + "; scaffold somewhere else");
-  }
-  if (nonEmpty(root) && parsed.flags["force"] !== true) throw new UsageError(root + " is not empty; pass --force to scaffold into it anyway");
+  return template;
+}
 
-  const flags = { ...parsed.flags };
-  // The kit repository teammates fetch from, remembered in the lock: --kit-remote, else this clone's origin.
-  const kitRemote = typeof flags["kit-remote"] === "string" ? remoteFromFlag("--kit-remote", flags["kit-remote"]) : shareableRemote(originOf(kitRoot));
-  const values = resolveValues(flags, basename(root));
-  if (isInteractive() && flags["yes"] !== true) {
-    const keys = /** @type {Array<"name" | "product" | "prefix" | "accent" | "confidential" | "access" | "tz">} */ (["name", "product", "prefix", "accent", "confidential", "access", "tz"]);
-    const labels = { name: "App name (a slug)", product: "Product (display name)", prefix: "Storage prefix", accent: "Accent colour", confidential: "Will it hold confidential data? (yes or no)", access: "Access mode (list or org)", tz: "Time zone" };
-    const checks = { ...CHECKS, confidential: checkYesNo };
-    /** @param {Record<string, string>} answers */
-    const now = (answers) => resolveValues({ ...flags, ...answers }, basename(root));
-    // Each default is recomputed from the earlier answers (and the flags), so a typed name feeds the product and prefix.
-    const asked = await askAll(
-      keys
-        .filter((k) => (k === "confidential" ? flags["confidential"] !== true : typeof flags[k] !== "string"))
-        .map((k) => ({
-          key: k,
-          label: labels[k],
-          check: checks[k],
-          def: (/** @type {Record<string, string>} */ answers) => (k === "confidential" ? (now(answers).confidential ? "yes" : "no") : String(now(answers)[k])),
-          // A confidential app is list-only: the access mode is not asked.
-          skip: (/** @type {Record<string, string>} */ answers) => k === "access" && now(answers).confidential,
-        })),
-    );
-    Object.assign(values, resolveValues({ ...flags, ...asked }, basename(root)));
-  }
-  validateValues(values);
-
+/**
+ * Copy the template and vendor the kit into a target. Returns how many files it wrote.
+ * @param {string} root @param {string} kitRoot @param {string | null | false} kitRemote
+ * @returns {number}
+ */
+export function copyKit(root, kitRoot, kitRemote) {
+  const template = templateDir(kitRoot);
   const rels = walkFiles(template, { skipTop: SKIP_TOP }).filter((rel) => !skipped(rel));
   // Never follow a symlink in the target: check every path create will write before writing any.
   if (existsSync(root)) for (const rel of [...rels, "src/kit", "kit.lock.json", ".npmrc", "src/client/styles/brand.css"]) assertNoLink(root, rel, { who: "create", hint: " or scaffold somewhere else" });
@@ -237,29 +235,86 @@ export async function runCreate(parsed, opts = {}) {
   writeVendored(root, { dir: kitRoot, version: kitVersion(kitRoot), commit: commitOf(kitRoot), source: "local checkout", remote: kitRemote });
   // The kit needs legacy-peer-deps for an npm resolver bug; without it a fresh npm install fails.
   if (!existsSync(join(root, ".npmrc"))) writeFileSync(join(root, ".npmrc"), "legacy-peer-deps=true\n");
-  applyPlaceholders(root, values);
+  return rels.length + Object.keys(JSON.parse(readFileSync(join(root, "kit.lock.json"), "utf8")).files).length;
+}
 
+/**
+ * Write the chosen name, colour and options into a copied template.
+ * @param {string} root @param {import("./values.mjs").Values} values
+ */
+export async function applyChoices(root, values) {
+  applyPlaceholders(root, values);
   const brandMod = await import(pathToFileURL(join(root, "tools", "brandCss.mjs")).href);
   const brand = ph.brandFor(values.accent);
   const brandPath = join(root, brandMod.BRAND_CSS_PATH);
   if (brand) writeFileSync(brandPath, brandMod.renderBrandCss(brand));
+}
+
+/**
+ * Make the first git commit. Returns a message when it could not, else null.
+ * @param {string} root @param {import("./values.mjs").Values} values
+ * @returns {string | null}
+ */
+export function firstCommit(root, values) {
+  try {
+    execFileSync("git", ["init", "-q"], { cwd: root, env: gitEnv(), stdio: "ignore" });
+    execFileSync("git", ["add", "-A"], { cwd: root, env: gitEnv(), stdio: "ignore" });
+    execFileSync("git", [...gitIdentity(root), "commit", "-q", "-m", "Scaffold " + values.name + " from gas-kit"], { cwd: root, env: gitEnv(), stdio: "ignore" });
+    return null;
+  } catch (e) {
+    return "Could not make the git commit: " + /** @type {Error} */ (e).message;
+  }
+}
+
+/**
+ * The kit repository teammates fetch from, remembered in the lock: --kit-remote (none is false, a deliberate
+ * "no remote" that kit:sync never fills in), else this clone's origin (null when it has none: kit:sync may adopt one later).
+ * @param {Record<string, string | boolean>} flags @param {string} kitRoot
+ */
+function kitRemoteOf(flags, kitRoot) {
+  return typeof flags["kit-remote"] === "string" ? remoteFromFlag("--kit-remote", flags["kit-remote"]) : shareableRemote(originOf(kitRoot));
+}
+
+/**
+ * Scaffold. Returns the lines to print. On two terminals without --yes the guided wizard runs (it prints
+ * through ui.mjs itself and returns no lines); otherwise this is the flag-driven create.
+ * @param {{ positional: string[], flags: Record<string, string | boolean> }} parsed
+ * @param {{ kitRoot?: string, input?: any, output?: any, env?: Record<string, string | undefined>, globals?: { plain?: boolean, noColor?: boolean, verbose?: boolean }, cwd?: string, spawn?: import("./wizard.mjs").Spawner, hasGit?: boolean, detectTz?: () => string }} [opts]
+ * @returns {Promise<string[]>}
+ */
+export async function runCreate(parsed, opts = {}) {
+  const kitRoot = opts.kitRoot ?? defaultKitRoot();
+  const target = parsed.positional[0];
+  const uiOpts = { input: opts.input, output: opts.output, env: opts.env, flags: { ...parsed.flags, plain: opts.globals?.plain === true, "no-color": opts.globals?.noColor === true } };
+  const interactive = ui.isInteractive(uiOpts);
+  if (!target && !interactive) throw new UsageError("create needs a directory: gas-kit create <dir>", { title: "create needs a folder name", why: "There is no terminal to ask on, so gas-kit cannot ask where to put the app.", fix: "npm run kit -- create <folder> --yes", more: "npm run kit -- help" });
+  templateDir(kitRoot);
+  const flags = { ...parsed.flags };
+  if (interactive) {
+    const kitRemote = kitRemoteOf(flags, kitRoot);
+    await runWizard(
+      { parsed, kitRoot, kitRemote, uiOpts, cwd: opts.cwd, verbose: opts.globals?.verbose === true, spawn: opts.spawn, hasGit: opts.hasGit, detectTz: opts.detectTz },
+      { targetProblem, copyKit, applyChoices, firstCommit },
+    );
+    return [];
+  }
+  const root = resolve(/** @type {string} */ (target));
+  const problem = targetProblem(root, kitRoot, parsed.flags["force"] === true);
+  if (problem) throw new UsageError(problem, { title: "gas-kit cannot create the app there", why: printable(problem) + ".", fix: "Pick another folder, or add --force to use a folder that is not empty.", more: "npm run kit -- help" });
+
+  const kitRemote = kitRemoteOf(flags, kitRoot);
+  const values = resolveValues(flags, basename(root));
+  validateValues(values);
+  copyKit(root, kitRoot, kitRemote);
+  await applyChoices(root, values);
 
   /** @type {string[]} */
   const lines = [];
-  if (values.git) {
-    try {
-      execFileSync("git", ["init", "-q"], { cwd: root, env: gitEnv(), stdio: "ignore" });
-      execFileSync("git", ["add", "-A"], { cwd: root, env: gitEnv(), stdio: "ignore" });
-      execFileSync("git", [...gitIdentity(root), "commit", "-q", "-m", "Scaffold " + values.name + " from gas-kit"], { cwd: root, env: gitEnv(), stdio: "ignore" });
-      lines.push("Initialised a git repository with a first commit.");
-    } catch (e) {
-      lines.push("Could not make the git commit: " + /** @type {Error} */ (e).message);
-    }
-  }
+  if (values.git) lines.push(firstCommit(root, values) ?? "Initialised a git repository with a first commit.");
   lines.unshift("Created " + values.product + " in " + root + " (kit " + kitVersion(kitRoot) + ", " + Object.keys(JSON.parse(readFileSync(join(root, "kit.lock.json"), "utf8")).files).length + " vendored files).");
   if (values.source === "none") lines.push("Source: none. The template has no separate no-source build, so SOURCE_SHEET_ID is simply left unset and the app shows its bundled sample until you set it.");
   if (kitRemote) lines.push("Kit source remembered: " + kitRemote + " (kit.remote in kit.lock.json; kit:sync and kit:diff fetch from it).");
   if (values.confidential) lines.push("Data class: confidential (list access only, owner pin required, no data in the page or the browser, exports for admins only, an audit sheet). dataClass in app.config.mjs and DATA_CLASS in src/server/config.ts say so.");
-  lines.push(...nextSteps(target, kitRemote, values.confidential));
+  lines.push(...nextSteps(/** @type {string} */ (target), kitRemote, values.confidential));
   return lines;
 }

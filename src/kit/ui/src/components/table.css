@@ -31,7 +31,9 @@
 .gk-table > tfoot { border-top: 1px solid var(--border); background: var(--surface-2); font-weight: var(--fw-medium); }
 .gk-table > tfoot > tr:last-child { border-bottom: 0; }
 .gk-table__empty > td { padding: var(--space-5) var(--space-2); text-align: center; color: var(--text-muted); white-space: normal; }
+.gk-table__hint { border-bottom: 1px dotted var(--border-strong); cursor: help; }
 .gk-table a:focus-visible,
-.gk-table button:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.gk-table button:focus-visible,
+.gk-table__hint:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
 /* Motion: the row hover background eases over --dur-2. */
 .gk-table > tbody > tr { transition: background var(--dur-2) var(--ease-standard); }

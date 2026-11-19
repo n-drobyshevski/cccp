@@ -72,6 +72,9 @@ in the architecture spec; the approved UI is in `mockups/` (never edited, never 
   commit; a UI change also needs `npm run e2e`, whose pixel baselines (`e2e/shots.spec.ts`) are
   never updated without reviewing the diff. Bundle budgets live in `app.config.mjs`; raise one
   only with the reason named beside it.
+- `npm run push` runs a dependency audit (high and above) after the check; `npm run audit` holds
+  moderate and up, as CI does. Never hide an advisory: fix the dependency or add a dated entry with a
+  reason to `audit-allow.json`.
 - Tests run with `TZ=UTC`; date suites also run under `TZ=Pacific/Kiritimati`.
 - `dist/` is gitignored and built on push. Parallel work packages append to `api.ts`, `roles.ts`,
   `entry.js` and `index.css` in file order, to avoid merge conflicts.

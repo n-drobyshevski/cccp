@@ -2,6 +2,7 @@
 // Idempotent setup helpers. The app's own setup() calls them in order and then reports.
 
 import { ACCESS_MAX_ENTRIES, ACCESS_PROP_KEYS, parseAddressList } from "./access";
+import { executionEffectiveEmail } from "./identity";
 import { withScriptLock } from "./lock";
 import { PROP_MAX_BYTES, getProp, setProp, utf8ByteLength } from "./props";
 import type { SettingsProps } from "./settings";
@@ -11,12 +12,9 @@ export const OWNER_LIST_KEY = ACCESS_PROP_KEYS.users;
 
 const defaultProps = (): SettingsProps => ({ get: getProp, set: setProp });
 
+/** The effective user's address, read once per execution (identity.ts); "" when it cannot be read. */
 function effectiveEmail(): string {
-  try {
-    return String(Session.getEffectiveUser().getEmail() || "").trim();
-  } catch {
-    return "";
-  }
+  return (executionEffectiveEmail() ?? "").trim();
 }
 
 /**

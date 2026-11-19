@@ -18,6 +18,10 @@ body { padding: 0 16px 48px; }
 /* A transform makes the card the containing block of position:fixed parts (confirm, popover panel,
    toast host), so they stay inside their card; the card needs room for a dialog. */
 .gal-card:has(.gk-confirm, .gk-toast-host, .gk-popover__panel) { min-height: 260px; }
+/* An open dialog or sheet example is shown in place, not modally (dialogs.js): the card gives it
+   room, and a side sheet spans the card's height instead of the viewport's. */
+.gal-card:has(dialog[open]) { min-height: 280px; }
+.gal-card .gk-sheet[data-side="right"], .gal-card .gk-sheet[data-side="left"] { height: auto; }
 .gal-code { margin: 8px 0 0; padding: 8px 12px; overflow: auto; background: var(--surface-2); border: 1px solid var(--border); border-radius: var(--radius-sm); font: var(--fs-sm) / 1.5 var(--font-mono); white-space: pre-wrap; word-break: break-word; }
 .gal-error { padding: 8px 12px; border: 1px solid var(--bad-fg); border-radius: var(--radius-sm); background: var(--bad-bg); color: var(--bad-fg); }
 .gal-empty { margin-top: 24px; }

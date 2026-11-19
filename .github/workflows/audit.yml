@@ -1,0 +1,45 @@
+name: dependency audit
+# Every Monday, and on demand from the Actions tab: npm's advisories for package-lock.json, held
+# to the same policy as CI (npm run audit: level moderate, dev tools included, dated exceptions
+# in audit-allow.json). An advisory published after the last push is found here.
+#
+# A finding opens one issue, "Dependency audit: updates needed" (or refreshes it, with a comment
+# when a new advisory appears), and fails the run; a clean run closes the issue.
+on:
+  schedule:
+    - cron: "23 5 * * 1"
+  workflow_dispatch:
+permissions:
+  contents: read
+  issues: write
+concurrency:
+  group: dependency-audit
+  cancel-in-progress: false
+jobs:
+  audit:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      # node, not npm run: npm would print its own header lines into the issue body.
+      - name: Audit package-lock.json
+        id: audit
+        run: |
+          set +e
+          node tools/audit.mjs --markdown > "$RUNNER_TEMP/audit.md"
+          echo "code=$?" >> "$GITHUB_OUTPUT"
+          cat "$RUNNER_TEMP/audit.md"
+      - name: Open, update or close the issue
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+          AUDIT_CODE: ${{ steps.audit.outputs.code }}
+        run: node src/kit/tooling/src/deps/auditIssue.mjs "$RUNNER_TEMP/audit.md" "$AUDIT_CODE"
+      - name: Fail the run on a finding
+        if: steps.audit.outputs.code != '0'
+        run: exit 1

@@ -1,13 +1,15 @@
 // Extracted from the author's production Apps Script apps; adapted.
-// DOM-free table model: stable sort with null-last, facet and text filtering, show-more paging
-// and column visibility stored as signed deviations from the defaults. Everything is computed
-// in the browser over the whole list; the view (dataTable) only renders the result.
+// DOM-free table model: stable sort with null-last, facet and text filtering, show-more or
+// page-numbered paging, a three-state header sort, scoped facet counts, row selection over
+// string keys and column visibility stored as signed deviations from the defaults. Everything is
+// computed in the browser over the whole list; the view (dataTable) only renders the result.
 //
 // Rows are immutable data: a row object, and a rows array, must not be changed in place once it
 // has been passed here. Three caches rely on that: the folded search text of each row (per text
-// hook), the last queryTable call, and the facet counts per rows array and value hook. To change
-// a row, replace it (and the array) with a new object. Results are shared: treat them as
-// read-only.
+// hook), the last queryTable call (its query includes page and pageSize), and the facet counts
+// per rows array (countBy per value hook; facetCountsFor per facetValue and text hooks and the
+// query it is scoped to). To change a row, replace it (and the array) with a new object. Results
+// are shared: treat them as read-only. The selection helpers never mutate their inputs.
 
 /** Rows added by one Show more click. */
 export const PAGE_STEP = 50;
@@ -107,6 +109,25 @@ export function sortRows(rows, o) {
 export function nextSort(sort, key, descFirst) {
   if (sort && sort.key === key) return { key, desc: !sort.desc };
   return { key, desc: !!descFirst };
+}
+
+/**
+ * The next sort for a three-state header: unsorted, then ascending, then descending, then
+ * unsorted again (`opts.descFirst` goes descending, ascending, unsorted). A key other than the
+ * sorted one starts fresh at its first state. Unsorted is `{key: null, desc: false}`, and so is
+ * the result for an empty key.
+ * @param {{ key: string|null, desc: boolean }|null|undefined} sort
+ * @param {string} key
+ * @param {{ descFirst?: boolean }} [opts]
+ * @returns {{ key: string|null, desc: boolean }}
+ * @internal
+ */
+export function cycleSort(sort, key, opts) {
+  const first = !!(opts && opts.descFirst);
+  if (!key) return { key: null, desc: false };
+  if (!sort || sort.key !== key) return { key, desc: first };
+  if (!!sort.desc === first) return { key, desc: !first };
+  return { key: null, desc: false };
 }
 
 /** The cache key standing for the default text hook (every value of the row). */
@@ -215,6 +236,143 @@ export function countBy(rows, value) {
   return m;
 }
 
+/** How many scoped counts facetCountsFor keeps per rows array before dropping the oldest. */
+const SCOPED_MAX = 64;
+
+/**
+ * Scoped facet counts: rows array -> the hooks they were counted with and, by query signature
+ * (the facet, the other active facets and `q`, as JSON), the counts. Weak on the rows array; a
+ * call with other `facetValue` or `text` hooks replaces the entry, and at most SCOPED_MAX
+ * signatures are kept (oldest dropped first).
+ * @type {WeakMap<object, { facetValue: unknown, text: unknown, bySig: Map<string, Map<string, number>> }>}
+ */
+const scopedCache = new WeakMap();
+
+/**
+ * Counts per value of one facet over the rows that pass the search `q` and every OTHER active
+ * facet: the facet's own selection is ignored, so its options keep their counts while it is
+ * being picked from. Matching is filterRows itself (same folded-text cache). An array value
+ * counts once per item and blank values are skipped, as in countBy; a selected value that no
+ * scoped row has is absent from the Map. Memoised per rows array, `facetValue` and `text` hooks
+ * and query (see scopedCache), so pass stable hooks. The Map is shared: treat it as read-only.
+ * @template T
+ * @param {T[]} rows
+ * @param {{ facets?: Record<string, string[]>, q?: string, facetValue?: (row: T, facet: string) => unknown, text?: (row: T) => string }} o
+ * @param {string} facet
+ * @returns {Map<string, number>}
+ * @internal
+ */
+export function facetCountsFor(rows, o, facet) {
+  const all = rows || [];
+  const facets = (o && o.facets) || {};
+  /** @type {Record<string, string[]>} */
+  const others = {};
+  for (const n of Object.keys(facets)) {
+    if (n !== facet && facets[n] && facets[n].length) others[n] = facets[n];
+  }
+  const q = (o && o.q) || "";
+  const fvHook = o && o.facetValue;
+  const textHook = o && o.text;
+  const sig = JSON.stringify([facet, others, q]);
+  let entry = scopedCache.get(all);
+  if (!entry || entry.facetValue !== fvHook || entry.text !== textHook) {
+    entry = { facetValue: fvHook, text: textHook, bySig: new Map() };
+    scopedCache.set(all, entry);
+  }
+  const hit = entry.bySig.get(sig);
+  if (hit) return hit;
+  const fv = fvHook || ((r, f) => /** @type {any} */ (r)[f]);
+  const scoped = filterRows(all, { facets: others, q, facetValue: fvHook, text: textHook });
+  /** @type {Map<string, number>} */
+  const m = new Map();
+  for (const r of scoped) {
+    const v = fv(r, facet);
+    for (const x of Array.isArray(v) ? v : [v]) {
+      if (isBlank(x)) continue;
+      const k = String(x);
+      m.set(k, (m.get(k) || 0) + 1);
+    }
+  }
+  if (entry.bySig.size >= SCOPED_MAX) {
+    const oldest = entry.bySig.keys().next().value;
+    if (oldest !== undefined) entry.bySig.delete(oldest);
+  }
+  entry.bySig.set(sig, m);
+  return m;
+}
+
+/**
+ * The keys as strings, first occurrence kept, in input order.
+ * @param {ReadonlyArray<unknown>|null|undefined} keys
+ * @returns {string[]}
+ */
+function uniqueKeys(keys) {
+  /** @type {Set<string>} */
+  const seen = new Set();
+  /** @type {string[]} */
+  const out = [];
+  for (const k of keys || []) {
+    const s = String(k);
+    if (!seen.has(s)) {
+      seen.add(s);
+      out.push(s);
+    }
+  }
+  return out;
+}
+
+/**
+ * Toggle one key in a selection: remove it when present, else append it. Keys compare as
+ * strings; the result is a new array in input order with no duplicates.
+ * @param {ReadonlyArray<string>|null|undefined} selected
+ * @param {string} key
+ * @returns {string[]}
+ * @internal
+ */
+export function toggleKey(selected, key) {
+  const cur = uniqueKeys(selected);
+  const k = String(key);
+  return cur.indexOf(k) >= 0 ? cur.filter((s) => s !== k) : cur.concat([k]);
+}
+
+/**
+ * Select (`on`) or deselect several keys at once, such as every row on a page. Selecting appends
+ * the keys not yet selected, in `keys` order; deselecting removes them. Keys compare as
+ * strings; the result is a new array with no duplicates.
+ * @param {ReadonlyArray<string>|null|undefined} selected
+ * @param {ReadonlyArray<string>|null|undefined} keys
+ * @param {boolean} on
+ * @returns {string[]}
+ * @internal
+ */
+export function setKeys(selected, keys, on) {
+  const cur = uniqueKeys(selected);
+  const ks = uniqueKeys(keys);
+  if (on) {
+    const have = new Set(cur);
+    return cur.concat(ks.filter((k) => !have.has(k)));
+  }
+  const drop = new Set(ks);
+  return cur.filter((k) => !drop.has(k));
+}
+
+/**
+ * The selection seen from one page: `count` selected keys in all, `pageCount` of them on this
+ * page, `all` when every page key is selected (false for an empty page) and `some` when at least
+ * one but not all are (the header checkbox's indeterminate state). Keys compare as strings.
+ * @param {ReadonlyArray<string>|null|undefined} selected
+ * @param {ReadonlyArray<string>|null|undefined} pageKeys
+ * @returns {{ count: number, pageCount: number, all: boolean, some: boolean }}
+ * @internal
+ */
+export function selectionState(selected, pageKeys) {
+  const sel = new Set(uniqueKeys(selected));
+  const page = uniqueKeys(pageKeys);
+  const pageCount = page.filter((k) => sel.has(k)).length;
+  const all = page.length > 0 && pageCount === page.length;
+  return { count: sel.size, pageCount, all, some: pageCount > 0 && !all };
+}
+
 /**
  * How many rows to show after a Show more click, clamped to the total.
  * @param {number} shown
@@ -307,19 +465,27 @@ export function toggleColumn(columns, deviations, key) {
 let lastQuery = null;
 
 /**
- * The whole pipeline: filter, sort, then take the first `shown` rows.
+ * The whole pipeline: filter, sort, then take the first `shown` rows, or one page of them.
+ *
+ * Paging: when `pageSize` is a positive number (fractions round down, at least 1) it replaces
+ * `shown`. `rows` is then page `page` (1-based) of the sorted, filtered rows, and the result
+ * adds `page` (clamped to 1..pageCount; absent or not a number reads as 1), `pageCount` (at least
+ * 1, so no matches is page 1 of 1) and `pageSize`; `shown` is the number of rows on the page and
+ * `left` the matched rows after it. Without `pageSize` the result is the show-more one and has
+ * no `page`, `pageCount` or `pageSize`.
  *
  * Memoised on its last call: called again with the same `rows` array, the same `columns`,
- * `facetValue`, `text` and `tiebreak` references and a query (`sort`, `facets`, `q`, `shown`)
- * whose JSON is equal, it returns the previous result object itself. One entry only, so a
- * second table in the page simply recomputes. The result is shared: treat it as read-only.
+ * `facetValue`, `text` and `tiebreak` references and a query (`sort`, `facets`, `q`, `shown`,
+ * `page`, `pageSize`) whose JSON is equal, it returns the previous result object itself. One
+ * entry only, so a second table in the page simply recomputes. The result is shared: treat it
+ * as read-only.
  * @template T
- * @param {{ rows: T[], columns?: Array<{ key?: string, sortValue?: (row: T) => unknown }>, sort?: { key: string|null, desc: boolean }|null, facets?: Record<string, string[]>, q?: string, facetValue?: (row: T, facet: string) => unknown, text?: (row: T) => string, tiebreak?: (a: T, b: T) => number, shown?: number }} o
- * @returns {{ rows: T[], total: number, matched: number, shown: number, left: number, filtered: boolean }}
+ * @param {{ rows: T[], columns?: Array<{ key?: string, sortValue?: (row: T) => unknown }>, sort?: { key: string|null, desc: boolean }|null, facets?: Record<string, string[]>, q?: string, facetValue?: (row: T, facet: string) => unknown, text?: (row: T) => string, tiebreak?: (a: T, b: T) => number, shown?: number, page?: number, pageSize?: number }} o
+ * @returns {{ rows: T[], total: number, matched: number, shown: number, left: number, filtered: boolean, page?: number, pageCount?: number, pageSize?: number }}
  * @internal
  */
 export function queryTable(o) {
-  const sig = JSON.stringify([o.sort || null, o.facets || null, o.q || "", o.shown == null ? null : o.shown]);
+  const sig = JSON.stringify([o.sort || null, o.facets || null, o.q || "", o.shown == null ? null : o.shown, o.page == null ? null : o.page, o.pageSize == null ? null : o.pageSize]);
   const last = lastQuery;
   if (last && last.rows === o.rows && last.columns === o.columns && last.facetValue === o.facetValue && last.text === o.text && last.tiebreak === o.tiebreak && last.sig === sig) {
     return last.result;
@@ -346,15 +512,36 @@ function runQuery(o) {
     const value = col && col.sortValue ? col.sortValue : (/** @type {any} */ r) => r[key];
     sorted = sortRows(f, { value, descending: sort.desc, tiebreak: o.tiebreak });
   }
-  const shown = Math.min(sorted.length, Math.max(0, o.shown == null ? PAGE_STEP : o.shown));
   const hasFacet = Object.keys(o.facets || {}).some((k) => (o.facets || {})[k] && (o.facets || {})[k].length);
+  const filtered = hasFacet || fold(o.q || "").trim() !== "";
+  const size = o.pageSize;
+  if (typeof size === "number" && size > 0 && size !== Infinity) {
+    const pageSize = Math.max(1, Math.floor(size));
+    const pageCount = Math.max(1, Math.ceil(sorted.length / pageSize));
+    const want = typeof o.page === "number" && o.page === o.page ? Math.floor(o.page) : 1;
+    const page = Math.min(pageCount, Math.max(1, want));
+    const start = (page - 1) * pageSize;
+    const rows = sorted.slice(start, start + pageSize);
+    return {
+      rows,
+      total: all.length,
+      matched: sorted.length,
+      shown: rows.length,
+      left: sorted.length - start - rows.length,
+      filtered,
+      page,
+      pageCount,
+      pageSize,
+    };
+  }
+  const shown = Math.min(sorted.length, Math.max(0, o.shown == null ? PAGE_STEP : o.shown));
   return {
     rows: sorted.slice(0, shown),
     total: all.length,
     matched: sorted.length,
     shown,
     left: sorted.length - shown,
-    filtered: hasFacet || fold(o.q || "").trim() !== "",
+    filtered,
   };
 }
 

@@ -5,6 +5,7 @@
 // Create-before-delete is deliberate: a failed create leaves the old trigger in place. The
 // signature is written last, so a failed create leaves it stale and the next run retries.
 
+import { executionActiveEmail, executionEffectiveEmail } from "./identity";
 import { ApiError } from "./envelope";
 import { getProp, setProp } from "./props";
 
@@ -90,11 +91,11 @@ export interface TriggerRunOptions {
    * refuses, so the uid of another job's trigger can never pass.
    */
   handler: string;
-  /** The owner's address. Default: Session.getEffectiveUser().getEmail(). */
+  /** The owner's address. Default: Session.getEffectiveUser().getEmail(), read once per execution. */
   ownerEmail?: () => string | null | undefined;
   /**
-   * The caller's address. Default: Session.getActiveUser().getEmail(). A getter that answers
-   * anything but a string, null or undefined (a User object, say) refuses.
+   * The caller's address. Default: Session.getActiveUser().getEmail(), read once per execution.
+   * A getter that answers anything but a string, null or undefined (a User object, say) refuses.
    */
   activeEmail?: () => string | null | undefined;
 }
@@ -102,10 +103,14 @@ export interface TriggerRunOptions {
 /** The sentence assertTriggerRun throws with. It says nothing about why. */
 export const TRIGGER_REFUSED_MESSAGE = "Not permitted.";
 
-/** The address a getter answers: "" for null or undefined, null (refuse) for a throw or a non-string. */
-function read(fn: (() => string | null | undefined) | undefined, fallback: () => string): string | null {
+/**
+ * The address a getter answers: "" for null or undefined, null (refuse) for a throw or a
+ * non-string. Without a getter, the execution's Session read (identity.ts), which is null the same way.
+ */
+function read(fn: (() => string | null | undefined) | undefined, fallback: () => string | null): string | null {
+  if (!fn) return fallback();
   try {
-    const v: unknown = fn ? fn() : fallback();
+    const v: unknown = fn();
     if (v === null || v === undefined) return "";
     return typeof v === "string" ? v : null;
   } catch {
@@ -135,8 +140,8 @@ export function isTriggerRun(e: unknown, opts: TriggerRunOptions): boolean {
   } catch {
     return false;
   }
-  const active = read(opts.activeEmail, () => Session.getActiveUser().getEmail());
-  const owner = read(opts.ownerEmail, () => Session.getEffectiveUser().getEmail());
+  const active = read(opts.activeEmail, executionActiveEmail);
+  const owner = read(opts.ownerEmail, executionEffectiveEmail);
   if (active === null || owner === null) return false;
   return triggerAllowed({ activeEmail: active, ownerEmail: owner });
 }

@@ -1,6 +1,7 @@
 // DOM-free geometry for the native SVG charts: scales, ticks, stacking, curves, arcs.
 // Curve maths follow the public d3-shape algorithms (natural cubic spline, monotone X, step).
 // Angles are degrees, 0 at the top, clockwise. Every export is an @internal helper.
+// Dates are yyyy-MM-dd strings read by their digits into UTC day numbers, never by new Date(string).
 
 /**
  * Round to two decimals for compact path data.
@@ -147,15 +148,17 @@ function linear(p) {
 }
 
 /**
+ * A step line: the change at the midpoint, or with `after` at the next point (the value holds).
  * @param {Pt[]} p
+ * @param {boolean} [after]
  * @returns {string}
  */
-function step(p) {
+function step(p, after) {
   let d = "";
   p.forEach((q, i) => {
     if (!i) { d += "M" + r2(q[0]) + " " + r2(q[1]); return; }
-    const xm = (p[i - 1][0] + q[0]) / 2;
-    d += "L" + r2(xm) + " " + r2(p[i - 1][1]) + "L" + r2(xm) + " " + r2(q[1]) + "L" + r2(q[0]) + " " + r2(q[1]);
+    const xm = after ? q[0] : (p[i - 1][0] + q[0]) / 2;
+    d += "L" + r2(xm) + " " + r2(p[i - 1][1]) + "L" + r2(xm) + " " + r2(q[1]) + (after ? "" : "L" + r2(q[0]) + " " + r2(q[1]));
   });
   return d;
 }
@@ -232,7 +235,8 @@ function monotone(p) {
 }
 
 /**
- * Path data through points for a curve: "linear", "natural", "monotone" or "step".
+ * Path data through points for a curve: "linear", "natural", "monotone", "step" (the change at
+ * the midpoint) or "stepAfter" (each value holds until the next point, as a survival curve does).
  * @internal
  * @param {Pt[]} pts
  * @param {string} [curve]
@@ -242,7 +246,7 @@ export function curvePath(pts, curve = "natural") {
   const p = pts.filter((q) => q && Number.isFinite(q[0]) && Number.isFinite(q[1]));
   if (!p.length) return "";
   if (p.length === 1) return "M" + r2(p[0][0]) + " " + r2(p[0][1]);
-  return curve === "step" ? step(p) : curve === "monotone" ? monotone(p) : curve === "linear" ? linear(p) : natural(p);
+  return curve === "step" ? step(p) : curve === "stepAfter" ? step(p, true) : curve === "monotone" ? monotone(p) : curve === "linear" ? linear(p) : natural(p);
 }
 
 /**
@@ -407,4 +411,228 @@ export function colorVar(color, index) {
   const c = typeof color === "string" ? color.replace(/^--/, "") : "";
   if (/^[a-z][a-z0-9-]*$/.test(c)) return "var(--" + c + ")";
   return "var(--chart-" + ((((index % 6) + 6) % 6) + 1) + ")";
+}
+
+/**
+ * The UTC day number (days since 1970-01-01) of a yyyy-MM-dd string, or null when it is not a
+ * real calendar date (a day that rolls over, such as 2025-02-30, reads back differently). The
+ * digits go to Date.UTC; the string never reaches new Date.
+ * @internal
+ * @param {unknown} s
+ * @returns {number|null}
+ */
+export function ymdDay(s) {
+  const m = /^(\d{4})-(\d\d)-(\d\d)$/.exec(String(s));
+  const d = m ? Date.UTC(+m[1], +m[2] - 1, +m[3]) / 864e5 : 0;
+  return m && dayText(d) === s ? d : null;
+}
+
+/**
+ * A UTC day number as a yyyy-MM-dd string (a Date built from a number, read in UTC).
+ * @internal
+ * @param {number} day
+ * @returns {string}
+ */
+export function dayText(day) {
+  return new Date(Math.round(day) * 864e5).toISOString().slice(0, 10);
+}
+
+const MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+
+/**
+ * A UTC day number as "7 Mar 2025", or without the year.
+ * @internal
+ * @param {number} day
+ * @param {boolean} [noYear]
+ * @returns {string}
+ */
+export function dayLabel(day, noYear) {
+  const t = dayText(day);
+  return +t.slice(8) + " " + MONTHS[+t.slice(5, 7) - 1] + (noYear ? "" : " " + t.slice(0, 4));
+}
+
+/**
+ * A UTC day number in a named date format: "dd-mmm-yyyy" ("07-mar-2026"), "yyyy-mm-dd", or
+ * anything else as dayLabel ("7 Mar 2026", the "d mmm" default).
+ * @internal
+ * @param {number} day
+ * @param {unknown} [f]
+ * @returns {string}
+ */
+export function dayFmt(day, f) {
+  const t = dayText(day);
+  return f === "yyyy-mm-dd" ? t : f === "dd-mmm-yyyy" ? t.slice(8) + "-" + MONTHS[+t.slice(5, 7) - 1].toLowerCase() + "-" + t.slice(0, 4) : dayLabel(day);
+}
+
+/** Width of one character of 12px tick text in drawing units: a generous average, so the overlap check errs towards fewer labels. */
+export const CHAR_PX = 7;
+
+/**
+ * Ticks inside [lo, hi] at a nice step (1, 2, 2.5, 5 or 10 times a power of ten) for about
+ * `count` intervals. Unlike niceTicks the domain is kept as given (an axis clipped to [0, 52]
+ * ends at 52), so the ends need not be ticks.
+ * @internal
+ * @param {number} lo
+ * @param {number} hi
+ * @param {number} count
+ * @returns {number[]}
+ */
+export function ticksIn(lo, hi, count) {
+  if (!(hi > lo)) return Number.isFinite(lo) ? [r2(lo)] : [];
+  return stepTicks(lo, hi, niceTicks(0, (hi - lo) / Math.max(1, count), 1).step);
+}
+
+/**
+ * The multiples of `st` inside [lo, hi], at most 200.
+ * @internal
+ * @param {number} lo
+ * @param {number} hi
+ * @param {number} st a positive step
+ * @returns {number[]}
+ */
+export function stepTicks(lo, hi, st) {
+  const out = [];
+  for (let i = Math.ceil(lo / st - 1e-9); i * st <= hi + st * 1e-9 && out.length < 200; i++) out.push(r2(Math.round(i * st * 1e6) / 1e6));
+  return out;
+}
+
+/**
+ * Tick labels on one row, anchored so the end labels stay inside [0, vw]: the middle by default,
+ * the start or end at an edge. Null when two labels would overlap (8 units apart at least).
+ * @internal
+ * @param {Array<{x: number, text: string}>} items in left to right order
+ * @param {number} vw
+ * @returns {Array<{x: number, text: string, anchor: string}>|null}
+ */
+export function layoutLabels(items, vw) {
+  let right = -Infinity;
+  const out = [];
+  for (const it of items) {
+    const w = String(it.text).length * CHAR_PX;
+    let x0 = it.x - w / 2;
+    const anchor = x0 < 0 ? "start" : it.x + w / 2 > vw ? "end" : "middle";
+    if (anchor !== "middle") x0 = anchor === "start" ? it.x : it.x - w;
+    if (x0 < right + 8) return null;
+    right = x0 + w;
+    out.push({ x: it.x, text: it.text, anchor });
+  }
+  return out;
+}
+
+/**
+ * Numeric axis ticks whose 12px labels fit: the most ticks, about one per 56 units, with no two
+ * labels overlapping. One label at the domain start when nothing else fits.
+ * @internal
+ * @param {number} lo
+ * @param {number} hi
+ * @param {(v: number) => number} x scale
+ * @param {number} iw plot width
+ * @param {number} vw drawing width
+ * @param {(v: number) => string} fmt
+ * @returns {Array<{x: number, text: string, anchor: string}>}
+ */
+export function fitLinearTicks(lo, hi, x, iw, vw, fmt) {
+  for (let n = Math.max(1, Math.floor(iw / 56)); n >= 1; n--) {
+    const laid = layoutLabels(ticksIn(lo, hi, n).map((t) => ({ x: x(t), text: fmt(t) })), vw);
+    if (laid && laid.length) return laid;
+  }
+  return layoutLabels([{ x: x(lo), text: fmt(lo) }], vw) || [];
+}
+
+/**
+ * Time axis ticks over UTC day numbers whose 12px labels fit: the finest calendar step (1, 2, 7
+ * or 14 days with weeks on Mondays; 1, 2, 3 or 6 months; 1 to 100 years) with no two labels
+ * overlapping. Day ticks read "7 Mar", month ticks "Mar", year ticks "2025"; the first tick and
+ * the first tick of a new year also name the year. With `fmt` every tick reads fmt(day).
+ * @internal
+ * @param {number} d0
+ * @param {number} d1
+ * @param {(v: number) => number} x scale
+ * @param {number} iw plot width
+ * @param {number} vw drawing width
+ * @param {(day: number) => string} [fmt]
+ * @returns {Array<{x: number, text: string, anchor: string}>}
+ */
+export function timeTicks(d0, d1, x, iw, vw, fmt) {
+  // A positive step counts days; a negative one months (12 and more: whole years, in January).
+  for (const n of [1, 2, 7, 14, -1, -2, -3, -6, -12, -24, -60, -120, -240, -600, -1200]) {
+    if ((d1 - d0) / (n > 0 ? n : -n * 30.4) > iw / 24) continue;
+    const items = [];
+    let prev = 0;
+    for (let d = d0; d <= d1; d++) {
+      const t = dayText(d);
+      const y = +t.slice(0, 4);
+      const mo = +t.slice(5, 7);
+      // Day 4 (1970-01-05) is a Monday, so week ticks fall on Mondays.
+      if (n > 0 ? (d - (n >= 7 ? 4 : 0)) % n : t.slice(8) !== "01" || (y * 12 + mo - 1) % n) continue;
+      const base = n > 0 ? dayLabel(d, true) : MONTHS[mo - 1];
+      items.push({ x: x(d), text: fmt ? fmt(d) : n <= -12 ? String(y) : prev === y ? base : base + " " + y });
+      prev = y;
+    }
+    const laid = items.length ? layoutLabels(items, vw) : null;
+    if (laid) return laid;
+  }
+  return [];
+}
+
+/**
+ * The value of a line at x, as the drawn curve gives it: the point's own value at a data x (the
+ * last one when several share it), the left value for "stepAfter", the nearer side of the
+ * midpoint for "step", else the straight line between the neighbours. Null outside the points.
+ * @internal
+ * @param {Pt[]} pts sorted by x
+ * @param {number} x
+ * @param {string} [curve]
+ * @returns {number|null}
+ */
+export function valueAt(pts, x, curve) {
+  const p = pts.filter((q) => Number.isFinite(q[0]) && Number.isFinite(q[1]));
+  const n = p.length;
+  if (!n || !(x >= p[0][0] && x <= p[n - 1][0])) return null;
+  let i = 0;
+  while (i + 1 < n && p[i + 1][0] <= x) i++;
+  const a = p[i];
+  const b = p[i + 1];
+  if (a[0] === x || !b || curve === "stepAfter") return a[1];
+  if (curve === "step") return x < (a[0] + b[0]) / 2 ? a[1] : b[1];
+  return a[1] + ((x - a[0]) / (b[0] - a[0])) * (b[1] - a[1]);
+}
+
+/** Marker shapes a chart draws, as path data around (0, 0) about 10 units across; anything else is a circle. */
+export const MARK_PATHS = {
+  circle: "M-5 0A5 5 0 1 0 5 0A5 5 0 1 0 -5 0Z",
+  triangle: "M0 -6.25L6.25 4.7L-6.25 4.7Z",
+  square: "M-4.5 -4.5H4.5V4.5H-4.5Z",
+  diamond: "M0 -6.5L6.5 0L0 6.5L-6.5 0Z",
+};
+
+/**
+ * Direct labels for points, placed without a solver: each label tries the right, then the left of
+ * its point, then the same 14, 28 and 42 units up and down (joined to the point by a leader
+ * line), and takes the first place inside the bounds that overlaps no point and no label placed
+ * before it (so the first point gets the best place). With no free place it takes the first one
+ * inside the bounds. `others` are points that take no label but must not be covered by one.
+ * @internal
+ * @param {Array<{x: number, y: number, r: number, text: string}>} pts
+ * @param {{l: number, t: number, r: number, b: number}} bounds
+ * @param {Array<{x: number, y: number, r: number}>} [others]
+ * @returns {Array<{x: number, y: number, anchor: string, leader: boolean}>} one per point, y the text's centre
+ */
+export function placeLabels(pts, bounds, others = []) {
+  const taken = pts.concat(/** @type {any} */ (others)).map((p) => [p.x - p.r - 1, p.y - p.r - 1, p.x + p.r + 1, p.y + p.r + 1]);
+  return pts.map((p) => {
+    const w = String(p.text).length * CHAR_PX;
+    const c = [];
+    for (const dy of [0, -14, 14, -28, 28, -42, 42]) {
+      for (const side of [1, -1]) {
+        const x = p.x + side * (p.r + (dy ? 10 : 4));
+        const x0 = side > 0 ? x : x - w;
+        c.push({ x, y: p.y + dy, anchor: side > 0 ? "start" : "end", leader: !!dy, b: [x0, p.y + dy - 7, x0 + w, p.y + dy + 7] });
+      }
+    }
+    const ok = c.filter((o) => o.b[0] >= bounds.l && o.b[2] <= bounds.r && o.b[1] >= bounds.t && o.b[3] <= bounds.b);
+    const pick = ok.find((o) => !taken.some((t) => o.b[0] < t[2] && o.b[2] > t[0] && o.b[1] < t[3] && o.b[3] > t[1])) || ok[0] || c[0];
+    taken.push(pick.b);
+    return pick;
+  });
 }

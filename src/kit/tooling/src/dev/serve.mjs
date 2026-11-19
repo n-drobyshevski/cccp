@@ -8,6 +8,10 @@
 // this node realm over the GAS fakes, and
 //   GET /                 doGet(e) with e.parameter from the query string, with the google.script.run
 //                         shim injected as the first child of head
+//   GET /framed           the app as Apps Script serves it: a top page holding GET / (the same query
+//                         string) in an iframe with the sandbox flags Apps Script sets (FRAME_SANDBOX).
+//                         A link that leaves the frame (a hash link under <base target="_top"> without
+//                         target="_self") replaces the top page, which GET / at the top level hides
 //   POST /__rpc/<name>    a JSON array of args in, the function's return value as JSON out, after the
 //                         real bridge rules (illegal args fail the call, illegal results become null);
 //                         a throw answers status 500 with {"__error": message}, which the shim maps to the
@@ -139,6 +143,30 @@ function revive(v) {
   return v;
 }
 
+/** The sandbox flags of the iframe Apps Script serves a web app in, which /framed copies. */
+export const FRAME_SANDBOX = "allow-scripts allow-same-origin allow-forms allow-popups allow-popups-to-escape-sandbox allow-top-navigation-by-user-activation";
+
+/**
+ * The /framed page: the app's own page (GET / with the same query) in a sandboxed iframe, the
+ * way Apps Script serves a web app. The query is re-encoded (URLSearchParams escapes every slash
+ * and backtick) and the frame's src is that path on this origin, so the page holds no double
+ * slash and no backtick, and it never frames another origin.
+ * @param {URLSearchParams} params the framed page's query
+ * @returns {string}
+ */
+export function framedPage(params) {
+  const qs = new URLSearchParams(params).toString();
+  const src = "/" + (qs ? "?" + qs : "");
+  return '<!DOCTYPE html><html lang="en"><head><meta charset="utf-8">'
+    + '<meta name="viewport" content="width=device-width, initial-scale=1">'
+    + "<title>Framed: the app as Apps Script serves it</title>"
+    + "<style>html,body{margin:0;height:100%}body{display:flex;flex-direction:column;font:13px/1.4 system-ui,sans-serif}"
+    + ".gk-framed__bar{margin:0;padding:6px 12px}.gk-framed__frame{flex:1;width:100%;border:0}</style></head><body>"
+    + '<p class="gk-framed__bar" id="framed-bar">Framed as Apps Script serves the app: a sandboxed iframe. A link that leaves the frame replaces this page.</p>'
+    + '<iframe class="gk-framed__frame" id="framed-app" name="framed-app" aria-label="The app" sandbox="' + FRAME_SANDBOX + '" src="' + escAttr(src) + '"></iframe>'
+    + "</body></html>";
+}
+
 /** @param {number} ms */
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 
@@ -231,11 +259,39 @@ function realish(p) {
 }
 
 /**
+ * A Date for the server bundle whose clock starts at `at` (epoch ms) and then runs: new Date() and
+ * Date.now() read at + the real time elapsed since it was made; every other use is the real Date.
+ * Only the server bundle sees it (it is passed in as the bundle's Date), never the dev server.
+ * @param {number} at
+ * @returns {DateConstructor}
+ */
+export function pinnedDate(at) {
+  const RealDate = Date;
+  const start = RealDate.now();
+  const now = () => at + (RealDate.now() - start);
+  class PinnedDate extends RealDate {
+    /** @param {any[]} args */
+    constructor(...args) {
+      if (args.length === 0) super(now());
+      else super(.../** @type {[any]} */ (args));
+    }
+    /** @override */
+    static now() {
+      return now();
+    }
+  }
+  return /** @type {DateConstructor} */ (/** @type {unknown} */ (PinnedDate));
+}
+
+/**
  * @param {string} root
  * @param {any} appConfigArg
  * @param {() => string} getServiceUrl the dev server's own /exec URL, what ScriptApp.getService().getUrl() answers
+ * @param {number | null} [clockAt] start the server's clock at this instant (epoch ms): the server
+ *   bundle's Date and the fakes' clock read it (a compare against a baseline recorded then)
  */
-async function createApp(root, appConfigArg, getServiceUrl) {
+async function createApp(root, appConfigArg, getServiceUrl, clockAt = null) {
+  const ServerDate = typeof clockAt === "number" && Number.isFinite(clockAt) ? pinnedDate(clockAt) : Date;
   const fakesModule = await loadTs("../test/gasFakes.ts");
   const { parseCsv } = await loadTs("../test/csv.ts");
   const cfgFile = join(root, "app.config.mjs");
@@ -277,7 +333,7 @@ async function createApp(root, appConfigArg, getServiceUrl) {
     // Lock state is not carried; every request releases its locks before it answers.
     const carry = old ? { props: new Map(old.props), cache: new Map(old.cache), triggers: old.triggers.slice() } : null;
     if (old) old.uninstall();
-    fakes = fakesModule.installGasFakes({ owner, tz, now: () => Date.now(), htmlFiles: bundle.htmls, serviceUrl: getServiceUrl(), advanced: true });
+    fakes = fakesModule.installGasFakes({ owner, tz, now: () => ServerDate.now(), htmlFiles: bundle.htmls, serviceUrl: getServiceUrl(), advanced: true });
     fakesTz = tz;
     if (carry) {
       carry.props.forEach((v, k) => fakes.props.set(k, v));
@@ -363,7 +419,7 @@ async function createApp(root, appConfigArg, getServiceUrl) {
     const changed = () => Object.getOwnPropertyNames(globalThis).filter((n) => !before.has(n) || !sameDesc(before.get(n), Object.getOwnPropertyDescriptor(globalThis, n)));
     try {
       // The server bundle is strict, so its var stays local to a function; take the global it names.
-      g.Server = new Function(bundle.serverJs + "\n;return Server;")();
+      g.Server = new Function("Date", bundle.serverJs + "\n;return Server;")(ServerDate);
       // Indirect eval: entry.js's function declarations land on globalThis and can be deleted.
       (0, eval)(bundle.entryJs);
       if (typeof g.doGet !== "function" && /^\s*["']use strict["']/.test(bundle.entryJs)) {
@@ -483,11 +539,12 @@ function readBody(req) {
  * `publicUrl` is the one a browser behind a proxy uses, or null when none is known. `warn`
  * (default console.warn) prints the one-line warning of a wildcard bind.
  * @param {{ root?: string, port?: number, host?: string, gallery?: boolean, watch?: boolean, appConfig?: any,
- *   env?: Record<string, string | undefined>, allowedHosts?: string[], warn?: (line: string) => void }} [opts]
+ *   env?: Record<string, string | undefined>, allowedHosts?: string[], warn?: (line: string) => void, clockAt?: number | null }} [opts]
+ *   clockAt: the server's clock starts at this instant (epoch ms) and runs on from there (pinnedDate)
  * @returns {Promise<{ url: string, publicUrl: string | null, port: number, close: () => Promise<void>, rebuild: () => Promise<void> }>}
  */
 export async function serve(opts = {}) {
-  const { root, port = 0, host = "127.0.0.1", gallery = true, watch = false, appConfig, env = process.env, allowedHosts: extraHosts = [], warn = (/** @type {string} */ l) => console.warn(l) } = opts;
+  const { root, port = 0, host = "127.0.0.1", gallery = true, watch = false, appConfig, env = process.env, allowedHosts: extraHosts = [], warn = (/** @type {string} */ l) => console.warn(l), clockAt = null } = opts;
   /** @type {Awaited<ReturnType<typeof createApp>> | null} */
   let app = null;
   let serviceUrl = "";
@@ -606,6 +663,10 @@ export async function serve(opts = {}) {
         if ("error" in result) return send(res, 500, "application/json", JSON.stringify({ __error: result.error }));
         return send(res, 200, "application/json", JSON.stringify(result.value === undefined ? null : result.value));
       }
+      if (req.method === "GET" && path === "/framed") {
+        if (!app) return send(res, 404, "text/plain", gal ? "No app root was given. See /gallery." : "No app root was given.");
+        return send(res, 200, "text/html", framedPage(url.searchParams));
+      }
       if (req.method === "GET" && (path === "/" || path === "/exec")) {
         if (!app) return send(res, 404, "text/plain", gal ? "No app root was given. See /gallery." : "No app root was given.");
         const p = await app.page(url);
@@ -628,7 +689,7 @@ export async function serve(opts = {}) {
   serviceUrl = (proxyUrl || localUrl) + "/exec";
   try {
     if (root) {
-      app = await createApp(resolve(root), appConfig, () => serviceUrl);
+      app = await createApp(resolve(root), appConfig, () => serviceUrl, clockAt);
       await app.load();
     }
   } catch (e) {

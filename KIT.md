@@ -68,3 +68,11 @@ library and apps this project started from (commit `77bcf22`).
 
 `src/server/access.ts`, `main.ts` and `index.ts` are thin wiring over the kit (`createAccess`, props, lock, error log,
 `renderIndex`, `cardPage`); they are no longer derived from anything.
+
+## Rolling back to a pre-kit build
+
+Since C2c the access lists (`ALLOWED_USERS`, `ALLOWED_ADMINS`) are stored as JSON arrays. A build
+from before the migration splits them on commas and spaces, so it reads `["a@example.org"` and
+fails closed: only the owner gets in. After such a rollback the owner re-saves both lists in
+Settings, Access (or runs `setup()`), which rewrites them in the old delimited form. The cache
+epoch (4 since C2d) and every other stored value read the same in both directions.

@@ -14,7 +14,11 @@ export default defineConfig({
     trace: "off",
     screenshot: "off",
     video: "off",
-    ...(process.env.CI ? {} : { channel: "chrome" }),
+    // PW_CHROMIUM_PATH points at a preinstalled chromium (sandboxes without Chrome); unset keeps
+    // the behaviour above: installed Chrome locally, Playwright's chromium in CI.
+    ...(process.env.PW_CHROMIUM_PATH
+      ? { launchOptions: { executablePath: process.env.PW_CHROMIUM_PATH } }
+      : process.env.CI ? {} : { channel: "chrome" }),
   },
   webServer: {
     command: "npm run dev",

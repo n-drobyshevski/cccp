@@ -200,7 +200,7 @@ describe("entry.js through the shims", () => {
       console: { log: (s: string) => logs.push(s) },
       Date,
       JSON,
-      Server: { beginExecution() {}, access: { denyResult: () => null }, api: { bootstrap: () => ({ ok: true, data: 1 }) } },
+      Server: { beginExecution() {}, access: { denyResult: () => null, role: () => "viewer" }, api: { bootstrap: () => ({ ok: true, data: 1 }) } },
     };
     runInNewContext(src, ctx);
     expect(ctx.api_bootstrap({})).toEqual({ ok: true, data: 1 });

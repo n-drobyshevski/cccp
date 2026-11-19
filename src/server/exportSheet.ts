@@ -105,7 +105,7 @@ export function exportToSheet(p?: ExportParams): ExportResult {
   throttle(email);
 
   const rows = rowsFor(ids);
-  if (rows.length === 0) throw new Error("None of those applications are in the register any more.");
+  if (rows.length === 0) throw new ApiError("error", "None of those applications are in the register any more.");
   const matrix = exportRows(rows, columns);
 
   const entry = registerEntry();

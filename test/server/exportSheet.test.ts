@@ -6,13 +6,14 @@ import * as access from "../../src/server/access";
 import * as api from "../../src/server/api";
 import { EXPORT_LIMIT, SHEET_TAB } from "../../src/server/exportSheet";
 import { errorLog } from "../../src/server/errorLog";
-const recentErrors = () => errorLog.recentErrors();
 import { registerEntry } from "../../src/server/registerStore";
 import { decodeRegister } from "../../src/domain/payload";
 import { genWorkbook } from "../../dev/genTabs.mjs";
 import { useGasEnv } from "../gasEnv";
+import { UNEXPECTED_ERROR_MESSAGE } from "@gas-kit/server";
 
 const fakes = useGasEnv({ workbook: true, seed: true });
+const recentErrors = () => errorLog.recentErrors();
 const as = (who: string) => { access.__resetMemosForTest(); fakes().setActiveUser(who); };
 const ids = (n: number) => decodeRegister(registerEntry().register).slice(0, n).map((a) => a.id);
 const names = () => fakes().calls().map((c) => c.svc);
@@ -22,6 +23,25 @@ beforeEach(() => {
   vi.spyOn(console, "log").mockImplementation(() => {});
   vi.spyOn(console, "warn").mockImplementation(() => {});
   as("viewer@example.com");
+});
+
+describe("an unexpected fault", () => {
+  it("answers the fixed sentence and a reference; the text goes to the log and to an admin only, redacted", () => {
+    api.getRegister(); // warm the cache so only the export hits the fault
+    vi.spyOn(Utilities, "formatDate").mockImplementation(() => { throw new Error("service said Bearer abcdefghij0123456789"); });
+    const viewer = api.exportToSheet({ ids: ids(1), columns: ["n"], title: "x" });
+    expect(viewer).toMatchObject({ ok: false, errorKind: "error", error: UNEXPECTED_ERROR_MESSAGE });
+    expect(viewer.ref).toMatch(/^[A-Za-z0-9-]{1,32}$/);
+    expect(JSON.stringify(viewer)).not.toContain("service said");
+    expect(recentErrors()[0]).toMatchObject({ op: "exportToSheet", ref: viewer.ref });
+    expect(recentErrors()[0]!.message).toContain("service said");
+    expect(recentErrors()[0]!.message).not.toContain("abcdefghij0123456789");
+    as("admin@example.com");
+    const admin = api.exportToSheet({ ids: ids(1), columns: ["n"], title: "x" });
+    expect(admin).toMatchObject({ ok: false, error: UNEXPECTED_ERROR_MESSAGE });
+    expect(admin.detail).toContain("service said");
+    expect(admin.detail).not.toContain("abcdefghij0123456789");
+  });
 });
 
 describe("exportToSheet", () => {

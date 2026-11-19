@@ -4,6 +4,8 @@
 // Only the SCRIPT store is used. UserProperties under USER_DEPLOYING is the deployer's store,
 // shared by every viewer, so it is never touched (the dev fakes throw on it).
 
+import type { Role } from "@gas-kit/server";
+
 export const PROP_KEYS = {
   // Who may open the app, on top of the deployment's own domain fence. See access.ts.
   allowedUsers: "ALLOWED_USERS",
@@ -23,3 +25,10 @@ export const PROP_KEYS = {
   viewsGen: "VIEWS_GEN",
   dataVersion: "DATA_VERSION",
 } as const;
+
+/**
+ * The lowest role that also gets the text of an unexpected fault as `detail` beside the fixed
+ * sentence and its reference. Admins already read the recent errors in the diagnostics, so this
+ * adds nothing they cannot see. It becomes the data policy's errorDetail when the policy is wired.
+ */
+export const ERROR_DETAIL_ROLE: Role = "admin";

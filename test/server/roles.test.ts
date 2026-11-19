@@ -1,15 +1,19 @@
-// The endpoint role table and the gate in run().
+// The endpoint role table and the gate in run() (the kit's createRoleGate and createRun).
 import { readFileSync } from "node:fs";
 import { beforeEach, describe, expect, it, vi } from "vitest";
+import { createRoleGate, roleAllows } from "@gas-kit/server";
 import { exportedNames } from "@gas-kit/tooling/build/guards.mjs";
 import * as access from "../../src/server/access";
 import * as api from "../../src/server/api";
-import { ENDPOINT_ROLES, requireRole, requiredRole, roleAllows } from "../../src/server/roles";
+import { ENDPOINT_ROLES } from "../../src/server/roles";
 import { useGasEnv } from "../gasEnv";
 
 const fakes = useGasEnv();
 const API_SRC = readFileSync(new URL("../../src/server/api.ts", import.meta.url), "utf8");
 const exported = exportedNames(API_SRC);
+const gate = createRoleGate(ENDPOINT_ROLES, () => access.role());
+const requiredRole = gate.requiredRole;
+const requireRole = gate.requireRole;
 
 function as(who: string): void {
   access.__resetMemosForTest();

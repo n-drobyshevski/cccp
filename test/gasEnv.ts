@@ -33,6 +33,7 @@ export interface GasFakes {
   setHtmlFile(name: string, content: string): void;
   advance(ms: number): void;
   now(): number;
+  snapshot(): { props: Map<string, string>; cache: Map<string, { v: string; exp: number }> };
   reset(): void;
 }
 

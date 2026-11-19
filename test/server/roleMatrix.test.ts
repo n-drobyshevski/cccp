@@ -7,7 +7,8 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import { exportedNames } from "@gas-kit/tooling/build/guards.mjs";
 import * as server from "../../src/server/index";
 import * as access from "../../src/server/access";
-import { ENDPOINT_ROLES, roleAllows, type Role } from "../../src/server/roles";
+import { roleAllows, type Role } from "@gas-kit/server";
+import { ENDPOINT_ROLES } from "../../src/server/roles";
 import { useGasEnv } from "../gasEnv";
 
 const fakes = useGasEnv({ workbook: true, seed: true });

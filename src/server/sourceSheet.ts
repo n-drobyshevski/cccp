@@ -10,6 +10,7 @@
 // 'yyyy-MM-dd' (or 'yyyy-MM-dd HH:mm' when the time is not midnight), because a server-zone
 // or UTC conversion would move a midnight date to the neighbouring day. An empty cell is null.
 
+import { ApiError } from "@gas-kit/server";
 import type { SourceSettings, TabKey } from "../domain/types";
 import { TAB_KEYS } from "../domain/types";
 import { LEGACY_TAB_NAMES } from "../domain/settings";
@@ -65,7 +66,7 @@ function plain(v: unknown, tz: string): Cell {
 }
 
 function open(sheetId: string): GoogleAppsScript.Spreadsheet.Spreadsheet {
-  if (!sheetId) throw new Error("No data source is configured.");
+  if (!sheetId) throw new ApiError("error", "No data source is configured.");
   try {
     return SpreadsheetApp.openById(sheetId);
   } catch (e) {

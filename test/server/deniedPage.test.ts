@@ -85,6 +85,7 @@ function loadEntry(server: Record<string, unknown>) {
 describe("entry.js guards", () => {
   const fakeServer = () => ({
     beginExecution() {},
+    UNEXPECTED_ERROR_MESSAGE: "unexpected",
     access,
     doGet: () => "APP",
     include: (f: string) => "FILE:" + f,

@@ -1,13 +1,13 @@
 // The kit contracts (src/kit/tooling/src/test/contracts), registered against this app. Each one is
-// a spec factory that fails on drift. The app's server and client kernels are still its own (the
-// kit swaps are later work packages), so the contracts that need the kit's server shape are
-// deferred below, each with the work package that brings the shape. None is registered with
-// weakened options to force a pass.
+// a spec factory that fails on drift. The app's client kernel and cache are still its own (the
+// kit swaps are later work packages), so the contracts that need the kit's cache shape are
+// deferred at the bottom, each with the work package that brings the shape. None is registered
+// with weakened options to force a pass.
 import { existsSync, readdirSync, readFileSync, statSync } from "node:fs";
 import { dirname, join } from "node:path";
+import vm from "node:vm";
 import { fileURLToPath } from "node:url";
-import { describe } from "vitest";
-import { expect, it } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 import * as endpointsClassified from "@gas-kit/tooling/test/contracts/endpointsClassified.js";
 import * as entryParity from "@gas-kit/tooling/test/contracts/entryParity.js";
 import * as guardsPass from "@gas-kit/tooling/test/contracts/guardsPass.js";
@@ -20,10 +20,16 @@ import * as noRaw from "@gas-kit/tooling/test/contracts/noRaw.js";
 import * as noSecrets from "@gas-kit/tooling/test/contracts/noSecrets.js";
 import * as noTitleAttr from "@gas-kit/tooling/test/contracts/noTitleAttr.js";
 import * as noUserProperties from "@gas-kit/tooling/test/contracts/noUserProperties.js";
+import * as roleMatrix from "@gas-kit/tooling/test/contracts/roleMatrix.js";
+import * as runNames from "@gas-kit/tooling/test/contracts/runNames.js";
 import * as scrubClean from "@gas-kit/tooling/test/contracts/scrubClean.js";
 import { isPushRun } from "@gas-kit/tooling/build/push.mjs";
 import config from "../app.config.mjs";
+import * as access from "../src/server/access";
+import * as api from "../src/server/api";
+import * as server from "../src/server/index";
 import { ENDPOINT_ROLES } from "../src/server/roles";
+import { useGasEnv } from "./gasEnv";
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), "..");
 const SRC = join(ROOT, "src");
@@ -55,6 +61,87 @@ function walk(dir: string, exts: string[]): string[] {
 describe("every RPC is classified twice", () => {
   endpointsClassified.register(describe, it, expect, { apiTs, rolesTable: ENDPOINT_ROLES });
   entryParity.register(describe, it, expect, { apiTs, entryJs, allowFunctions: ALLOWED_GLOBALS });
+  runNames.register(describe, it, expect, { apiPath: join(SRC, "server/api.ts") });
+  it("lists exactly the exports of the api module", () => {
+    expect(Object.keys(ENDPOINT_ROLES).sort()).toEqual(Object.keys(api).sort());
+  });
+});
+
+describe("the role matrix", () => {
+  // Every endpoint, through src/gas/entry.js loaded in a vm over the app's real server bundle
+  // namespace, as five identities. cccp's own test/server/roleMatrix.test.ts keeps the checks the
+  // contract does not make (an allowed call never reaches a source write, the admin sheetId patch,
+  // org mode).
+  const fakes = useGasEnv({ workbook: true, seed: true });
+  const ALL = ["owner", "admin", "viewer"];
+  const ADMINS = ["owner", "admin"];
+  const VIEW = { name: "Matrix", scope: "shared", route: "list", state: { q: "", f: {}, sort: "n", cols: [], metric: "worst" } };
+  // Parameters change nothing that a later identity depends on: the lists and the settings are saved as they are.
+  const endpoints = {
+    bootstrap: { allowed: ALL },
+    getRegister: { allowed: ALL },
+    getAccess: { allowed: ALL },
+    exportToSheet: { allowed: ALL, params: { ids: [], columns: [], title: "x" } },
+    getSettings: { allowed: ADMINS },
+    saveSettings: { allowed: ADMINS, params: { patch: { display: { theme: "dark" } }, baseGen: 0 } },
+    reloadData: { allowed: ADMINS },
+    saveSharedView: { allowed: ADMINS, params: { view: VIEW } },
+    deleteSharedView: { allowed: ADMINS, params: { id: "nothere" } },
+    saveAccess: { allowed: ADMINS, params: { users: "viewer@example.com" } },
+    getDiagnostics: { allowed: ADMINS },
+    saveAdmins: { allowed: ["owner"], params: { admins: "admin@example.com" } },
+    saveAccessMode: { allowed: ["owner"], params: { mode: "list" } },
+    probeSource: { allowed: ["owner"], params: { url: "" } },
+  };
+  const as = (email: string) => { access.__resetMemosForTest(); fakes().setActiveUser(email); };
+  const who = (label: string, email: string) => ({ label, setup: () => as(email) });
+  // The Script Properties and the script cache, compared before and after a refused call.
+  const state = () => {
+    const s = fakes().snapshot();
+    return roleMatrix.storeState({ props: s.props, cache: s.cache });
+  };
+  const loadEntry = (): Record<string, (...a: unknown[]) => unknown> => {
+    const ctx = vm.createContext({ Server: server, console, Date, JSON });
+    vm.runInContext(entryJs, ctx, { filename: "entry.js" });
+    return ctx as never;
+  };
+  beforeEach(() => {
+    vi.spyOn(console, "log").mockImplementation(() => {});
+    vi.spyOn(console, "warn").mockImplementation(() => {});
+  });
+  roleMatrix.register(describe, it, expect, {
+    server: loadEntry(),
+    state,
+    // Before each identity the register is cached (a bootstrap as the owner), so a refused call
+    // that drops the cache shows.
+    prepare: () => { as("owner@example.com"); api.bootstrap(); },
+    identities: [who("owner", "owner@example.com"), who("admin", "admin@example.com"), who("viewer", "viewer@example.com"), who("stranger", "stranger@elsewhere.org"), who("anonymous", "")],
+    expect: endpoints,
+    rolesTable: ENDPOINT_ROLES,
+    roleIdentities: { viewer: ["owner", "admin", "viewer"], admin: ["owner", "admin"], owner: ["owner"] },
+    // Through the real delegator, so the access check in timedApi_ is part of what is checked.
+    call: (s: Record<string, (p: unknown) => unknown>, name: string, params: unknown) => s["api_" + name]!(params),
+  });
+});
+
+describe("every public global refuses a stranger at run time", () => {
+  // The runtime form of entryParity: each global entry.js defines without a trailing underscore is
+  // called as a signed-in caller on no list, as google.script.run would, and must refuse (throw,
+  // answer nothing or the forbidden envelope; doGet answers its denial page) without changing the
+  // Script Properties or the cache.
+  const fakes = useGasEnv({ workbook: true, seed: true });
+  it("refuses with each global", async () => {
+    const ctx = vm.createContext({ Server: server, console: { log() {}, error() {}, warn() {} }, Date, JSON });
+    vm.runInContext(entryJs, ctx, { filename: "entry.js" });
+    const v = await entryParity.probeGlobals({
+      globals: ctx as never,
+      entryJs,
+      asStranger: () => { access.__resetMemosForTest(); fakes().setActiveUser("stranger@elsewhere.org"); },
+      refusals: { doGet: (r: any) => !!r && typeof r.getContent === "function" && /have access to this app/.test(String(r.getContent())) },
+      state: () => { const s = fakes().snapshot(); return roleMatrix.storeState({ props: s.props, cache: s.cache }); },
+    });
+    expect(v).toEqual([]);
+  });
 });
 
 describe("the manifest asks for the scopes the code needs", () => {
@@ -146,13 +233,8 @@ describe("no private term", () => {
   scrubClean.register(describe, it, expect, { root: ROOT, extraTerms: [/zz-private-term-placeholder/i], allow: ["contracts.test.ts"] });
 });
 
-// DEFERRED contracts (not registered; they need the kit's server shape, and cccp's server is
-// still its own):
-//  - runNames        (C2b: run/roles) expects `run` from the kit's createRun in api.ts, each body
-//                    exactly `return run("<own name>", () => ...)`.
-//  - roleMatrix      (C2b: run/roles) drives the kit's envelope through timedApi_; cccp's own
-//                    test/server/roleMatrix.test.ts keeps the matrix until then. Also covers the
-//                    run-time form of entryParity (probeGlobals).
+// DEFERRED contracts (not registered; they need the kit's cache shape, and cccp's cache is still
+// its own):
 //  - cacheNamespaces (C2d: cache) expects namespaces created by the kit's createCache, versioned
 //                    letters-then-number.
 //  - viewerFreeCore  (C2d: cache / bootstrap) needs the kit's cached core; cccp's own

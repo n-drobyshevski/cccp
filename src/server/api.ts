@@ -2,9 +2,10 @@
 // guard hold the two together) and an entry in roles.ts ENDPOINT_ROLES. Later work packages
 // append their endpoints here in order.
 //
-// Derived from sidekick gas_hub/src/server/api.ts at commit 77bcf22 (see VENDOR.md): keeps
-// run(), logAccessChange, getAccess, saveAccess and saveAdmins; run() checks the role before
-// the body; the errorKinds busy and conflict are added; the URL endpoints are gone.
+// Derived from sidekick gas_hub/src/server/api.ts at commit 77bcf22 (see VENDOR.md). run() is the
+// kit's createRun, bound in run.ts: it checks the role before the body, keeps an ApiError's kind
+// and message, and answers any other fault with a fixed sentence and a reference (the text goes
+// to the error log, and to an admin as `detail`). A body is exactly `return run("<its name>", ...)`.
 
 import type { BootstrapResponse, RegisterPayload, SaveSettingsResponse, SettingsResponse, SourceMeta } from "../domain/payload";
 import type { SavedView } from "../domain/types";
@@ -12,47 +13,22 @@ import * as access from "./access";
 import { getBootstrap } from "./bootstrap";
 import { exportToSheet as exportSheet, type ExportResult } from "./exportSheet";
 import { diagnosticsReport, type DiagnosticsReport } from "./diagnostics";
-import { ApiError, setProp, withScriptLock, type ErrorKind } from "@gas-kit/server";
+import { ApiError, setProp, withScriptLock } from "@gas-kit/server";
 import { PROP_KEYS } from "./config";
-import { errorLog } from "./errorLog";
 import { getRegisterPayload, reloadRegister } from "./registerStore";
-import { requireRole } from "./roles";
+import { run } from "./run";
 import { sheetIdFrom } from "../domain/settings";
 import { getSettingsView, loadSettings, saveSettings as saveSettingsStore } from "./settingsStore";
 import { probeWorkbook, type ProbeResult } from "./sourceSheet";
 import { deleteSharedView as deleteSharedViewStore, saveSharedView as saveSharedViewStore } from "./sharedViews";
 
-export interface ApiResult<T = unknown> {
-  ok: boolean;
-  data?: T;
-  error?: string;
-  errorKind?: ErrorKind;
-}
-
-/**
- * THE ENVELOPE, and the role gate. The role check runs first: a refused call never reaches
- * `fn`, so it cannot reach a property write. A thrown ApiError keeps its kind (busy,
- * conflict); anything else is an `error` and is recorded in the recent-errors log.
- */
-function run<T>(name: string, fn: () => T): ApiResult<T> {
-  const refused = requireRole(name);
-  if (refused) return refused as ApiResult<T>;
-  try {
-    return { ok: true, data: fn() };
-  } catch (e) {
-    if (e instanceof ApiError) return { ok: false, error: e.message, errorKind: e.kind };
-    errorLog.recordError(name, e);
-    return { ok: false, error: String(e instanceof Error ? e.message : e), errorKind: "error" };
-  }
-}
-
 /** The cached viewer-free core, the live per-viewer part and, when warm and small, the register. */
-export function bootstrap(_p?: unknown): ApiResult<BootstrapResponse> {
+export function bootstrap(_p?: unknown) {
   return run("bootstrap", () => getBootstrap());
 }
 
 /** The whole register, encoded. Any allowed caller. */
-export function getRegister(_p?: unknown): ApiResult<RegisterPayload> {
+export function getRegister(_p?: unknown) {
   return run("getRegister", () => getRegisterPayload());
 }
 
@@ -70,7 +46,7 @@ function logAccessChange(what: string, actor: string, before: string[], after: s
  * What the Access panel needs. Any allowed caller may ask, but THE ROSTER IS ONLY INCLUDED FOR
  * SOMEONE WHO MAY EDIT IT: nothing on the wire for a viewer, not just nothing in the DOM.
  */
-export function getAccess(_p?: unknown): ApiResult<Record<string, unknown>> {
+export function getAccess(_p?: unknown) {
   return run("getAccess", () => {
     if (!access.canEditUsers()) {
       return { canEditUsers: false, canEditAdmins: false, canEditMode: false };
@@ -89,9 +65,9 @@ export function getAccess(_p?: unknown): ApiResult<Record<string, unknown>> {
 }
 
 /** Add or remove people. Owner or admin. Re-checks: the panel is not the boundary. */
-export function saveAccess(p?: { users?: unknown; base?: unknown }): ApiResult<{ users: string[] }> {
+export function saveAccess(p?: { users?: unknown; base?: unknown }) {
   return run("saveAccess", () => {
-    if (!access.canEditUsers()) throw new Error("Only the owner or an admin can change access.");
+    if (!access.canEditUsers()) throw new ApiError("forbidden", "Only the owner or an admin can change access.");
     const list = access.validateAddresses(p?.users);
     return withScriptLock(() => saveUsersLocked(list, p?.base));
   });
@@ -122,9 +98,9 @@ function saveUsersLocked(list: string[], base: unknown): { users: string[] } {
 }
 
 /** Add or remove admins. OWNER ONLY: this check is what keeps the admin tier real. */
-export function saveAdmins(p?: { admins?: unknown; base?: unknown }): ApiResult<{ admins: string[] }> {
+export function saveAdmins(p?: { admins?: unknown; base?: unknown }) {
   return run("saveAdmins", () => {
-    if (!access.canEditAdmins()) throw new Error("Only the owner can change admins.");
+    if (!access.canEditAdmins()) throw new ApiError("forbidden", "Only the owner can change admins.");
     const list = access.validateAddresses(p?.admins);
     return withScriptLock(() => {
       const before = access.currentAdmins();
@@ -137,9 +113,9 @@ export function saveAdmins(p?: { admins?: unknown; base?: unknown }): ApiResult<
 }
 
 /** Switch between list and org access. OWNER ONLY. Anything but 'org' or 'list' is refused. */
-export function saveAccessMode(p?: { mode?: unknown }): ApiResult<{ mode: access.AccessMode }> {
+export function saveAccessMode(p?: { mode?: unknown }) {
   return run("saveAccessMode", () => {
-    if (!access.canEditMode()) throw new Error("Only the owner can change the access mode.");
+    if (!access.canEditMode()) throw new ApiError("forbidden", "Only the owner can change the access mode.");
     const mode = p?.mode;
     if (mode !== "org" && mode !== "list") throw new ApiError("error", "The access mode must be 'org' or 'list'.");
     const before = access.accessMode();
@@ -152,9 +128,9 @@ export function saveAccessMode(p?: { mode?: unknown }): ApiResult<{ mode: access
 }
 
 /** Settings, with each configured tab's headers and an example value per header. Admin. */
-export function getSettings(_p?: unknown): ApiResult<SettingsResponse> {
+export function getSettings(_p?: unknown) {
   return run("getSettings", () => {
-    if (!access.canEditSettings()) throw new Error("Only the owner or an admin can open the settings.");
+    if (!access.canEditSettings()) throw new ApiError("forbidden", "Only the owner or an admin can open the settings.");
     return getSettingsView();
   });
 }
@@ -163,7 +139,7 @@ export function getSettings(_p?: unknown): ApiResult<SettingsResponse> {
  * What a Sheet holds, so the owner can check a link before saving it: title, time zone and each
  * tab with its row count and headers. An empty link probes the saved source. Saves nothing. Owner.
  */
-export function probeSource(p?: { url?: unknown }): ApiResult<ProbeResult> {
+export function probeSource(p?: { url?: unknown }) {
   return run("probeSource", () => {
     const given = typeof p?.url === "string" ? p.url.trim() : "";
     const id = given === "" ? loadSettings().source.sheetId : sheetIdFrom(given);
@@ -177,44 +153,44 @@ export function probeSource(p?: { url?: unknown }): ApiResult<ProbeResult> {
  * caller opened (a stale one is a conflict). Changing source.sheetId is OWNER ONLY, re-checked
  * in the store as well as here.
  */
-export function saveSettings(p?: { patch?: unknown; baseGen?: unknown }): ApiResult<SaveSettingsResponse> {
+export function saveSettings(p?: { patch?: unknown; baseGen?: unknown }) {
   return run("saveSettings", () => {
-    if (!access.canEditSettings()) throw new Error("Only the owner or an admin can change the settings.");
+    if (!access.canEditSettings()) throw new ApiError("forbidden", "Only the owner or an admin can change the settings.");
     return saveSettingsStore(p?.patch, p?.baseGen, { actor: access.check().email, isOwner: access.canEditSource() });
   });
 }
 
 /** Re-read the Sheet now: bumps the data version and primes the cache. Admin. */
-export function reloadData(_p?: unknown): ApiResult<SourceMeta> {
+export function reloadData(_p?: unknown) {
   return run("reloadData", () => {
-    if (!access.canEditSettings()) throw new Error("Only the owner or an admin can reload the data.");
+    if (!access.canEditSettings()) throw new ApiError("forbidden", "Only the owner or an admin can reload the data.");
     console.log(JSON.stringify({ reload: "data", actor: access.check().email }));
     return reloadRegister();
   });
 }
 
 /** Add or replace a shared view. Admin. */
-export function saveSharedView(p?: { view?: unknown }): ApiResult<{ views: SavedView[]; id: string }> {
+export function saveSharedView(p?: { view?: unknown }) {
   return run("saveSharedView", () => {
-    if (!access.canEditSettings()) throw new Error("Only the owner or an admin can share a view.");
+    if (!access.canEditSettings()) throw new ApiError("forbidden", "Only the owner or an admin can share a view.");
     return saveSharedViewStore(p?.view, access.check().email);
   });
 }
 
 /** Remove a shared view. Admin. */
-export function deleteSharedView(p?: { id?: unknown }): ApiResult<{ views: SavedView[] }> {
+export function deleteSharedView(p?: { id?: unknown }) {
   return run("deleteSharedView", () => {
-    if (!access.canEditSettings()) throw new Error("Only the owner or an admin can delete a shared view.");
+    if (!access.canEditSettings()) throw new ApiError("forbidden", "Only the owner or an admin can delete a shared view.");
     return deleteSharedViewStore(p?.id, access.check().email);
   });
 }
 
 /** The diagnostics report. Admin. Never throws. */
-export function getDiagnostics(_p?: unknown): ApiResult<DiagnosticsReport> {
+export function getDiagnostics(_p?: unknown) {
   return run("getDiagnostics", () => diagnosticsReport());
 }
 
 /** Build a new Google Sheet from the given application ids and columns, shared to the caller. Viewer. */
-export function exportToSheet(p?: { ids?: unknown; columns?: unknown; title?: unknown }): ApiResult<ExportResult> {
+export function exportToSheet(p?: { ids?: unknown; columns?: unknown; title?: unknown }) {
   return run("exportToSheet", () => exportSheet(p));
 }

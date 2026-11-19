@@ -68,7 +68,7 @@ export function saveSettings(patch: unknown, baseGen: unknown, who: SaveContext)
     if (errors.length) throw new ApiError("error", errors.join(" "));
 
     if (after.source.sheetId !== before.source.sheetId && !who.isOwner) {
-      throw new Error("Only the owner can change the source Sheet.");
+      throw new ApiError("forbidden", "Only the owner can change the source Sheet.");
     }
 
     const changed = changedSections(before, after);

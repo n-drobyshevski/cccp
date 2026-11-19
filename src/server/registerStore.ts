@@ -11,7 +11,7 @@ import { FIELDS } from "../domain/fields";
 import { withLegacyFallback } from "../domain/settings";
 import type { Issues } from "../domain/types";
 import { TAB_KEYS } from "../domain/types";
-import { withScriptLock } from "@gas-kit/server";
+import { ApiError, withScriptLock } from "@gas-kit/server";
 import { errorLog } from "./errorLog";
 import { cached, dataVersion, bumpDataVersion, peekCached, primeCached } from "./serverCache";
 import { loadSettings } from "./settingsStore";
@@ -44,10 +44,10 @@ function build(): { entry: RegisterEntry; ttlSec: number } {
   try {
     read = readTabs(settings.source, { idHeader: settings.fields.id.header });
   } catch (e) {
+    // The cause is recorded here (an unopenable source is worth a log entry); the caller gets
+    // the plain sentence as an expected refusal, which run() does not record a second time.
     errorLog.recordError("register", e);
-    const err = new Error(UNREACHABLE);
-    errorLog.markRecorded(err);
-    throw err;
+    throw new ApiError("error", UNREACHABLE);
   }
   // Settings saved before the same-tab default name tabs that this workbook may not have.
   const stored = settings;

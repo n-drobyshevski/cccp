@@ -24,7 +24,7 @@ import { store } from "../../state/store.js";
 import { navigate } from "../../state/url.js";
 import {
   SETTINGS_TABS, barModel, chooseTab, clampedText, committed, discard, edit, errorsOf, form, guardSettings, isDirty,
-  newSession, sectionsOf, tabMarks, toPatch,
+  newSession, sectionsOf, tabMarks, toPatch, SETTINGS_NOTE,
 } from "./draft.js";
 import { accessView, createAccess } from "./access.js";
 import { displayView } from "./display.js";
@@ -125,7 +125,7 @@ export const settingsPage = {
       if (tab === "access") accessCtl.ensureLoaded();
       const notes = bar.changed.some((k) => k.indexOf("rules.") === 0) ? ruleChangeNotes({ session, rows: vctx.rows, today: vctx.today }) : [];
       renderRegion(el, html`<div class="stw" data-page="settings" data-tab="${tab}">
-        <aside class="stside"><button type="button" class="backbtn" data-act="s-back" data-k="back">${icon("arrowleft")}Back</button><h1>Settings</h1>${tabsView(tab, marks)}<p class="mut stnote">Changes apply to everyone who opens CCCP after you save.</p></aside>
+        <aside class="stside"><button type="button" class="backbtn" data-act="s-back" data-k="back">${icon("arrowleft")}Back</button><h1>Settings</h1>${tabsView(tab, marks)}<p class="mut stnote">${SETTINGS_NOTE}</p></aside>
         <div class="stmain">
           <section class="sts" id="st-panel" role="tabpanel" aria-labelledby="st-tab-${tab}">
             <header><h2>${def.label}</h2><p>${def.help}.</p></header>
@@ -155,7 +155,7 @@ export const settingsPage = {
 
     async function load() {
       endWait();
-      renderRegion(el, skeleton("settings", "Opening the settings"), { keepFocus: false, keepScroll: false });
+      renderRegion(el, skeleton("settings", "Opening the settings", { tab: form.normalizeTab(store.get().tab) }), { keepFocus: false, keepScroll: false });
       stopSlow = armSlow(el);
       try {
         const resp = await rpc.call("getSettings");

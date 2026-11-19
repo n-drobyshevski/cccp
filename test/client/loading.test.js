@@ -6,7 +6,7 @@ import { appbarView } from "../../src/client/shell/appbar.js";
 import { BOOT_STEPS, splashView, stepsView } from "../../src/client/shell/splash.js";
 import { SKELETON_ROUTES, SLOW_AFTER_MS, SLOW_TEXT } from "../../src/client/shell/skeletons.js";
 import { armSlow, skeleton } from "../../src/client/shell/states.js";
-import { SETTINGS_TABS } from "../../src/client/pages/settings/draft.js";
+import { SETTINGS_NOTE, SETTINGS_TABS } from "../../src/client/pages/settings/draft.js";
 import { withRefresh } from "../../src/client/state/refresh.js";
 import { initialState, store } from "../../src/client/state/store.js";
 import { COLUMN_BY_KEY, DEFAULT_COLUMN_KEYS } from "../../src/domain/columns";
@@ -123,6 +123,26 @@ describe("route skeletons", () => {
     const h = s(skeleton("settings", "Opening the settings"));
     for (const t of SETTINGS_TABS) expect(h).toContain(">" + t.label + "<");
     expect(h).toContain("Opening the settings");
+  });
+
+  it("settings: the page's own frame (side column, note, the open tab's heading and help)", () => {
+    const h = s(skeleton("settings", "Opening the settings", { tab: "rules" }));
+    expect(h).toContain('class="stw ld-stw"');
+    expect(h).toContain('class="stside"');
+    expect(h).toContain(SETTINGS_NOTE);
+    const rules = SETTINGS_TABS.find((t) => t.key === "rules");
+    expect(h).toContain("<h2>" + rules.label + "</h2>");
+    expect(h).toContain(rules.help + ".");
+    expect(h).toContain('class="on">' + rules.label + "<");
+    // Never the real page's hooks: the page is found by data-page and its tabs by role=tab.
+    expect(h).not.toContain("data-page");
+    expect(h).not.toContain('role="tab"');
+  });
+
+  it("settings: an unknown or missing tab shows the first tab", () => {
+    for (const opts of [undefined, { tab: null }, { tab: "nope" }]) {
+      expect(s(skeleton("settings", "", opts))).toContain("<h2>" + SETTINGS_TABS[0].label + "</h2>");
+    }
   });
 });
 

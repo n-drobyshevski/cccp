@@ -77,6 +77,8 @@ export default {
     // C9 (kit 0.2.1): server 157900 (bundle 157823, +0.2 KB), js 228300 (bundle 228178, +6.1 KB: the kit's
     // table, dropdown, tabs, sheet and tip modules the app imports grew in 0.2) and css 86400 (bundle 86338,
     // +0.2 KB). No app code changed.
-    budgets: { server: 157_900, js: 228_300, css: 86_400 },
+    // Settings skeleton (the page's own side column and tab heading): js 228600 (bundle 228473, +0.3 KB) and
+    // css 86800 (bundle 86755, +0.4 KB).
+    budgets: { server: 157_900, js: 228_600, css: 86_800 },
   },
 };

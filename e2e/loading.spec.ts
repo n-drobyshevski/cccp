@@ -126,7 +126,12 @@ test.describe("later waits: the route-shaped skeleton", () => {
     await expect(sk).toBeVisible({ timeout: 10_000 });
     await expect(sk).toContainText("Data source");
     await expect(sk).toContainText("Field mapping");
+    // Same frame as the page: the side column sits where the real one will, at the same width.
+    const skSide = await sk.locator(".stside").boundingBox();
+    await expect(sk.locator("h2")).toHaveText("Data source");
     await expect(page.locator("[data-page=settings]")).toBeVisible({ timeout: 10_000 });
+    const side = await page.locator("[data-page=settings] .stside").boundingBox();
+    expect(skSide && side && Math.abs(skSide.x - side.x) <= 1 && Math.abs(skSide.width - side.width) <= 1).toBe(true);
     await expect(page.locator("[data-skeleton]")).toHaveCount(0);
     expect(bad).toEqual([]);
   });

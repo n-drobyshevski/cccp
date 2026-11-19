@@ -13,7 +13,7 @@ import { HEATMAP_LEAD_HEADS } from "../../domain/heatmap";
 import { LANDSCAPE_METRICS } from "../../domain/landscape";
 import { OVERVIEW_TITLES, overviewModel } from "../../domain/overview";
 import { PILLARS } from "../../domain/types";
-import { SETTINGS_TABS } from "../pages/settings/draft.js";
+import { SETTINGS_NOTE, SETTINGS_TABS } from "../pages/settings/draft.js";
 
 /** The wait after which a calm second line appears. */
 export const SLOW_AFTER_MS = 8000;
@@ -96,14 +96,22 @@ function appView() {
   </div>`;
 }
 
-function settingsView() {
-  return html`<div class="ld-set">
-    <span class="ld-back">${icon("arrowleft")}Back</span>
-    <div class="ld-title"><h1>Settings</h1>${bar(50, "")}</div>
-    <div class="panel ld-card">
-      <div class="ld-stabs">${SETTINGS_TABS.map((t, i) => html`<span class="${i === 0 ? "on" : ""}">${t.label}</span>`)}</div>
-      <div class="ld-sbody">${bar(25, "h")}${rows(5, (i) => html`<div class="ld-kv"><span class="sk-lbl">${bar(60)}</span>${bar(w(i))}</div>`)}</div>
-    </div>
+// Settings: the page's own frame (side column with Back, title, tab names and note; the open
+// tab's heading and help), so the real page lands on it without a jump. Only the values pulse.
+/** @param {{ tab?: string | null }} [opts] */
+function settingsView(opts) {
+  const want = opts && opts.tab;
+  const def = SETTINGS_TABS.find((t) => t.key === want) || SETTINGS_TABS[0];
+  return html`<div class="stw ld-stw">
+    <aside class="stside"><span class="backbtn">${icon("arrowleft")}Back</span><h1>Settings</h1>
+      <div class="stabs ld-stabs">${SETTINGS_TABS.map((t) => html`<span class="${t.key === def.key ? "on" : ""}">${t.label}</span>`)}</div>
+      <p class="mut stnote">${SETTINGS_NOTE}</p>
+    </aside>
+    <div class="stmain"><div class="sts">
+      <header><h2>${def.label}</h2><p>${def.help}.</p></header>
+      <div class="ld-sbox">${bar(34, "h")}${bar(22)}</div>
+      ${rows(4, (i) => html`<div class="ld-srow"><span class="ld-sl">${bar(w(i) - 30, "h")}${bar(w(i + 3))}</span><span>${bar(w(i + 1))}</span></div>`)}
+    </div></div>
   </div>`;
 }
 
@@ -112,12 +120,16 @@ const LABELS = { overview: "Opening the overview", list: "Loading the applicatio
 
 export const SKELETON_ROUTES = Object.keys(BUILDERS);
 
-/** A route-shaped loading frame. An unknown route (nothing routed yet) draws the list. */
-export function skeleton(route, label) {
+/**
+ * A route-shaped loading frame. An unknown route (nothing routed yet) draws the list.
+ * `opts.tab` picks the Settings tab whose heading the frame shows (default: the first).
+ * @param {string} route @param {string} [label] @param {{ tab?: string | null }} [opts]
+ */
+export function skeleton(route, label, opts) {
   const r = BUILDERS[route] ? route : "list";
   return html`<div class="ld ld-r-${r}" data-skeleton="${r}" role="status" aria-busy="true" aria-live="polite">
     <span class="sr-only">${label || LABELS[r]}</span>
     <div data-slot="slow"></div>
-    <div class="ld-body" aria-hidden="true">${BUILDERS[r]()}</div>
+    <div class="ld-body" aria-hidden="true">${BUILDERS[r](opts)}</div>
   </div>`;
 }

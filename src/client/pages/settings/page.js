@@ -133,7 +133,7 @@ export const settingsPage = {
             ${problemsView(problems)}
             ${view(vctx)}
           </section>
-          ${savebar({ count: bar.count, text: bar.text, tabs: bar.tabs, notes, busy, problems: problems.length })}
+          ${savebar({ count: bar.count, tabs: bar.tabs, notes, busy, problems: problems.length })}
         </div>
       </div>`);
     }
@@ -268,7 +268,9 @@ export const settingsPage = {
 
     offs.push(delegate(el, "click", "[data-act]", (ev, /** @type {any} */ b) => {
       const act = b.getAttribute("data-act");
-      if (act.indexOf("s-") !== 0) return;
+      // The kit savebar keeps focus on a blocked Save (aria-disabled), so a click still arrives: ignore it.
+      if (b.hasAttribute("data-disabled")) return;
+      if (act.indexOf("s-") !== 0 && act.indexOf("savebar:") !== 0) return;
       const s = sessionOf();
       if (act === "s-tab") navigate({ tab: b.getAttribute("data-tab") }, "replace");
       else if (act === "s-back") navigate({ route: homeRoute(store.get()), app: null, tab: null, view: null }, "push");
@@ -276,8 +278,8 @@ export const settingsPage = {
       else if (act === "s-toggle") setDraft(b.getAttribute("data-v"), b.getAttribute("aria-checked") !== "true");
       else if (act === "s-rule-on") setRule(b.getAttribute("data-v"), "on", b.getAttribute("aria-checked") !== "true");
       else if (act === "s-set") setDraft(b.getAttribute("data-key"), b.getAttribute("data-v"));
-      else if (act === "s-discard" && s) { banner = null; ui.probe = { state: "idle" }; store.set({ settingsDraft: discard(s) }); draw(); }
-      else if (act === "s-save") save();
+      else if (act === "savebar:discard" && s) { banner = null; ui.probe = { state: "idle" }; store.set({ settingsDraft: discard(s) }); draw(); }
+      else if (act === "savebar:save") save();
       else if (act === "s-reload") reload();
       else if (act === "s-probe") probe();
       else if (act === "s-adv") { ui.adv = !ui.adv; draw(); }

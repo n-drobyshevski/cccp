@@ -18,7 +18,7 @@ const spy = (page: Page) => page.evaluate(() => {
   w.api_saveSettings = (p: unknown) => { w.__saves.push(JSON.parse(JSON.stringify(p))); return orig(p); };
 });
 const saves = (page: Page) => page.evaluate(() => (window as any).__saves as any[]);
-const saveBtn = (page: Page) => page.locator(".savebar").getByRole("button", { name: "Save", exact: true });
+const saveBtn = (page: Page) => page.locator(".savebar").getByRole("button", { name: "Save changes", exact: true });
 const cnt = async (page: Page, id: string) => Number((await page.locator('[data-cnt="' + id + '"] b').innerText()).replace(/,/g, ""));
 const months = (page: Page, id: string) => page.locator('input[data-rule="' + id + '"][data-prop=months]');
 const nav = (page: Page, name: string) => page.locator(".navb").getByRole("button", { name });
@@ -112,7 +112,7 @@ test("the save bar sits under a 2px ink rule and says what changed, with the cou
   await expect(page.locator("#st-tab-rules .edited")).toHaveText(/edited/);
   expect(await bar.evaluate((e) => [getComputedStyle(e).borderTopWidth, getComputedStyle(e).borderTopColor === getComputedStyle(document.body).color, getComputedStyle(e).position])).toEqual(["2px", true, "sticky"]);
   await expect(bar.getByRole("button", { name: "Discard" })).toBeVisible();
-  await expect(bar.getByRole("button", { name: "Save", exact: true })).toBeVisible();
+  await expect(bar.getByRole("button", { name: "Save changes", exact: true })).toBeVisible();
   // other tabs have no edited marker
   await expect(page.locator("#st-tab-display .edited")).toHaveCount(0);
 });

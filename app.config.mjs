@@ -43,10 +43,7 @@ export default {
     serverEntry: "src/server/index.ts",
     clientEntry: "src/client/main.js",
     cssEntry: "src/client/styles/index.css",
-    // The vendored settingsForm contract asserts a specifier of the form '<dots>/gas_shared/ui/
-    // settingsForm.js', so the settings draft imports it as 'gas_shared/ui/...'. Goes when
-    // src/vendor does.
-    alias: { ...kitAliases(APP_ROOT), gas_shared: "src/vendor/gas_shared" },
+    alias: kitAliases(APP_ROOT),
     // Byte caps for the bundles every page inlines: the build fails above them, so growth is a
     // decision. Baseline before the kit build: server 119292, js 181890, css 59220. The kit build
     // targets es2017 for the client (was es2019) and stamps the server banner differently, so the
@@ -71,6 +68,9 @@ export default {
     // C5b: js 215700 (bundle 215603, +7.7 KB: kit exportMenu with runExport, dropdownMenu and columnChooser islands, facetList,
     // switch, tableModel helpers) and css 81400 (bundle 81361, +8.7 KB: kit dropdownMenu, columnChooser, facetList, exportMenu, kbd and
     // switch styles, plus the app's overrides); the app's popover, switch and checklist modules and styles are gone.
-    budgets: { server: 157_600, js: 215_700, css: 81_400 },
+    // C5c: js 218900 (bundle 218797, +3.2 KB: the kit accessModel and savebar, the kit sameValue the settings kernel
+    // now reads, a smaller access controller) and css 83000 (bundle 82880, +1.5 KB: kit savebar styles and the app's
+    // overrides); the vendored accessModel, accessSave and settingsForm are no longer imported.
+    budgets: { server: 157_600, js: 218_900, css: 83_000 },
   },
 };

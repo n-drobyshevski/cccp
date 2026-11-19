@@ -15,6 +15,7 @@
 @import "@gas-kit/ui/components/kbd.css";
 @import "@gas-kit/ui/components/columnChooser.css";
 @import "@gas-kit/ui/components/switch.css";
+@import "@gas-kit/ui/components/savebar.css";
 @import "./base.css";
 @import "./loading.css";
 @import "./appbar.css";

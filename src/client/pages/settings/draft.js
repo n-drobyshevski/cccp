@@ -1,4 +1,4 @@
-// The Settings draft. Wraps the vendored settingsForm kernel: every knob the save bar owns is a
+// The Settings draft. Wraps the settingsForm kernel (formKernel.js): every knob the save bar owns is a
 // flat key of the draft ('source.cacheMinutes', 'fields.owner', 'rules.cy.pentestAge',
 // 'display.theme'), each owned by one tab. The kernel answers which keys changed, which tab is
 // dirty or invalid and what the save bar says; this module adds the translation to and from the
@@ -6,12 +6,11 @@
 // validation sentences of the server (the same domain code runs here) land on the right tab.
 //
 // Pure: no DOM, no store, no RPC. The page keeps a session object in the store and replaces it
-// with the functions below. guardUnsaved is the vendored beforeunload guard.
+// with the functions below. guardUnsaved is the kit's beforeunload guard.
 //
-// The kernel is imported by the specifier 'gas_shared/ui/settingsForm.js' (an alias of the
-// vendored tree, see tools/build.mjs): the vendored contract asserts that form of path.
-import { settingsForm } from "gas_shared/ui/settingsForm.js";
-import { guardUnsaved } from "gas_shared/ui/accessSave.js";
+// The kernel is the app-owned ./formKernel.js (formerly the vendored settingsForm).
+import { guardUnsaved } from "@gas-kit/client/unsaved.js";
+import { settingsForm } from "./formKernel.js";
 import { FIELDS } from "../../../domain/fields";
 import { RULE_BY_ID } from "../../../domain/rules";
 import { RULE_PARAMS, TAB_NAMES, applyPatch, sheetIdFrom, validateSettings } from "../../../domain/settings";
@@ -270,6 +269,8 @@ export function clampedText(paths) {
 // ------------------------------------------------------------------------------------ guard
 
 let guarded = false;
+/** @type {(() => void) | null} */
+let unguard = null;
 
 /**
  * Ask before the page is closed or reloaded while the draft has unsaved changes. The draft
@@ -279,11 +280,13 @@ let guarded = false;
 export function guardSettings(isDirtyNow) {
   if (guarded || typeof document === "undefined" || !document.body) return false;
   guarded = true;
-  guardUnsaved(document.body, isDirtyNow);
+  unguard = guardUnsaved(document.body, isDirtyNow);
   return true;
 }
 
 /** Test seam. */
 export function resetGuardForTest() {
+  if (unguard) unguard();
+  unguard = null;
   guarded = false;
 }

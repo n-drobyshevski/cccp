@@ -78,12 +78,16 @@
 .callout.error { background: color-mix(in srgb, var(--bad-fg) 8%, var(--surface)); border-color: color-mix(in srgb, var(--bad-fg) 35%, var(--border)); }
 .btn.pri { background: var(--accent); color: var(--accent-ink); border-color: var(--accent); }
 .btn.pri:hover { color: var(--accent-ink); filter: brightness(1.08); }
-.savebar { position: sticky; bottom: 0; z-index: 10; display: flex; flex-wrap: wrap; gap: 10px 16px; align-items: center; justify-content: space-between; background: var(--bg); border-top: 2px solid var(--text); padding: 14px 0 calc(14px + env(safe-area-inset-bottom, 0px)); margin-top: auto; }
-.savebar .sb-text { color: var(--text-muted); min-width: 0; flex: 1 1 320px; }
-.savebar .sb-act { display: flex; gap: 10px; }
-.savebar .btn { padding: 8px 20px; }
+.savebar { position: sticky; bottom: 0; z-index: 10; display: flex; flex-direction: column; gap: 6px; background: var(--bg); border-top: 2px solid var(--text); padding: 14px 0 calc(14px + env(safe-area-inset-bottom, 0px)); margin-top: auto; }
+/* The kit savebar inside the Identity G bar: its card chrome is dropped (the ink rule is the bar). */
+.savebar .gk-savebar { position: static; padding: 0; background: none; border: 0; border-radius: 0; box-shadow: none; gap: 10px 16px; }
+.savebar .gk-savebar__text { color: var(--text-muted); min-width: 0; flex: 1 1 320px; }
+.savebar .gk-savebar__actions { gap: 10px; }
+.savebar .gk-btn { padding: 8px 20px; }
+.savebar .gk-btn[aria-disabled="true"] { opacity: 0.55; cursor: not-allowed; }
+.savebar .gk-savebar__warn { color: var(--bad-fg); font-weight: 600; }
+.savebar .sb-extra { color: var(--text-muted); min-width: 0; }
 .savebar .sb-link { border: 0; background: none; padding: 0; color: var(--accent); text-decoration: underline; font-weight: 500; }
-.savebar .sb-warn { color: var(--bad-fg); font-weight: 600; }
 /* Status rules */
 .rule { display: grid; grid-template-columns: 44px minmax(0, 1fr) auto 96px; gap: 8px 16px; align-items: center; padding: 12px 0; border-top: 1px solid var(--border); }
 .sgrp > h3 + .rule { border-top: 0; }

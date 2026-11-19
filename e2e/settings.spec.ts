@@ -62,7 +62,7 @@ test("an owner edits and probes the Sheet; an admin reads it", async ({ page, br
   await expect(page.locator("[data-probe]")).toContainText("tabs");
   await page.locator("input[data-key='source.sheetId']").fill("not a link at all");
   await expect(page.locator("[data-problems]")).toContainText("not valid");
-  await expect(page.locator(".savebar").getByRole("button", { name: "Save", exact: true })).toBeDisabled();
+  await expect(page.locator(".savebar").getByRole("button", { name: "Save changes", exact: true })).toBeDisabled();
   await page.locator("input[data-key='source.sheetId']").fill(url);
   await expect(page.locator(".savebar")).toHaveCount(0);
 
@@ -94,7 +94,7 @@ test("save sends one patch with baseGen and toasts the clamped key", async ({ pa
   await spy(page);
   await page.locator("input[data-key='source.cacheMinutes']").fill("9999");
   await expect(page.locator("#st-tab-source .dirtydot")).toHaveCount(1);
-  await page.locator(".savebar").getByRole("button", { name: "Save", exact: true }).click();
+  await page.locator(".savebar").getByRole("button", { name: "Save changes", exact: true }).click();
   await expect(page.locator(".gk-toast")).toContainText("Adjusted to the allowed range: Keep data in memory for");
   const s = await saves(page);
   expect(s.length).toBe(1);
@@ -113,7 +113,7 @@ test("a stale baseGen is a conflict: settings reload with an explanation", async
     const cur = w.api_getSettings({}).data.cfgGen;
     w.api_saveSettings({ patch: { display: { theme: "dark" } }, baseGen: cur });
   });
-  await page.locator(".savebar").getByRole("button", { name: "Save", exact: true }).click();
+  await page.locator(".savebar").getByRole("button", { name: "Save changes", exact: true }).click();
   await expect(page.locator("[data-banner=conflict]")).toContainText("Someone else changed the settings");
   await expect(page.locator("[data-banner=conflict]")).toContainText("discarded");
   await expect(page.locator(".savebar")).toHaveCount(0);
@@ -145,7 +145,7 @@ test("mapping lists the real headers with examples, and saving refetches the reg
   await expect(page.locator("[data-callout]")).toContainText("1 field is not mapped");
   await page.locator("select[data-key='fields.owner']").selectOption("Owner Name");
   await expect(page.locator("[data-callout]")).not.toContainText("not mapped");
-  await page.locator(".savebar").getByRole("button", { name: "Save", exact: true }).click();
+  await page.locator(".savebar").getByRole("button", { name: "Save changes", exact: true }).click();
   await expect(page.locator(".gk-toast")).toContainText("Settings saved");
   const after = await fetched();
   expect(after).toBeGreaterThan(before);
@@ -165,7 +165,7 @@ test("display counts are live", async ({ page }) => {
   await expect(page.locator(".savebar")).toContainText("2 unsaved changes");
   await page.getByRole("button", { name: "Dark", exact: true }).click();
   await expect(page.locator(".savebar")).toContainText("3 unsaved changes");
-  await page.locator(".savebar").getByRole("button", { name: "Save", exact: true }).click();
+  await page.locator(".savebar").getByRole("button", { name: "Save changes", exact: true }).click();
   await expect(page.locator(".gk-toast")).toContainText("Settings saved");
 });
 

@@ -33,9 +33,6 @@
       ],
       "@gas-kit/tooling/*": [
         "./src/kit/tooling/src/*"
-      ],
-      "gas_shared/*": [
-        "./src/vendor/gas_shared/*"
       ]
     },
     "noImplicitAny": false,

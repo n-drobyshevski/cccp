@@ -29,12 +29,12 @@ run sync, and list it below.
 
 | sidekick path (and path under `src/vendor/`) | Used for |
 | --- | --- |
-| `gas_shared/ui/settingsForm.js` | pure settings draft kernel; import by this direct path only |
+| `gas_shared/ui/settingsForm.js` | unused since C5c (now the derived `src/client/pages/settings/formKernel.js`); goes with `src/vendor` |
 | `gas_shared/ui/tableModel.js` | compareValues, nullsLast, sortRows, nextSort, column choice and its URL encoding |
 | `gas_shared/ui/timing.js` | unused (the app never imported it); the kit's `timing.js` is the one to use; goes with `src/vendor` |
 | `gas_shared/ui/tipPlace.js` | unused since C3a (the kit's `tipPlace.js` replaced it); goes with `src/vendor` |
-| `gas_shared/ui/accessSave.js` | notKept, guardUnsaved |
-| `gas_hub/src/client/js/pages/accessModel.js` | DOM-free access roster rules |
+| `gas_shared/ui/accessSave.js` | unused since C5c (the kit's `notKept` and `guardUnsaved` replaced it); goes with `src/vendor` |
+| `gas_hub/src/client/js/pages/accessModel.js` | unused since C5c (the kit's `accessModel` replaced it); goes with `src/vendor` |
 | `gas_shared/domain/csv.ts` | unused since C3a (the kit's `csv.js` replaced it; the kit also guards a formula lead after blanks, full-width signs and embedded separators); goes with `src/vendor` |
 | `gas_shared/domain/sha1.ts` | sha1Hex |
 | `gas_shared/domain/snapshotCodec.ts` | encodeRows / decodeRows for the register payload |
@@ -43,8 +43,8 @@ run sync, and list it below.
 | `gas_shared/server/buildInfo.ts` | unused since C2a (the kit's `buildId()` replaced it); goes with `src/vendor` |
 | `gas_shared/build/buildStamp.mjs` | content hash of the build inputs (called with the repo root, so it covers `src/vendor`) |
 | `gas_shared/build/deploy.mjs` | in-place deploy; needs `DEPLOYMENT_ID` |
-| `gas_shared/test/contracts/settingsForm.js` | contract test for the settings draft module |
-| `gas_shared/test/contracts/accessSave.js` | contract test for the access save module |
+| `gas_shared/test/contracts/settingsForm.js` | unused since C5c (its assertions are `test/client/formKernel.test.js`); goes with `src/vendor` |
+| `gas_shared/test/contracts/accessSave.js` | unused since C5c (its assertions are `test/client/contracts.test.js`); goes with `src/vendor` |
 
 Not vendored on purpose: `gas_shared/server/dailyTrigger.ts` (the v2 seam for snapshots),
 `gas_shared/build/whichBuild.mjs`, and everything in gas_shared's CSS, shell, `el()` and
@@ -62,6 +62,7 @@ dataTable.
 | `src/server/sourceSheet.ts` | `gas/src/server/sheetsDb.ts` (read half) | pattern only: no writers; dates formatted in the sheet's timezone |
 | `dev/serve.mjs`, `dev/boot.js`, `dev/gas-shims.js` | `gas_hub/dev/{serve.mjs,boot.js,gas-shims.js}`, `gas/dev/gas-shims.js` | port 8791; read-only SpreadsheetApp fake; Sheets and Drive fakes; url/history shims; flags as, mode, admins, nosource, empty, coldcache, slow, tz |
 | `src/client/components/facetList.js`, `src/client/state/views.js` | `gas_ai/src/client/js/{filters.js,savedViews.js}` | pattern only |
+| `src/client/pages/settings/formKernel.js` | `gas_shared/ui/settingsForm.js` | formerly vendored; app-owned since C5c: the leaf comparison is the kit's `sameValue`, history comment dropped; contract in `test/client/formKernel.test.js` |
 | `test/server/access*.test.ts`, `test/client/accessModel.test.js`, `test/build/{entryPoints,manifestScopes}.test.js` | `gas/test/access.test.ts`, `gas_hub/test/{accessAdmin.test.ts,accessModel.test.js,entryPoints.test.js,manifestScopes.test.js}` | paths updated; scoped-tier cases dropped; org-mode, owner-only and exact-scope cases added |
 
 `src/server/access.ts`, `props.ts`, `locks.ts`, `errors.ts`, `pageShell.ts`, `main.ts` and `index.ts` are no longer derived from sidekick: since C2a to C2c they are thin wiring over the kit (`createAccess`, props, lock, error log, `renderIndex`, `cardPage`).

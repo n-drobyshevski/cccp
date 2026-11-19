@@ -9,7 +9,7 @@
 .fhead { display: none; }
 
 .fg { padding: 0 0 6px; }
-.fh { display: flex; justify-content: space-between; align-items: center; gap: 8px; margin: 0; padding: 14px 16px 6px; font: 700 11.5px var(--sans); text-transform: uppercase; letter-spacing: 0.08em; color: var(--muted); }
+.fh { display: flex; justify-content: space-between; align-items: center; gap: 8px; margin: 0; padding: 14px 16px 6px; font: 700 11.5px var(--font-sans); text-transform: uppercase; letter-spacing: 0.08em; color: var(--text-muted); }
 .fh .fact { display: inline-flex; gap: 10px; text-transform: none; letter-spacing: 0; }
 /* A fixed line box: a Clear or "+ N more" link appearing must not change the header height. */
 .fh, .fh .fact { line-height: 18px; min-height: 18px; }
@@ -19,15 +19,15 @@
 .facets .plist { max-height: none; overflow: visible; padding-right: 0; scrollbar-gutter: auto; }
 .facets .fg:has(.find) .plist { max-height: 264px; overflow: auto; }
 .facets .ck { padding: 3px 16px; gap: 8px; border-radius: 0; font-size: 14px; }
-.facets .ck small { font: 400 12px var(--mono); color: var(--muted); }
-.facets .ck.zero > span { color: var(--muted); }
+.facets .ck small { font: 400 12px var(--font-mono); color: var(--text-muted); }
+.facets .ck.zero > span { color: var(--text-muted); }
 .facets .hint { padding: 3px 16px; }
 
 .wmain { padding: 0 22px 24px; min-width: 0; }
 .wmain .rhead { padding: 14px 0 6px; justify-content: space-between; align-items: flex-start; gap: 8px 16px; }
 .rleft { display: flex; flex-wrap: wrap; align-items: baseline; gap: 6px 12px; flex: 1 1 320px; min-width: 0; }
 .wmain .rcount { font-size: 15px; align-items: baseline; gap: 0 8px; }
-.wmain .rcount b { font: 600 22px var(--mono); color: var(--fg); }
+.wmain .rcount b { font: 600 22px var(--font-mono); color: var(--text); }
 .wmain .rcount .mut { font-size: 15px; }
 .ftags { display: inline-flex; flex-wrap: wrap; gap: 6px; align-items: center; min-width: 0; }
 .ftag { display: inline-flex; align-items: center; background: var(--accent-soft); color: var(--accent); border-radius: 3px; font-size: 12.5px; font-weight: 600; max-width: 100%; }
@@ -39,23 +39,23 @@
 
 /* the lens switch: Table | Heatmap | Landscape */
 .lens { display: inline-flex; border: 1px solid var(--line2); background: var(--surface); flex: none; }
-.lens button { display: inline-flex; align-items: center; gap: 8px; border: 0; border-right: 1px solid var(--line2); background: none; padding: 5px 13px; font-weight: 600; color: var(--fg); }
+.lens button { display: inline-flex; align-items: center; gap: 8px; border: 0; border-right: 1px solid var(--line2); background: none; padding: 5px 13px; font-weight: 600; color: var(--text); }
 .lens button:last-child { border-right: 0; }
 .lens button::before { content: ""; width: 10px; height: 10px; border: 1.5px solid currentColor; flex: none; }
-.lens button:hover { background: var(--surface2); }
+.lens button:hover { background: var(--surface-2); }
 .lens button:focus-visible { outline-offset: -2px; }
-.lens button[aria-pressed="true"] { background: var(--fg); color: var(--surface); }
+.lens button[aria-pressed="true"] { background: var(--text); color: var(--surface); }
 
 /* pillar tabs */
 .ptabs { display: flex; flex-wrap: wrap; border-bottom: 1px solid var(--line2); margin-top: 4px; }
-.pt { display: flex; flex-direction: column; align-items: flex-start; gap: 0; border: 0; background: none; padding: 8px 18px 8px 0; margin: 0 18px -1px 0; border-bottom: 3px solid transparent; text-align: left; color: var(--fg); }
+.pt { display: flex; flex-direction: column; align-items: flex-start; gap: 0; border: 0; background: none; padding: 8px 18px 8px 0; margin: 0 18px -1px 0; border-bottom: 3px solid transparent; text-align: left; color: var(--text); }
 .pt:focus-visible { outline-offset: -2px; }
-.pt.pc-all { --pc: var(--fg); }
+.pt.pc-all { --pc: var(--text); }
 .pt[aria-selected="true"] { border-bottom-color: var(--pc); }
-.pt .k { font: 700 11.5px var(--sans); text-transform: uppercase; letter-spacing: 0.08em; color: var(--pc); }
-.pt .v { font-size: 13px; color: var(--muted); }
-.pt .v b { font: 600 16px var(--mono); color: var(--fg); margin-right: 3px; }
-.pc-all { --pc: var(--fg); }
+.pt .k { font: 700 11.5px var(--font-sans); text-transform: uppercase; letter-spacing: 0.08em; color: var(--pc); }
+.pt .v { font-size: 13px; color: var(--text-muted); }
+.pt .v b { font: 600 16px var(--font-mono); color: var(--text); margin-right: 3px; }
+.pc-all { --pc: var(--text); }
 
 .tbl { background: var(--surface); border: 1px solid var(--line2); border-top: 0; min-width: 0; }
 .tbl .empty { padding-block: 40px; }
@@ -64,10 +64,10 @@
 @media (max-width: 1023px) {
   .wb { grid-template-columns: minmax(0, 1fr); }
   .fbtn { display: inline-block; }
-  .facets { position: fixed; z-index: 62; top: 0; bottom: 0; left: 0; height: auto; align-self: auto; width: min(320px, 88vw); overflow-y: auto; border-right: 1px solid var(--line2); transform: translateX(-102%); visibility: hidden; transition: transform 0.18s ease, visibility 0s linear 0.18s; box-shadow: var(--shadow); }
+  .facets { position: fixed; z-index: 62; top: 0; bottom: 0; left: 0; height: auto; align-self: auto; width: min(320px, 88vw); overflow-y: auto; border-right: 1px solid var(--line2); transform: translateX(-102%); visibility: hidden; transition: transform 0.18s ease, visibility 0s linear 0.18s; box-shadow: var(--shadow-md); }
   .fopen .facets { transform: none; visibility: visible; transition: transform 0.18s ease; }
   .fopen .fscrim { display: block; position: fixed; inset: 0; z-index: 61; border: 0; padding: 0; background: var(--scrim); }
-  .fhead { display: flex; justify-content: space-between; align-items: center; padding: 10px 16px; border-bottom: 1px solid var(--line); position: sticky; top: 0; background: var(--surface); z-index: 1; }
+  .fhead { display: flex; justify-content: space-between; align-items: center; padding: 10px 16px; border-bottom: 1px solid var(--border); position: sticky; top: 0; background: var(--surface); z-index: 1; }
   .wmain { padding-inline: 14px; }
 }
 @media (prefers-reduced-motion: reduce) { .facets, .fopen .facets { transition: none; } }

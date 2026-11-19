@@ -1,4 +1,5 @@
-// Colour literals live in src/client/styles/tokens.css only.
+// Colour literals live in src/client/styles/theme.css and the generated brand.css only (the kit's
+// own token file is under src/kit, not scanned here).
 import { readdirSync, readFileSync, statSync } from "node:fs";
 import { join } from "node:path";
 import { describe, expect, it } from "vitest";
@@ -14,8 +15,8 @@ const strip = (s) => s.replace(/\/\*[\s\S]*?\*\//g, "");
 const HEX = /#(?:[0-9a-fA-F]{8}|[0-9a-fA-F]{6}|[0-9a-fA-F]{3,4})(?![\w-])/;
 const FN = /\b(?:rgba?|hsla?|hwb|lab|lch|oklab|oklch)\(/;
 
-describe("no colour literals outside tokens.css", () => {
-  const files = walk(root).filter((f) => !f.endsWith("styles/tokens.css") && /\.(js|css|html)$/.test(f));
+describe("no colour literals outside theme.css and brand.css", () => {
+  const files = walk(root).filter((f) => !/styles\/(theme|brand)\.css$/.test(f) && /\.(js|css|html)$/.test(f));
   it("scans the client files", () => expect(files.length).toBeGreaterThan(10));
   for (const f of files) {
     it(f.slice(root.length), () => {

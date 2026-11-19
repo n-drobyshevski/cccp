@@ -27,6 +27,7 @@ import * as cacheNamespaces from "@gas-kit/tooling/test/contracts/cacheNamespace
 import * as scrubClean from "@gas-kit/tooling/test/contracts/scrubClean.js";
 import { isPushRun } from "@gas-kit/tooling/build/push.mjs";
 import config from "../app.config.mjs";
+import { renderBrandCss } from "../tools/brandCss.mjs";
 import { __resetMemosForTest } from "../src/server/access";
 import * as api from "../src/server/api";
 import * as server from "../src/server/index";
@@ -187,7 +188,16 @@ describe("no colour outside the tokens", () => {
   noColourOutsideTokens.register(describe, it, expect, {
     cssFiles: walk(join(SRC, "client"), [".css"]),
     jsFiles: walk(join(SRC, "client"), [".js"]),
-    allow: ["src/client/styles/tokens.css"],
+    // The theme (Identity G values for the kit token names and the app tokens) and the generated brand
+    // stylesheet (five --brand-* tokens, pinned below). The kit's own tokens are src/kit, not scanned here.
+    allow: ["src/client/styles/theme.css", "src/client/styles/brand.css"],
+  });
+  it("keeps the colour literals of brand.css to the five brand tokens, in step with app.config.mjs", () => {
+    const css = readFileSync(join(SRC, "client/styles/brand.css"), "utf8");
+    expect(css).toBe(renderBrandCss(config.brand));
+    const lits = css.split("\n").filter((l) => /#[0-9a-f]{3,8}\b/i.test(l));
+    expect(lits.length).toBe(15);
+    for (const l of lits) expect(l).toMatch(/^\s*--brand-(accent|accent-ink|accent-soft|mark|mark-ink): #[0-9a-f]{6};$/i);
   });
 });
 

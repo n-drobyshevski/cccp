@@ -8,9 +8,11 @@ import { readdirSync, statSync, unlinkSync } from "node:fs";
 import { join, resolve } from "node:path";
 import { APP_ROOT, kitImport } from "./kitPaths.mjs";
 import config from "../app.config.mjs";
+import { syncBrandCss } from "./brandCss.mjs";
 
 const { defineBuild } = await kitImport("tooling", "build/defineBuild.mjs");
 
+syncBrandCss(APP_ROOT, config.brand);
 const appConfig = { ...config.build, log: true, ...(process.env.CCCP_DIST ? { dist: process.env.CCCP_DIST } : {}) };
 
 // clasp pushes every .js/.gs/.ts/.html/appsscript.json under dist, and `clasp create --rootDir

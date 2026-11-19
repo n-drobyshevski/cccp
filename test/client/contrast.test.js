@@ -3,9 +3,14 @@ import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
 import { describe, expect, it } from "vitest";
 
-const css = readFileSync(resolve(__dirname, "../../src/client/styles/tokens.css"), "utf8").replace(/\/\*[\s\S]*?\*\//g, "");
+// The theme (kit token names with the Identity G values, plus the app tokens) and the generated brand
+// stylesheet (the accent family as --brand-*): the accent, accent-ink and accent-soft of a theme are the
+// brand tokens, as the kit's tokens.base.css maps them.
+const read = (f) => readFileSync(resolve(__dirname, "../../src/client/styles/" + f), "utf8").replace(/\/\*[\s\S]*?\*\//g, "");
+const themeCss = read("theme.css");
+const brandCss = read("brand.css");
 
-function block(open) {
+function blockOf(css, open) {
   const out = {};
   let i = css.indexOf(open);
   if (i < 0) throw new Error("no block " + open);
@@ -13,6 +18,13 @@ function block(open) {
     const end = css.indexOf("}", i);
     for (const m of css.slice(css.indexOf("{", i) + 1, end).matchAll(/--([\w-]+)\s*:\s*([^;]+);/g)) out[m[1]] = m[2].trim();
   }
+  return out;
+}
+
+function block(open) {
+  const out = blockOf(themeCss, open);
+  const brand = blockOf(brandCss, open);
+  for (const k of ["accent", "accent-ink", "accent-soft"]) out[k] = brand["brand-" + k];
   return out;
 }
 
@@ -48,42 +60,45 @@ export function ratio(a, b) {
   return (x + 0.05) / (y + 0.05);
 }
 
+const textOk = (t) => ["bg", "surface", "surface-2"].every((bg) => ratio(t.text, t[bg]) >= 4.5 && ratio(t["text-muted"], t[bg]) >= 4.5);
+
 for (const [name, t] of [["light", light], ["dark", dark]]) {
   describe("contrast, " + name, () => {
     it("body and muted text reach 4.5:1 on the page and on cards", () => {
-      for (const bg of ["bg", "surface", "surface2"]) {
-        expect(ratio(t.fg, t[bg])).toBeGreaterThanOrEqual(4.5);
-        expect(ratio(t.muted, t[bg])).toBeGreaterThanOrEqual(4.5);
-      }
+      expect(textOk(t)).toBe(true);
+    });
+    it("the check fires on a seeded low-contrast pair", () => {
+      expect(textOk({ ...t, "text-muted": name === "light" ? "#aaaaaa" : "#555555" })).toBe(false);
+      expect(ratio(t["text-muted"], t.surface)).toBeGreaterThanOrEqual(4.5);
     });
     it("the accent reads as text on the page and cards, and the button label on the accent", () => {
       expect(ratio(t.accent, t.surface)).toBeGreaterThanOrEqual(4.5);
-      expect(ratio(t.accent, t.accent_soft ?? t["accent-soft"])).toBeGreaterThanOrEqual(4.5);
-      expect(ratio(t["on-accent"], t.accent)).toBeGreaterThanOrEqual(4.5);
+      expect(ratio(t.accent, t["accent-soft"])).toBeGreaterThanOrEqual(4.5);
+      expect(ratio(t["accent-ink"], t.accent)).toBeGreaterThanOrEqual(4.5);
     });
     it("status colours reach 3:1 on cards", () => {
-      for (const s of ["ok", "warn", "bad", "none"]) expect(ratio(t[s], t.surface), s).toBeGreaterThanOrEqual(3);
+      for (const s of ["ok-fg", "warn-fg", "bad-fg", "none-fg"]) expect(ratio(t[s], t.surface), s).toBeGreaterThanOrEqual(3);
     });
     it("small status text (the changed cue, result pills, tags) reaches 4.5:1", () => {
       const mix = (a, b, pct) => {
         const [x, y] = [rgbOf(a), rgbOf(b)];
         return "#" + x.map((c, i) => Math.round((c * pct + y[i] * (1 - pct)) * 255).toString(16).padStart(2, "0")).join("");
       };
-      for (const bg of ["surface", "surface2"]) {
+      for (const bg of ["surface", "surface-2"]) {
         expect(ratio(t["warn-strong"], t[bg]), "warn-strong on " + bg).toBeGreaterThanOrEqual(4.5);
         expect(ratio(t["ok-text"], t[bg]), "ok-text on " + bg).toBeGreaterThanOrEqual(4.5);
       }
       expect(ratio(t.teal, mix(t.teal, t.surface, 0.16))).toBeGreaterThanOrEqual(4.5);
-      expect(ratio(t["warn-strong"], mix(t.warn, t.surface, 0.18))).toBeGreaterThanOrEqual(4.5);
+      expect(ratio(t["warn-strong"], mix(t["warn-fg"], t.surface, 0.18))).toBeGreaterThanOrEqual(4.5);
     });
     it("pillar names and the muted 'none' text reach 4.5:1 on the page and cards", () => {
-      for (const bg of ["bg", "surface", "surface2"]) {
-        for (const k of ["cy", "co", "ct", "pl", "none", "accent"]) expect(ratio(t[k], t[bg]), k + " on " + bg).toBeGreaterThanOrEqual(4.5);
+      for (const bg of ["bg", "surface", "surface-2"]) {
+        for (const k of ["cy", "co", "ct", "pl", "none-fg", "accent"]) expect(ratio(t[k], t[bg]), k + " on " + bg).toBeGreaterThanOrEqual(4.5);
       }
     });
     it("the glyph marks reach 3:1 on their fills", () => {
-      expect(ratio(t["on-bad"], t.bad)).toBeGreaterThanOrEqual(3);
-      for (const [c, p] of [["ok", 0.13], ["warn", 0.16]]) {
+      expect(ratio(t["destructive-ink"], t["bad-fg"])).toBeGreaterThanOrEqual(3);
+      for (const [c, p] of [["ok-fg", 0.13], ["warn-fg", 0.16]]) {
         const mixed = "#" + rgbOf(t[c]).map((x, i) => Math.round((x * p + rgbOf(t.surface)[i] * (1 - p)) * 255).toString(16).padStart(2, "0")).join("");
         expect(ratio(t[c], mixed), c).toBeGreaterThanOrEqual(3);
       }

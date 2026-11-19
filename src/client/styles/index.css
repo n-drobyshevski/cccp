@@ -1,5 +1,10 @@
 /* Stylesheet entry. Later work packages add @import lines for the views. */
-@import "./tokens.css";
+/* The kit's token layer, then this app's brand (its accent family), then the Identity G theme that sets
+   the kit token names to the approved values. The kit's base.css is not loaded: it would change the
+   page's reset and type. */
+@import "@gas-kit/ui/styles/tokens.base.css";
+@import "./brand.css";
+@import "./theme.css";
 @import "./base.css";
 @import "./loading.css";
 @import "./appbar.css";

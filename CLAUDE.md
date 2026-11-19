@@ -44,7 +44,7 @@ in the architecture spec; the approved UI is in `mockups/` (never edited, never 
   join idiom such as `['https:', '', host].join('/')`.
 - No backticks in the built client bundle (template literals are lowered); no `//` comment
   patterns that survive the build.
-- No colour literals outside `src/client/styles/tokens.css`. Everything else uses tokens, in light
+- No colour literals outside `src/client/styles/theme.css` (and the generated `brand.css`). Everything else uses tokens, in light
   and dark. Status is never shown by colour alone; the "none" dot is dashed. Focus ring is 2px
   `var(--accent)`.
 - Dates from the server are `yyyy-MM-dd` strings already formatted in the sheet's timezone;

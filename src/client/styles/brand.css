@@ -1,0 +1,27 @@
+/* Generated from app.config.mjs by tools/brandCss.mjs: edit the config, not this file.
+   The five brand tokens; tokens.base.css maps --accent and --mark to them. */
+:root {
+  --brand-accent: #1a4f9c;
+  --brand-accent-ink: #ffffff;
+  --brand-accent-soft: #eef3fb;
+  --brand-mark: #1a4f9c;
+  --brand-mark-ink: #ffffff;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --brand-accent: #7fa8e6;
+    --brand-accent-ink: #101418;
+    --brand-accent-soft: #1f2a3d;
+    --brand-mark: #7fa8e6;
+    --brand-mark-ink: #101418;
+  }
+}
+
+:root[data-theme="dark"] {
+  --brand-accent: #7fa8e6;
+  --brand-accent-ink: #101418;
+  --brand-accent-soft: #1f2a3d;
+  --brand-mark: #7fa8e6;
+  --brand-mark-ink: #101418;
+}

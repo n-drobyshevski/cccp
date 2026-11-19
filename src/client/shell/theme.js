@@ -1,7 +1,7 @@
 // Light and dark. The choice lives on <html data-theme> and in localStorage 'cccp.theme' (a bare
 // string, see lib/storage.js); the pre-paint script in index.html applies a stored choice before
 // first paint, else light (the default theme). With no stored choice the Display default applies;
-// 'system' leaves the attribute off so the media query in tokens.css decides. Reading, writing and
+// 'system' leaves the attribute off so the media query in theme.css decides. Reading, writing and
 // applying the choice are the kit's getTheme and setTheme; this module adds what is the app's:
 // the Display default, the light/dark flip and the change subscribers.
 import { getTheme, setTheme } from "@gas-kit/client/theme.js";

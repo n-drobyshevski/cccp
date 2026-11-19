@@ -2,8 +2,8 @@
 .pop-menu { min-width: 230px; padding: 6px; }
 .pop-menu .mlbl { padding: 6px 9px 2px; }
 .pop-menu .menu { gap: 0; }
-.mitem { display: flex; align-items: center; gap: 9px; width: 100%; border: 0; background: none; text-align: left; padding: 7px 9px; border-radius: var(--r); white-space: nowrap; color: var(--fg); font: inherit; cursor: pointer; }
-.mitem:hover:not(:disabled) { background: var(--surface2); }
-.mitem:disabled { color: var(--muted); cursor: default; }
-.mitem svg { width: 15px; height: 15px; color: var(--muted); flex: none; }
-.mitem small { margin-left: auto; color: var(--muted); font: 500 11px var(--mono); padding-left: 12px; }
+.mitem { display: flex; align-items: center; gap: 9px; width: 100%; border: 0; background: none; text-align: left; padding: 7px 9px; border-radius: var(--radius); white-space: nowrap; color: var(--text); font: inherit; cursor: pointer; }
+.mitem:hover:not(:disabled) { background: var(--surface-2); }
+.mitem:disabled { color: var(--text-muted); cursor: default; }
+.mitem svg { width: 15px; height: 15px; color: var(--text-muted); flex: none; }
+.mitem small { margin-left: auto; color: var(--text-muted); font: 500 11px var(--font-mono); padding-left: 12px; }

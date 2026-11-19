@@ -8,6 +8,13 @@ export default {
   product: "CCCP",
   // Every localStorage key of this app starts with it.
   storagePrefix: "cccp.",
+  // The five brand tokens (the kit's brand contract), light and dark: Identity G's accent family.
+  // tools/brandCss.mjs renders them into src/client/styles/brand.css (a test keeps the two in step).
+  // The mark is the accent. Everything else of the theme is src/client/styles/theme.css.
+  brand: {
+    light: { accent: "#1a4f9c", accentInk: "#ffffff", accentSoft: "#eef3fb", mark: "#1a4f9c", markInk: "#ffffff" },
+    dark: { accent: "#7fa8e6", accentInk: "#101418", accentSoft: "#1f2a3d", mark: "#7fa8e6", markInk: "#101418" },
+  },
   // Must equal "timeZone" in src/gas/appsscript.json.
   timeZone: "Europe/Paris",
   // "webapp.access" in src/gas/appsscript.json must equal it (the manifestWebapp contract).
@@ -57,6 +64,8 @@ export default {
     // retry, boot payload), tip (hoverable card, watch for a replaced trigger, nested installs), theme and storage
     // modules are larger than the app's copies they replace; lib/storage.js keeps a thin wrapper for the bare-string
     // preferences and lib/errorText.js is new (the reference of an unexpected fault).
-    budgets: { server: 157_600, js: 199_900, css: 59_300 },
+    // C4: the css cap rises to 66500 (bundle 66445, +7.1 KB): the kit's tokens.base.css (about 7 KB minified:
+    // spacing, type, motion, chart, sidebar and shadow tokens the app does not use yet) now loads before theme.css.
+    budgets: { server: 157_600, js: 199_900, css: 66_500 },
   },
 };
